@@ -1310,6 +1310,31 @@ static void SV_HolomatchInfoKeys( void ) {
 
 /*
 ===============
+SV_STVEFSPInfoKeys
+
+Elite Force single player's serverinfo, which every full savegame keeps,
+holds the game directory, the map, the protocol and the version alone:
+stvoy.exe 1.20's SV_Init publishes only protocol and mapname there
+(0x425c70..0x425dad), Com_Init the version, and its filesystem fs_game
+(0x415fb7, flags 0x14). None of the rules or network keys below is
+registered by that engine, so they stay local under this profile; fs_game
+also stays in the systeminfo, where this engine's client reads it.
+===============
+*/
+static void SV_STVEFSPInfoKeys( void ) {
+	static const char *const ownKeys[] = { "dmflags", "timelimit", "g_gametype", "sv_keywords",
+		"sv_privateClients", "sv_hostname", "sv_maxclients", "sv_minRate", "sv_maxRate", "sv_dlRate",
+		"sv_floodProtect", "sv_allowDownload", "sv_dlURL", "sv_playingDemo" };
+
+	for ( const char *name : ownKeys ) {
+		Cvar_Get( name, "", 0 )->flags &= ~CVAR_SERVERINFO;
+	}
+	Cvar_Get( "fs_game", "", 0 )->flags |= CVAR_SERVERINFO;
+}
+
+
+/*
+===============
 SV_Init
 
 Only called at main exe startup, not for each game
@@ -1334,6 +1359,12 @@ void SV_Init( void )
 	const auto &serverPolicy = Com_GameProfile()->server;
 	Cvar_Get ("fraglimit", serverPolicy.fragLimit, serverPolicy.fragLimitInServerInfo ? CVAR_SERVERINFO : 0);
 	Cvar_Get ("timelimit", "0", CVAR_SERVERINFO);
+	if ( Com_GameIsSTVEFMP() ) {
+		// Holomatch registers the Expansion Pack game's team time-limit
+		// cvar beside timelimit, empty and temporary (stvoyHM.exe
+		// 0x433de8..0x433df7), before its game registers it.
+		Cvar_Get( "timelimitWinningTeam", "", CVAR_TEMP );
+	}
 	sv_gametype = Cvar_Get ("g_gametype", serverPolicy.gameType, CVAR_SERVERINFO | CVAR_LATCH );
 	if ( serverPolicy.mapSkill ) Cvar_Get( "g_gameskill", serverPolicy.mapSkill, CVAR_SERVERINFO | CVAR_LATCH );
 	Cvar_SetDescription( sv_gametype, "Set the gametype to mod." );
@@ -1467,6 +1498,13 @@ void SV_Init( void )
 
 	// systeminfo
 	sv_cheats = Cvar_Get( "sv_cheats", "1", CVAR_SYSTEMINFO | CVAR_ROM );
+	if ( Com_GameIsSTVEFSP() ) {
+		// Elite Force single player registers it in the systeminfo alone
+		// and leaves it writable (stvoy.exe Cvar_Init 0x41404c, SV_Init
+		// 0x425cb3, flags 8): its console may turn the game's cheats on in
+		// the middle of a level.
+		sv_cheats->flags &= ~CVAR_ROM;
+	}
 	if ( Com_GameIsMOHAA() ) {
 		// Medal of Honor's game reads 2015's own cheat switch, which that
 		// engine registers at 1 and sets as each map starts (SV_Map_f;
@@ -1523,12 +1561,21 @@ void SV_Init( void )
 	Cvar_CheckRange( sv_zombietime, "1", nullptr, CV_INTEGER );
 	Cvar_SetDescription( sv_zombietime, "Seconds to sink messages after disconnect." );
 	Cvar_Get ("nextmap", "", CVAR_TEMP );
+	if ( Com_GameIsSTVEFSP() ) {
+		// Single player's game spawns the player at the target a level
+		// transition names; the engine registers it empty beside nextmap
+		// (stvoy.exe SV_Init 0x425d3c).
+		Cvar_Get( "spawntarget", "", 0 );
+	}
 
 	sv_allowDownload = Cvar_Get ("sv_allowDownload", "1", CVAR_SERVERINFO);
 	Cvar_SetDescription( sv_allowDownload, "Toggle the ability for clients to download files maps etc. from server." );
 	Cvar_Get ("sv_dlURL", "", CVAR_SERVERINFO | CVAR_ARCHIVE);
 	if ( Com_GameIsSTVEFMP() ) {
 		SV_HolomatchInfoKeys();
+	}
+	if ( Com_GameIsSTVEFSP() ) {
+		SV_STVEFSPInfoKeys();
 	}
 	if ( Com_GameIsRitual() ) {
 		SV_RitualInfoKeys();

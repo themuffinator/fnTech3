@@ -289,7 +289,8 @@ typedef struct comGameBotPolicy_s {
  * Trailing members are zero for the Quake and Wolfenstein games: a NULL
  * headKey or colorKey means no such key, a NULL bodyKey means "model", and a
  * NULL playerName keeps the engine's UnnamedPlayer default. Elite Force SP
- * publishes its three-part player as legsModel/torsoModel/headModel. */
+ * publishes its three-part player as legsModel/torsoModel/headModel, and
+ * nonzero unarchivedModels publishes the model keys without archiving them. */
 typedef struct comGameAppearancePolicy_s {
 	const char *bodyModel;
 	const char *headKey;
@@ -303,6 +304,7 @@ typedef struct comGameAppearancePolicy_s {
 	const char *torsoKey;
 	const char *torsoModel;
 	const char *playerName;
+	int unarchivedModels;
 } comGameAppearancePolicy_t;
 
 typedef enum comGamePureProof_e {

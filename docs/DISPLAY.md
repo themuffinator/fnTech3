@@ -184,8 +184,10 @@ global fog all stop working.
 - `r_ext_supersample`: `1` draws every frame at a higher resolution and
   shrinks it, for the cleanest picture at a large cost in speed.
 - `r_ext_max_anisotropy`: how sharp textures stay on floors and walls seen
-  at an angle. The default is `8`; `16` is sharper still.
-  `r_ext_texture_filter_anisotropic 0` turns it off. Restart.
+  at an angle. The default is `8`; `16` is sharper still. Every renderer
+  applies it whatever `r_textureMode` you choose, the bilinear
+  `GL_LINEAR_MIPMAP_NEAREST` included. `r_ext_texture_filter_anisotropic 0`
+  turns it off. Restart.
 - `r_renderScale`, `r_renderWidth` and `r_renderHeight`: draw the game at
   one resolution and show it at another -- lower for speed, higher for
   quality. `r_renderWidth` and `r_renderHeight` set the size to draw at, and

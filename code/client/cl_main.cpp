@@ -3803,6 +3803,28 @@ static void CL_Systeminfo_f( void ) {
 }
 
 
+/*
+===========
+CL_RemoteServerinfo_f
+
+Holomatch's client prints the serverinfo of the server it is playing on
+(stvoyHM.exe rserverinfo 0x40daa0, registered at 0x40fcad): only once the
+game is active, under a header naming the server.
+===========
+*/
+static void CL_RemoteServerinfo_f( void ) {
+	if ( cls.state != CA_ACTIVE ) {
+		Com_Printf( "Not connected to a server.\n" );
+		return;
+	}
+
+	Com_Printf( "--------- Remote Server Information ---------\n" );
+	Com_Printf( "Server: %s settings:\n", cls.servername );
+	Info_Print( cl.gameState.stringData + cl.gameState.stringOffsets[ CS_SERVERINFO ] );
+	Com_Printf( "--------------------------------------\n" );
+}
+
+
 static void CL_CompleteCallvote(const char *args, int argNum )
 {
 	if( argNum >= 2 )
@@ -6340,7 +6362,8 @@ static void CL_InitRef( void ) {
 
 static void CL_RegisterAppearanceCvars( void ) {
 	const auto &appearance = Com_GameProfile()->appearance;
-	const int flags = CVAR_USERINFO | (appearance.archiveDefaults ? CVAR_ARCHIVE : CVAR_ARCHIVE_ND);
+	const int flags = CVAR_USERINFO | (appearance.unarchivedModels ? 0 :
+		appearance.archiveDefaults ? CVAR_ARCHIVE : CVAR_ARCHIVE_ND);
 	// Elite Force SP publishes legsModel/torsoModel/headModel; Holomatch has
 	// only "model" and no head-model key. Jedi Academy's single player
 	// publishes no model key at all: its player comes from the menus and the
@@ -6355,6 +6378,30 @@ static void CL_RegisterAppearanceCvars( void ) {
 	}
 	if (appearance.colorKey) Cvar_Get(appearance.colorKey, "4", CVAR_USERINFO | CVAR_ARCHIVE);
 	if (appearance.secondColor) Cvar_Get("color2", appearance.secondColor, CVAR_USERINFO | CVAR_ARCHIVE);
+}
+
+/*
+===============
+CL_STVEFInfoKeys
+
+Elite Force's userinfo holds retail's keys alone. Neither engine registers
+cl_anonymous or cl_guid (stvoyHM.exe CL_Init 0x40fabc..0x40fb4a, stvoy.exe
+0x408872..0x4088db), and single player's, which every savegame keeps, has no
+rate, password or item prediction either; they stay local here.
+===============
+*/
+static void CL_STVEFInfoKeys( void ) {
+	static const char *const ownKeys[] = { "cl_anonymous", "cl_guid" };
+	static const char *const singlePlayerOwnKeys[] = { "rate", "password", "cg_predictItems" };
+
+	for ( const char *name : ownKeys ) {
+		Cvar_Get( name, "", 0 )->flags &= ~CVAR_USERINFO;
+	}
+	if ( Com_GameIsSTVEFSP() ) {
+		for ( const char *name : singlePlayerOwnKeys ) {
+			Cvar_Get( name, "", 0 )->flags &= ~CVAR_USERINFO;
+		}
+	}
 }
 
 static void CL_SetModel_f( void ) {
@@ -7204,6 +7251,27 @@ void CL_Init( void ) {
 		// operating system's layout.
 		Cvar_Get( "g_language", "", CVAR_ARCHIVE | CVAR_NORESTART );
 		Cvar_Get( "k_language", "american", CVAR_ARCHIVE | CVAR_NORESTART );
+		/* The sound, controls and video menus of both modes set these, and
+		 * retail registers them (S_Init stvoy.exe 0x41fad7, stvoyHM.exe
+		 * 0x429abc; IN_Init 0x42d53c..0x42d5c6 and 0x43ec8f..0x43ed00).
+		 * Only the legacy mixer reads s_khz, as its own rate; the renderers do
+		 * not read r_lowEndVideo, and the input reads the joystick settings
+		 * only where it has joystick support. Registered, the menus show and
+		 * keep them. */
+		Cvar_Get( "s_khz", "22", CVAR_ARCHIVE );
+		Cvar_Get( "in_joystick", "0", CVAR_ARCHIVE | CVAR_LATCH );
+		Cvar_Get( "joy_threshold", "0.15", CVAR_ARCHIVE );
+		Cvar_Get( "joy_xbutton", "1", CVAR_ARCHIVE );
+		Cvar_Get( "joy_ybutton", "0", CVAR_ARCHIVE );
+		Cvar_SetDescription( Cvar_Get( "r_lowEndVideo", "0", CVAR_ARCHIVE | CVAR_LATCH ),
+			"Elite Force's low-end video switch, shown in its video menus. fnTech3's renderers do not read it." );
+		if ( Com_GameIsSTVEFSP() ) {
+			/* Single player's sound menu has a voice volume slider. stvoy.exe
+			 * registers it (0x41fa95) and stores the cvar at 0x792b10, which
+			 * nothing reads: voices play at the main volume in both engines. */
+			Cvar_SetDescription( Cvar_Get( "s_volumeVoice", "1.0", CVAR_ARCHIVE ),
+				"Elite Force's voice volume slider. Retail stvoy.exe never reads it, and neither does fnTech3: voices play at the sound volume." );
+		}
 	}
 	// Single player's cgame, half of the game library the server loads,
 	// answers to this client.
@@ -7266,6 +7334,7 @@ void CL_Init( void ) {
 	Cmd_AddCommand ("stopvideo", CL_StopVideo_f );
 	Cmd_AddCommand ("serverinfo", CL_Serverinfo_f );
 	Cmd_AddCommand ("systeminfo", CL_Systeminfo_f );
+	if ( Com_GameIsSTVEFMP() ) Cmd_AddCommand( "rserverinfo", CL_RemoteServerinfo_f );
 
 #ifdef USE_CURL
 	Cmd_AddCommand( "download", CL_Download_f );
@@ -7285,6 +7354,9 @@ void CL_Init( void ) {
 #endif
 	Cvar_Get( "cl_guid", "", CVAR_USERINFO | CVAR_ROM | CVAR_PROTECTED );
 	CL_UpdateGUID( nullptr, 0 );
+	if ( Com_GameIsSTVEF() ) {
+		CL_STVEFInfoKeys();
+	}
 
 	Com_Printf( "----- Client Initialization Complete -----\n" );
 }
@@ -7368,6 +7440,7 @@ void CL_Shutdown( const char *finalmsg, qboolean quit ) {
 	Cmd_RemoveCommand ("stopvideo");
 	Cmd_RemoveCommand ("serverinfo");
 	Cmd_RemoveCommand ("systeminfo");
+	if ( Com_GameIsSTVEFMP() ) Cmd_RemoveCommand( "rserverinfo" );
 	Cmd_RemoveCommand ("modelist");
 	CL_RemoveRTCWCommands();
 	QLWebHost_UnregisterCommands();

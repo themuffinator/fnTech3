@@ -29,9 +29,12 @@ const comGameProfile_t *profile;
 const comGameProfile_t *Com_GameProfile(){return profile;}
 int Com_GameIsQuakeLive(){return profile->id==COM_GAME_QUAKELIVE;}
 int Com_GameIsWolfET(){return profile->id==COM_GAME_WOLFET;}
+int Com_GameIsSTVEFMP(){return profile->id==COM_GAME_STVEF_MP;}
 std::map<std::string,std::string> values,defaults;
-void Cvar_Get(const char *name,const char *value,int){
+std::map<std::string,int> flags;
+void Cvar_Get(const char *name,const char *value,int registered){
  defaults[name]=value;
+ flags[name]=registered;
  values.emplace(name,value); // Existing explicit value is retained.
 }
 ''' + catalog + function + r'''
@@ -43,6 +46,11 @@ int main(){
   assert(values.at("bot_rocketjump")=="1");
   // etded.exe and et.exe register 50; every other profile keeps Quake III's 100.
   assert(defaults.at("bot_thinktime")==(p.id==COM_GAME_WOLFET?"50":"100"));
+  // stvoyHM.exe protects it as a cheat (0x42de06) and draws 128 debug
+  // polygons (0x42dd75); every other profile keeps its flags and 2.
+  const bool holomatch=p.id==COM_GAME_STVEF_MP;
+  assert(flags.at("bot_thinktime")==(holomatch?CVAR_CHEAT:0));
+  assert(defaults.at("bot_maxdebugpolys")==(holomatch?"128":"2"));
   assert(values.at("bot_enable")== (disabled?"0":"1"));
   values["bot_enable"]=disabled?"1":"0";
   values["bot_grapple"]=ql?"0":"1";SV_BotInitCvars();

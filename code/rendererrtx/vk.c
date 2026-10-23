@@ -7020,6 +7020,7 @@ static VkSampler vk_find_sampler( const Vk_Sampler_Def *def ) {
 	VkFilter mag_filter;
 	VkFilter min_filter;
 	VkSamplerMipmapMode mipmap_mode;
+	qboolean mipmapped;
 	float maxLod;
 	int i;
 
@@ -7048,15 +7049,18 @@ static VkSampler vk_find_sampler( const Vk_Sampler_Def *def ) {
 	}
 
 	maxLod = vk.maxLod;
+	mipmapped = qtrue;
 
 	if (def->gl_min_filter == GL_NEAREST) {
 		min_filter = VK_FILTER_NEAREST;
 		mipmap_mode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
 		maxLod = 0.25f; // used to emulate OpenGL's GL_LINEAR/GL_NEAREST minification filter
+		mipmapped = qfalse;
 	} else if (def->gl_min_filter == GL_LINEAR) {
 		min_filter = VK_FILTER_LINEAR;
 		mipmap_mode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
 		maxLod = 0.25f; // used to emulate OpenGL's GL_LINEAR/GL_NEAREST minification filter
+		mipmapped = qfalse;
 	} else if (def->gl_min_filter == GL_NEAREST_MIPMAP_NEAREST) {
 		min_filter = VK_FILTER_NEAREST;
 		mipmap_mode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
@@ -7089,7 +7093,10 @@ static VkSampler vk_find_sampler( const Vk_Sampler_Def *def ) {
 	desc.addressModeW = address_mode;
 	desc.mipLodBias = 0.0f;
 
-	if ( def->noAnisotropy || mipmap_mode == VK_SAMPLER_MIPMAP_MODE_NEAREST || mag_filter == VK_FILTER_NEAREST ) {
+	// Like the GL renderers, filter every mipmapped image anisotropically,
+	// whether or not it blends between mip levels: Elite Force's own
+	// GL_LINEAR_MIPMAP_NEAREST takes the same anisotropy as trilinear.
+	if ( def->noAnisotropy || !mipmapped || mag_filter == VK_FILTER_NEAREST ) {
 		desc.anisotropyEnable = VK_FALSE;
 		desc.maxAnisotropy = 1.0f;
 	} else {

@@ -227,9 +227,15 @@ static void SV_Map_f( void ) {
 		return;
 	}
 
-	// force latched values to get set
+	// force latched values to get set. Holomatch's map command keeps the game
+	// type in the serverinfo alone (stvoyHM.exe SV_Map_f 0x42e4b8..0x42e4c4,
+	// flags 0x24), where Quake III 1.32's also puts it in the userinfo.
 	const auto &serverPolicy = Com_GameProfile()->server;
-	Cvar_Get ("g_gametype", serverPolicy.gameType, CVAR_SERVERINFO | CVAR_USERINFO | CVAR_LATCH );
+	if ( Com_GameIsSTVEFMP() ) {
+		Cvar_Get( "g_gametype", serverPolicy.gameType, CVAR_SERVERINFO | CVAR_LATCH );
+	} else {
+		Cvar_Get ("g_gametype", serverPolicy.gameType, CVAR_SERVERINFO | CVAR_USERINFO | CVAR_LATCH );
+	}
 	if ( serverPolicy.mapSkill ) {
 		Cvar_Get( "g_gameskill", serverPolicy.mapSkill, CVAR_SERVERINFO | CVAR_LATCH );
 	}

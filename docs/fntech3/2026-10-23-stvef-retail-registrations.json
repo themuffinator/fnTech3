@@ -1,0 +1,490 @@
+{
+ "record": "2026-10-23-stvef-retail-registrations.md",
+ "date": "2026-10-23",
+ "profiles": [
+  "stvef-sp",
+  "stvef-mp"
+ ],
+ "evidence": [
+  "Source",
+  "Unit",
+  "Live"
+ ],
+ "gatesClosed": [],
+ "baseCommit": "f4d07ef0444817be60d910242b483b05db4ab548",
+ "platform": "Windows 11 x86, MSVC developer build meson/build/win32-dev",
+ "runtime": {
+  "final": {
+   "build": "git archive of f4d07ef0 with this round's files alone, configured as win32-dev (.tmp/stvef-round-1023/export/build-win32)",
+   "fntech3.exe": "49cf555cf252a2ee11d9662429d0dc8f42b5048bae04de7e60adeb3ce9c7ef80",
+   "fntech3.ded.exe": "55a1f3dcdd96862bdcc3371031c15cf15f24c997c9589b543f66003b8a977da4",
+   "rerun": ".tmp/stvef-round-1023/validation/final_evidence.py: census key sets, cheats, rserverinfo, spawntarget, saves"
+  },
+  "investigation": {
+   "fntech3.exe": "e67557219626eb8192751bdd441a90961eca577a5a01c7d0f56aa79850eca276",
+   "fntech3.ded.exe": "9059dd884eb10cfbfd17dff2fec21db8358551b6f913ec72f52d6d87afaeaa51",
+   "note": "the shared developer build at f4d07ef0 plus this round's changes"
+  },
+  "before": {
+   "fntech3.exe": "c41e1f6feb6ed0fe7c731b60fc21c40afd41a0a14744ab146bbfd989965368f2",
+   "fntech3.ded.exe": "6f0121d91543f598e63f02e46c6b8d26a1f1bc19489b500061d212633bbbb2ea",
+   "note": "win32-dev rebuilt at the base commit before any change"
+  }
+ },
+ "retail": {
+  "stvoy.exe": {
+   "version": "1.20",
+   "sha256": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74",
+   "bytes": 675840,
+   "peStamp": "0x3adb539a",
+   "Cmd_AddCommand": "0x410b90",
+   "Cvar_Get": "0x413450"
+  },
+  "stvoyHM.exe": {
+   "version": "1.20",
+   "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+   "bytes": 925696,
+   "peStamp": "0x3adde3c8",
+   "Cmd_AddCommand": "0x4198d0",
+   "Cvar_Get": "0x41ca90"
+  },
+  "efgamex86.dll": "c159cba671544ddcc8694887c21bbeba13fead35bbf4488c08914f66695105a9",
+  "efuix86.dll": "35dfe9ca1a3ee20cc1d314013d1d5c281cd9ed2b68fc57b22af77bb2a0bedfb2",
+  "readStatically": "capstone and pefile; neither executable was patched",
+  "staticCensus": {
+   "stvoyHM.exe": {
+    "commandSites": 125,
+    "cvarSites": 252
+   },
+   "stvoy.exe": {
+    "commandSites": 119,
+    "cvarSites": 171
+   },
+   "note": "renderer cvars and commands are registered through a function pointer and come from the runtime lists"
+  }
+ },
+ "method": {
+  "probe": ".tmp/stvef-round-1023/census/run_lists.py (private desktop, no input, s_initsound 0, isolated folders; retail fs_basepath scratch and fs_cdpath the staged retail paks, fnTech3 fs_basepath .tmp/stvef-stock)",
+  "states": [
+   "main menu",
+   "devmap voy2 / devmap hm_borg1",
+   "Holomatch dedicated server"
+  ],
+  "commands": "cmdlist; cvarlist (fnTech3 also cvar_modified)",
+  "compare": ".tmp/stvef-round-1023/census/compare_lists.py",
+  "installationUnchanged": true
+ },
+ "runtimeCounts": {
+  "Holomatch client, menu": {
+   "retail": {
+    "commands": 126,
+    "cvars": 357
+   },
+   "before": {
+    "commands": 193,
+    "cvars": 731
+   },
+   "after": {
+    "commands": 194,
+    "cvars": 737
+   }
+  },
+  "single player client, menu": {
+   "retail": {
+    "commands": 115,
+    "cvars": 235
+   },
+   "before": {
+    "commands": 199,
+    "cvars": 678
+   },
+   "after": {
+    "commands": 201,
+    "cvars": 684
+   }
+  },
+  "Holomatch dedicated": {
+   "retail": {
+    "commands": 43,
+    "cvars": 138
+   },
+   "before": {
+    "commands": 67,
+    "cvars": 157
+   },
+   "after": {
+    "commands": 67,
+    "cvars": 158
+   }
+  },
+  "note": "cmdlist's own totals; fnTech3's include its own commands and cvars, which stay"
+ },
+ "infoStrings": {
+  "Holomatch userinfo": {
+   "retail": [
+    "cg_predictItems",
+    "color",
+    "handicap",
+    "model",
+    "name",
+    "password",
+    "rate",
+    "sex",
+    "snaps"
+   ],
+   "beforeExtra": [
+    "cl_anonymous",
+    "cl_guid"
+   ],
+   "inALevelAlsoBefore": [
+    "g_gametype"
+   ],
+   "after": "equal to retail at the menu and in a level"
+  },
+  "single player userinfo": {
+   "retail": [
+    "handicap",
+    "headModel",
+    "legsModel",
+    "name",
+    "sex",
+    "snaps",
+    "torsoModel"
+   ],
+   "retailInALevel": "also the game's g_gravity and g_spskill",
+   "beforeExtra": [
+    "cg_predictItems",
+    "cl_anonymous",
+    "cl_guid",
+    "password",
+    "rate"
+   ],
+   "after": "equal to retail at the menu and in a level"
+  },
+  "single player serverinfo": {
+   "retail": [
+    "fs_game",
+    "mapname",
+    "protocol",
+    "version"
+   ],
+   "beforeExtra": [
+    "dmflags",
+    "g_gametype",
+    "sv_allowDownload",
+    "sv_dlRate",
+    "sv_dlURL",
+    "sv_floodProtect",
+    "sv_hostname",
+    "sv_keywords",
+    "sv_maxRate",
+    "sv_maxclients",
+    "sv_minRate",
+    "sv_playingDemo",
+    "sv_privateClients",
+    "timelimit"
+   ],
+   "beforeMissing": [
+    "fs_game"
+   ],
+   "after": "equal to retail at the menu and in a level"
+  },
+  "Holomatch serverinfo": "already equal (docs/fntech3/2026-10-08-stvef-serverinfo.md)"
+ },
+ "changes": [
+  {
+   "item": "+careful/-careful",
+   "profile": "stvef-sp",
+   "retail": "stvoy.exe registers them at 0x40605a..0x406076 (handlers 0x405310/0x405320, kbutton 0x4b2988 = button 6); CL_CmdButtons 0x405940 sends buttons 0..7 as bits 0..7",
+   "code": "code/client/cl_input.cpp kInputCommandBindings"
+  },
+  {
+   "item": "rserverinfo",
+   "profile": "stvef-mp",
+   "retail": "stvoyHM.exe 0x40daa0, registered at 0x40fcad: 'Not connected to a server.' unless cls.state is active (8), else a header, 'Server: %s settings:', Info_Print of the serverinfo and a rule",
+   "code": "code/client/cl_main.cpp CL_RemoteServerinfo_f"
+  },
+  {
+   "item": "cl_yawspeed, cl_pitchspeed",
+   "retail": "140, archived (stvoy.exe 0x40866d..0x408697, stvoyHM.exe 0x40f902..0x40f927)",
+   "before": "archived, cheat-protected",
+   "code": "code/client/cl_input.cpp CL_InitInput"
+  },
+  {
+   "item": "cl_anglespeedkey",
+   "retail": "1.5, archived; efuix86.dll and every ui.qvm list it among the controls menu cvars",
+   "before": "cheat-protected"
+  },
+  {
+   "item": "cl_maxpackets",
+   "retail": "30, archived; stvoyHM.exe CL_ReadyToSendPacket holds it to 15..100 (0x40a5f1..0x40a614); stvoy.exe stores it (0x4bb794) and never reads it",
+   "before": "125, cheat-protected, 15..125"
+  },
+  {
+   "item": "cl_run",
+   "retail": "stvoy.exe 0 (0x4086ef; default.cfg leaves it), stvoyHM.exe 1",
+   "before": "1"
+  },
+  {
+   "item": "sensitivity",
+   "retail": "5 in both",
+   "before": "2"
+  },
+  {
+   "item": "Holomatch userinfo",
+   "retail": "CL_Init 0x40fabc..0x40fb4a",
+   "code": "code/client/cl_main.cpp CL_STVEFInfoKeys"
+  },
+  {
+   "item": "single player userinfo",
+   "retail": "0x408872..0x4088db",
+   "code": "CL_STVEFInfoKeys"
+  },
+  {
+   "item": "single player model keys",
+   "retail": "flags 2 (0x408894..0x4088b9)",
+   "before": "archived",
+   "code": "code/qcommon/game_profile.* appearance.unarchivedModels"
+  },
+  {
+   "item": "single player serverinfo",
+   "retail": "SV_Init 0x425c70..0x425dad (protocol, mapname), Com_Init (version), fs_game flags 0x14 at 0x415fb7",
+   "code": "code/server/sv_init.cpp SV_STVEFSPInfoKeys"
+  },
+  {
+   "item": "single player sv_cheats",
+   "retail": "flags 8 at Cvar_Init 0x41404c and SV_Init 0x425cb3 (not read-only)",
+   "before": "read-only",
+   "code": "SV_Init"
+  },
+  {
+   "item": "spawntarget",
+   "profile": "stvef-sp",
+   "retail": "'' flags 0 in SV_Init (0x425d3c), beside nextmap",
+   "before": "created by the first maptransition's Cvar_Set",
+   "code": "code/server/sv_init.cpp SV_Init"
+  },
+  {
+   "item": "Holomatch map command g_gametype",
+   "retail": "SV_Map_f 0x42e4b8..0x42e4c4, flags 0x24",
+   "before": "serverinfo, userinfo and latch",
+   "code": "code/server/sv_ccmds.cpp SV_Map_f"
+  },
+  {
+   "item": "bot_thinktime",
+   "profile": "stvef-mp",
+   "retail": "100, flags 0x200 (0x42de06)",
+   "before": "no flags",
+   "code": "code/server/sv_bot.cpp"
+  },
+  {
+   "item": "bot_maxdebugpolys",
+   "profile": "stvef-mp",
+   "retail": "128 (0x42dd75)",
+   "before": "2"
+  },
+  {
+   "item": "timelimitWinningTeam",
+   "profile": "stvef-mp",
+   "retail": "'' flags 0x100 in SV_Init (0x433de8..0x433df7); pak2's qagame.qvm registers it too",
+   "before": "the game's registration alone"
+  },
+  {
+   "item": "menu cvars",
+   "retail": "s_khz 22 (S_Init stvoy.exe 0x41fad7, stvoyHM.exe 0x429abc); in_joystick 0 (0x21), joy_threshold 0.15, joy_xbutton 1, joy_ybutton 0 (IN_Init 0x42d53c..0x42d5c6, 0x43ec8f..0x43ed00); r_lowEndVideo 0 (AL, runtime list)",
+   "readers": "efuix86.dll and every retail ui.qvm",
+   "before": "not registered on Windows (USE_JOYSTICK is set for Linux non-SDL builds alone)"
+  },
+  {
+   "item": "s_volumeVoice",
+   "profile": "stvef-sp",
+   "retail": "1.0, archived (0x41fa95); the cvar is stored at 0x792b10 and that address is never read again; efuix86.dll's sound menu sets it",
+   "before": "not registered"
+  }
+ ],
+ "live": {
+  "singlePlayerCheats": {
+   "sequence": "map voy2; sv_cheats 1; god",
+   "retail": "Cheats are not enabled on this server. ... godmode ON",
+   "before": "sv_cheats is read only. Cheats are not enabled on this server.",
+   "after": "godmode ON"
+  },
+  "rserverinfo": {
+   "hm_borg1": "prints the serverinfo under 'Remote Server Information'",
+   "menu": "Not connected to a server."
+  },
+  "savegames": {
+   "probe": ".tmp/stvef-round-1023/save_census.py (devmap voy2; save census)",
+   "retail": {
+    "userinfo": [
+     "g_spskill",
+     "g_gravity",
+     "handicap",
+     "sex",
+     "legsModel",
+     "torsoModel",
+     "headModel",
+     "snaps",
+     "name"
+    ],
+    "serverinfoKeys": [
+     "gamename",
+     "mapname",
+     "protocol",
+     "version"
+    ],
+    "configstrings": 88
+   },
+   "fnTech3": {
+    "userinfo": [
+     "g_gravity",
+     "g_spskill",
+     "handicap",
+     "headModel",
+     "legsModel",
+     "name",
+     "sex",
+     "snaps",
+     "torsoModel"
+    ],
+    "serverinfoKeys": [
+     "gamename",
+     "mapname",
+     "protocol",
+     "version"
+    ],
+    "configstrings": 88
+   },
+   "earlier": "docs/fntech3/2026-09-19-stvef-sp-savegames.md recorded 14 userinfo cvars in fnTech3's saves",
+   "installationUnchanged": true
+  },
+  "finalRerun": {
+   "keysetsEqualRetail": true,
+   "cheats": {
+    "godmodeOn": true,
+    "readOnly": false
+   },
+   "rserverinfoActive": true,
+   "rserverinfoMenu": true,
+   "spawntargetRegistered": true,
+   "savesUserinfo": {
+    "retail": [
+     "g_gravity",
+     "g_spskill",
+     "handicap",
+     "headModel",
+     "legsModel",
+     "name",
+     "sex",
+     "snaps",
+     "torsoModel"
+    ],
+    "fntech3": [
+     "g_gravity",
+     "g_spskill",
+     "handicap",
+     "headModel",
+     "legsModel",
+     "name",
+     "sex",
+     "snaps",
+     "torsoModel"
+    ]
+   },
+   "installationUnchanged": true
+  }
+ },
+ "leftAsTheyAre": {
+  "networkDefaults": "rate 25000 and snaps 40 (retail 3000 and 20), within both retail servers' ranges",
+  "presentation": [
+   "r_picmip",
+   "r_textureMode",
+   "r_lodBias",
+   "r_subdivisions",
+   "r_flares",
+   "r_flareSize",
+   "s_volume",
+   "s_musicvolume",
+   "com_hunkMegs",
+   "com_zoneMegs"
+  ],
+  "moduleLoading": "vm_* 2 where retail's 0 tries a native library first",
+  "cheatFlags": [
+   "r_clear",
+   "r_noportals",
+   "r_showsky",
+   "timedemo",
+   "viewlog",
+   "com_dropsim"
+  ],
+  "notReadByModules": [
+   "midiinfo",
+   "in_midi*",
+   "net_noipx",
+   "net_noudp",
+   "setenv",
+   "rawshot",
+   "conAlpha",
+   "username",
+   "win_hinstance",
+   "win_wndproc",
+   "sys_cpuid",
+   "sys_cpuspeed",
+   "sys_memory",
+   "cl_updateInfoString"
+  ],
+  "readButEmpty": {
+   "fs_cdpath": "Holomatch qagame passes it to the bot library as cddir",
+   "fs_restrict": "both menus' demo check"
+  },
+  "clientCommands": {
+   "stvoy.exe": "table 0x4929b0: userinfo, disconnect",
+   "stvoyHM.exe": "table 0x4cb400: userinfo, disconnect, cp, vdr, download, nextdl, stopdl, donedl",
+   "fnTech3": "also locations, and in single player cp, vdr and the downloads; no retail game module names them"
+  },
+  "serverinfoOrder": "retail newest registration first"
+ },
+ "listener": {
+  "question": "which origin the single-player client game passes during a camera scene (docs/fntech3/2026-09-20-stvef-sp-sound-distances.md)",
+  "answer": "efgamex86.dll calls cgame import 31 (S_Respatialize) with cg.refdef.vieworg and viewaxis, 0x2003649a..0x200364a5, after the view calculation (0x200363fb), from the record it renders",
+  "fnTech3": "code/client/audio/openal/AudioSystemWorld.inl Q3SoundWorld::Respatialize keeps that origin and axis"
+ },
+ "tests": [
+  "tests/stvef_retail_registration_tests.py",
+  "tests/input_system_source_tests.py EliteForceInputSourceTests",
+  "tests/profile_appearance_tests.py",
+  "tests/bot_profile_defaults_tests.py"
+ ],
+ "mutations": [
+  "dropping cl_guid from CL_STVEFInfoKeys fails test_userinfo_holds_retail_keys_alone",
+  "keeping single player's sv_cheats read-only fails test_single_player_console_may_turn_cheats_on"
+ ],
+ "validation": {
+  "tree": "git archive of f4d07ef0 with this round's files alone (.tmp/stvef-round-1023/export)",
+  "build": {
+   "targets": 1548,
+   "exit": 0,
+   "options": "win32-dev's, strict-warnings true"
+  },
+  "native": {
+   "tests": 283,
+   "ok": 281,
+   "skipped": [
+    "fnql_audio_loopback",
+    "fnql_retail_factory_probe"
+   ],
+   "failed": 0
+  },
+  "python": {
+   "files": 627,
+   "passed": 2905,
+   "skipped": 134,
+   "subtestsPassed": 69047,
+   "noTestsCollected": 9,
+   "failed": 0,
+   "seconds": 1870,
+   "runner": "one pytest process per file, four at a time (.tmp/jk2-cgame-slice/pytest_pool.py)"
+  },
+  "afterRewording": "changelog, docs generation, packaging, release workflow, player manual and this round's test files re-run on the final files"
+ }
+}

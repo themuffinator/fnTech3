@@ -178,6 +178,8 @@ def main():
     parser.add_argument('--renderers', nargs='+', default=['glx', 'vk', 'rtx'], choices=['glx', 'vk', 'rtx'])
     parser.add_argument('--retail-set', nargs=2, action='append', default=[], metavar=('CVAR', 'VALUE'),
                         help='a cvar for the second retail run only, to see what an image difference follows')
+    parser.add_argument('--retail-all-set', nargs=2, action='append', default=[], metavar=('CVAR', 'VALUE'),
+                        help='a cvar for both retail runs, e.g. r_ext_compress_textures 0 with the same for fnTech3')
     parser.add_argument('--matched', action='store_true',
                         help="run fnTech3 with the settings retail's first start leaves (MATCHED)")
     parser.add_argument('--fntech3-set', nargs=2, action='append', default=[], metavar=('CVAR', 'VALUE'),
@@ -194,9 +196,10 @@ def main():
     before = inventory(INSTALLATION)
     results = []
     for label, level, view in [s for s in SCENES if s[0] in args.scenes]:
-        runs = [run(output / f'{label}-retail-1', 'retail', level, view, layout, runtime, None),
+        retail = dict(args.retail_all_set)
+        runs = [run(output / f'{label}-retail-1', 'retail', level, view, layout, runtime, None, retail),
                 run(output / f'{label}-retail-2', 'retail', level, view, layout, runtime, None,
-                    dict(args.retail_set))]
+                    dict(retail, **dict(args.retail_set)))]
         extra = dict(MATCHED if args.matched else {}, **dict(args.fntech3_set))
         runs += [run(output / f'{label}-fntech3-{r}', 'fntech3', level, view, layout, runtime, r, extra)
                  for r in args.renderers]

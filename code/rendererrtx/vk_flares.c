@@ -137,6 +137,7 @@ void RB_AddFlare( void *surface, int fogNum, vec3_t point, vec3_t color, vec3_t 
 	flare_t			*f;
 	vec3_t			local;
 	float			d = 1;
+	float			bias;
 	vec4_t			eye, clip, normalized, window;
 
 	backEnd.pc.c_flareAdds++;
@@ -207,10 +208,15 @@ void RB_AddFlare( void *surface, int fogNum, vec3_t point, vec3_t color, vec3_t 
 
 	f->eyeZ = eye[2];
 
+	// GL's renderers take a flare as visible within 0.25 / w of the depth
+	// stored in front of it, 0.75 / w in a portal view (tr_flares.c), and
+	// their depth maps distance as this renderer's does. The same margin
+	// shows the flares that sit just behind their own surface here too.
+	bias = R_ViewPassIsPortal( &backEnd.viewParms ) ? 0.75f : 0.25f;
 #ifdef USE_REVERSED_DEPTH
-	f->drawZ = (clip[2]+0.20) / clip[3];
+	f->drawZ = (clip[2] + bias) / clip[3];
 #else
-	f->drawZ = (clip[2]-0.20) / clip[3];
+	f->drawZ = (clip[2] - bias) / clip[3];
 #endif
 
 }

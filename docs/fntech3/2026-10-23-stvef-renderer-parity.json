@@ -1,0 +1,781 @@
+{
+ "record": "2026-10-23-stvef-renderer-parity.md",
+ "date": "2026-10-23",
+ "profiles": [
+  "stvef-sp",
+  "q3 (cross-profile check)"
+ ],
+ "evidence": [
+  "Unit",
+  "Live subset"
+ ],
+ "gatesClosed": [],
+ "baseCommit": "f4d07ef0444817be60d910242b483b05db4ab548",
+ "platform": "Windows 11 x86, NVIDIA GeForce RTX 4060 Laptop GPU, shared x86 developer client",
+ "retail": {
+  "stvoy.exe": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74"
+ },
+ "runtime": {
+  "folder": ".tmp/runtime/stvef-compat-after",
+  "fntech3.exe": "e67557219626eb8192751bdd441a90961eca577a5a01c7d0f56aa79850eca276",
+  "fnql_glx_x86.dll": "6ecf839e8576b39d50589eb85e4df719b1a66f46b0c3fcf50132b61ed3de1ad9",
+  "fnql_vk_x86.dll": {
+   "beforeFixes": "95555415e9d670be75b4…",
+   "anisotropyFix": "6c3b73bfdc420fe0…",
+   "final": "3f1bd8b01cc5224f8a0e3c197301791762d66468a2eab00156c1b4371db53c36"
+  },
+  "fnql_rtx_x86.dll": {
+   "beforeFixes": "aa46e0bcc9b3249d4214…",
+   "anisotropyFix": "89da7b88e06ecde6…",
+   "final": "be5300409ba03e3605e751c6a16853fef2e35433b49fe77c198f3555659af1b6"
+  },
+  "note": "the investigation's runs used the shared developer build with these changes (hashes above); the final sweep and the Quake III check ran again on the export-built binaries",
+  "final": {
+   "build": "git archive of f4d07ef0 with this round's files alone (.tmp/stvef-round-1023/export/build-win32)",
+   "fntech3.exe": "49cf555cf252a2ee11d9662429d0dc8f42b5048bae04de7e60adeb3ce9c7ef80",
+   "fnql_glx_x86.dll": "87da11074c2a00cd0a2208449d696f578e145cd62ad5da3282f691cda5bb5381",
+   "fnql_vk_x86.dll": "3316f6f4c3f1274be7983ecae6a68ad225654e2351caf7caae66b11d13ef056e",
+   "fnql_rtx_x86.dll": "bcca591630b32fc40cbe7ef88763bed1d833d9f8247b137cc682e9c589b0f710"
+  }
+ },
+ "captures": {
+  "probe": "scripts/probe_stvef_sp_views.py (new --retail-all-set applies a cvar to both retail runs)",
+  "toggles": ".tmp/stvef-round-1023/toggles.py, fnTech3 alone, each Vulkan/RTX image against GLx with the same settings",
+  "shaderPicks": ".tmp/stvef-round-1023/census/pickshader.py, a ray cast through the map's BSP from the recorded view (cg_fov 80)",
+  "settingsBase": "MATCHED (r_flares 1, cg_shadows 3, r_picmip 1, GL_LINEAR_MIPMAP_NEAREST, r_ext_max_anisotropy 16, r_subdivisions 2, r_lodbias 0) unless stated"
+ },
+ "causes": {
+  "bloom": {
+   "vulkan": "r_bloom 1 (code/renderervk/tr_init.c)",
+   "rtx": "r_bloom 1 (code/rendererrtx/tr_init.c)",
+   "gl": "r_bloom 0 (code/renderer/tr_init.c)",
+   "decision": "fnTech3 feature, stays on by default",
+   "vkAgainstGlx": {
+    "stasis1": {
+     "bloomOn": [
+      0.543,
+      1.059,
+      1.073
+     ],
+     "bloomOff": [
+      0.105,
+      0.519,
+      0.549
+     ],
+     "fboOff": [
+      0.083,
+      0.497,
+      0.527
+     ]
+    },
+    "scav2": {
+     "bloomOn": [
+      0.914,
+      0.928,
+      0.91
+     ],
+     "bloomOff": [
+      0.637,
+      0.659,
+      0.65
+     ],
+     "fboOff": [
+      0.548,
+      0.569,
+      0.56
+     ]
+    },
+    "voy14": {
+     "bloomOn": [
+      1.098,
+      1.09,
+      1.005
+     ],
+     "bloomOff": [
+      0.341,
+      0.332,
+      0.281
+     ],
+     "fboOff": [
+      0.313,
+      0.296,
+      0.247
+     ]
+    },
+    "settings": "MATCHED, r_ext_compress_textures 0, r_flares 0"
+   },
+   "noEffect": [
+    "r_detailTextures 0 on stasis1",
+    "r_dynamiclight 0",
+    "cg_shadows 0",
+    "r_vbo 0"
+   ]
+  },
+  "compression": {
+   "retail": "r_ext_compress_textures 1 by default; DXT1/DXT5",
+   "glx": "honours it (S3TC)",
+   "vulkanRtx": "no encoder; uncompressed",
+   "decision": "uncompressed stays",
+   "voy2AgainstRetail": {
+    "compressionOnInRetailAndGlx": {
+     "vk": [
+      0.496,
+      0.504,
+      0.5
+     ]
+    },
+    "compressionOffEverywhere": {
+     "glx": [
+      0.015,
+      0.014,
+      0.015
+     ],
+     "vk": [
+      0.015,
+      0.015,
+      0.015
+     ],
+     "rtx": [
+      0.015,
+      0.014,
+      0.014
+     ]
+    }
+   }
+  },
+  "anisotropy": {
+   "gl": "code/renderer/tr_image.c: every IMGFLAG_MIPMAP image gets GL_TEXTURE_MAX_ANISOTROPY_EXT when anisotropic filtering is on",
+   "before": "vk_find_sampler enabled anisotropy only for VK_SAMPLER_MIPMAP_MODE_LINEAR (Vulkan) / disabled it for NEAREST (RTX)",
+   "after": "both enable it for every mipmapped minification filter, keeping the noAnisotropy opt-out and the NEAREST magnification exclusion",
+   "surfaces": {
+    "borg2": "textures/borg/floor5b (lightmap and texture, grazing angle)",
+    "scav2": "textures/scavenger/k_ceiling2_b, k_ceiling7_b (detail stages)"
+   },
+   "settings": "MATCHED, r_ext_compress_textures 0, r_flares 0, r_bloom 0",
+   "vkAgainstGlx": {
+    "stasis1": [
+     [
+      0.105,
+      0.519,
+      0.549
+     ],
+     [
+      0.032,
+      0.075,
+      0.077
+     ]
+    ],
+    "scav2": [
+     [
+      0.637,
+      0.659,
+      0.65
+     ],
+     [
+      0.307,
+      0.297,
+      0.288
+     ]
+    ],
+    "borg2": [
+     [
+      1.357,
+      1.271,
+      0.74
+     ],
+     [
+      0.467,
+      0.454,
+      0.301
+     ]
+    ],
+    "scav3": [
+     [
+      0.307,
+      0.305,
+      0.265
+     ],
+     [
+      0.235,
+      0.236,
+      0.205
+     ]
+    ],
+    "forge2": [
+     [
+      0.32,
+      0.113,
+      0.121
+     ],
+     [
+      0.026,
+      0.021,
+      0.021
+     ]
+    ],
+    "voy14": [
+     [
+      0.341,
+      0.332,
+      0.281
+     ],
+     [
+      0.072,
+      0.075,
+      0.076
+     ]
+    ]
+   },
+   "rtxAgainstGlx": {
+    "stasis1": [
+     [
+      0.083,
+      0.497,
+      0.527
+     ],
+     [
+      0.009,
+      0.053,
+      0.055
+     ]
+    ],
+    "scav2": [
+     [
+      0.549,
+      0.57,
+      0.561
+     ],
+     [
+      0.149,
+      0.14,
+      0.134
+     ]
+    ],
+    "borg2": [
+     [
+      1.298,
+      1.214,
+      0.693
+     ],
+     [
+      0.326,
+      0.316,
+      0.176
+     ]
+    ],
+    "scav3": [
+     [
+      0.206,
+      0.196,
+      0.138
+     ],
+     [
+      0.081,
+      0.073,
+      0.051
+     ]
+    ],
+    "forge2": [
+     [
+      0.319,
+      0.111,
+      0.119
+     ],
+     [
+      0.024,
+      0.019,
+      0.019
+     ]
+    ],
+    "voy14": [
+     [
+      0.316,
+      0.307,
+      0.255
+     ],
+     [
+      0.044,
+      0.047,
+      0.048
+     ]
+    ]
+   }
+  },
+  "flareMargin": {
+   "gl": "code/renderer/tr_flares.c drawZ = (z + w - 0.5) / 2w, (z + w - 1.5) / 2w in a portal view: 0.25 / w and 0.75 / w in window depth",
+   "before": "vk_flares.c drawZ = (z -/+ 0.20) / w in every view",
+   "after": "(z -/+ bias) / w with bias 0.25, 0.75 in a portal view",
+   "forge2": {
+    "settings": "MATCHED, r_ext_compress_textures 0, r_bloom 0, r_flares 1",
+    "vkAgainstGlx": [
+     [
+      0.751,
+      0.603,
+      0.61
+     ],
+     [
+      0.036,
+      0.031,
+      0.031
+     ]
+    ],
+    "rtxAgainstGlx": [
+     [
+      0.75,
+      0.601,
+      0.609
+     ],
+     [
+      0.024,
+      0.019,
+      0.019
+     ]
+    ],
+    "surface": "the glow at the foot of the red pillar"
+   }
+  },
+  "remaining": {
+   "vulkanRounding": "one-level differences in places (dn1 mean 0.237 against GLx's 0.035; no pixel over 4 levels on scav2 between Vulkan and RTX)",
+   "flaresAgainstRetail": "every fnTech3 renderer alike; r_flareSize 30 moved scav3 from 0.577/1.294/1.595 to 0.641/1.467/1.818 against retail [I: retail keeps an older flare formula]"
+  }
+ },
+ "finalAgainstRetail": {
+  "command": "python scripts/probe_stvef_sp_views.py --output .tmp/stvef-round-1023/sp-views-final-like --runtime .tmp/runtime/stvef-compat-after --matched --fntech3-set r_bloom 0 --fntech3-set r_ext_compress_textures 0 --retail-all-set r_ext_compress_textures 0",
+  "runs": 40,
+  "problems": [],
+  "installationUnchanged": true,
+  "retailRepeat": {
+   "voy2": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "stasis1": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scav2": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "dn1": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "borg2": [
+    0.009,
+    0.009,
+    0.009
+   ],
+   "scav3": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "forge2": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "voy14": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  "scenes": {
+   "voy2": {
+    "glx": [
+     0.015,
+     0.014,
+     0.015
+    ],
+    "vk": [
+     0.015,
+     0.015,
+     0.015
+    ],
+    "rtx": [
+     0.015,
+     0.014,
+     0.014
+    ]
+   },
+   "stasis1": {
+    "glx": [
+     0.148,
+     0.474,
+     0.476
+    ],
+    "vk": [
+     0.155,
+     0.519,
+     0.523
+    ],
+    "rtx": [
+     0.156,
+     0.519,
+     0.523
+    ]
+   },
+   "scav2": {
+    "glx": [
+     0.163,
+     0.188,
+     0.26
+    ],
+    "vk": [
+     0.391,
+     0.403,
+     0.432
+    ],
+    "rtx": [
+     0.276,
+     0.292,
+     0.354
+    ]
+   },
+   "dn1": {
+    "glx": [
+     0.035,
+     0.036,
+     0.072
+    ],
+    "vk": [
+     0.237,
+     0.239,
+     0.251
+    ],
+    "rtx": [
+     0.037,
+     0.04,
+     0.078
+    ]
+   },
+   "borg2": {
+    "glx": [
+     1.458,
+     1.548,
+     0.737
+    ],
+    "vk": [
+     1.694,
+     1.783,
+     0.898
+    ],
+    "rtx": [
+     1.625,
+     1.714,
+     0.832
+    ]
+   },
+   "scav3": {
+    "glx": [
+     0.577,
+     1.294,
+     1.595
+    ],
+    "vk": [
+     0.695,
+     1.415,
+     1.724
+    ],
+    "rtx": [
+     0.597,
+     1.312,
+     1.614
+    ]
+   },
+   "forge2": {
+    "glx": [
+     0.697,
+     0.307,
+     0.279
+    ],
+    "vk": [
+     0.703,
+     0.316,
+     0.288
+    ],
+    "rtx": [
+     0.703,
+     0.316,
+     0.289
+    ]
+   },
+   "voy14": {
+    "glx": [
+     0.213,
+     0.187,
+     0.166
+    ],
+    "vk": [
+     0.265,
+     0.253,
+     0.232
+    ],
+    "rtx": [
+     0.2,
+     0.189,
+     0.172
+    ]
+   }
+  },
+  "october9Matched": "docs/fntech3/2026-10-09-stvef-sp-retail-views.json (Vulkan 0.500 to 2.524, bloom on, compression on in retail and GLx)",
+  "flaresOffSameSession": {
+   "command": "--matched --fntech3-set r_ext_compress_textures 0 --fntech3-set r_flares 0 --retail-all-set r_ext_compress_textures 0 --retail-all-set r_flares 0 (bloom on, before the fixes)",
+   "glx": {
+    "scav3": [
+     0.128,
+     0.126,
+     0.119
+    ],
+    "borg2": [
+     0.952,
+     1.17,
+     0.523
+    ]
+   }
+  },
+  "earlierRunSharedBuild": {
+   "voy2": {
+    "glx": [
+     0.015,
+     0.014,
+     0.015
+    ],
+    "vk": [
+     0.015,
+     0.015,
+     0.015
+    ],
+    "rtx": [
+     0.015,
+     0.014,
+     0.014
+    ]
+   },
+   "stasis1": {
+    "glx": [
+     0.148,
+     0.474,
+     0.476
+    ],
+    "vk": [
+     0.155,
+     0.519,
+     0.523
+    ],
+    "rtx": [
+     0.156,
+     0.519,
+     0.523
+    ]
+   },
+   "scav2": {
+    "glx": [
+     0.163,
+     0.188,
+     0.26
+    ],
+    "vk": [
+     0.391,
+     0.403,
+     0.432
+    ],
+    "rtx": [
+     0.276,
+     0.292,
+     0.354
+    ]
+   },
+   "dn1": {
+    "glx": [
+     0.035,
+     0.036,
+     0.072
+    ],
+    "vk": [
+     0.237,
+     0.239,
+     0.251
+    ],
+    "rtx": [
+     0.037,
+     0.04,
+     0.078
+    ]
+   },
+   "borg2": {
+    "glx": [
+     1.462,
+     1.552,
+     0.741
+    ],
+    "vk": [
+     1.703,
+     1.792,
+     0.908
+    ],
+    "rtx": [
+     1.635,
+     1.724,
+     0.842
+    ]
+   },
+   "scav3": {
+    "glx": [
+     0.577,
+     1.294,
+     1.595
+    ],
+    "vk": [
+     0.695,
+     1.415,
+     1.724
+    ],
+    "rtx": [
+     0.597,
+     1.312,
+     1.614
+    ]
+   },
+   "forge2": {
+    "glx": [
+     0.696,
+     0.307,
+     0.279
+    ],
+    "vk": [
+     0.704,
+     0.316,
+     0.289
+    ],
+    "rtx": [
+     0.705,
+     0.316,
+     0.289
+    ]
+   },
+   "voy14": {
+    "glx": [
+     0.17,
+     0.157,
+     0.137
+    ],
+    "vk": [
+     0.265,
+     0.253,
+     0.232
+    ],
+    "rtx": [
+     0.238,
+     0.218,
+     0.199
+    ]
+   }
+  },
+  "output": ".tmp/stvef-round-1023/sp-views-final-export"
+ },
+ "crossProfile": {
+  "unit": "tests/vulkan_gl_filter_flare_parity_tests.py: 96 sampler definitions per renderer; HEAD's vk_find_sampler fails in both renderers",
+  "quake3": {
+   "probe": ".tmp/stvef-round-1023/q3_check.py",
+   "map": "q3dm1",
+   "view": "setviewpos 416 824 -16 315",
+   "settings": "fixedtime 16, r_bloom 0, r_flares 1, anisotropy 16, r_ext_compressed_textures 0",
+   "vkAgainstGlx": {
+    "GL_LINEAR_MIPMAP_LINEAR": [
+     1.321,
+     1.042,
+     0.821
+    ],
+    "GL_LINEAR_MIPMAP_NEAREST": [
+     1.36,
+     1.083,
+     0.865
+    ]
+   },
+   "rtxAgainstGlx": {
+    "GL_LINEAR_MIPMAP_LINEAR": [
+     1.063,
+     0.764,
+     0.518
+    ],
+    "GL_LINEAR_MIPMAP_NEAREST": [
+     1.009,
+     0.719,
+     0.487
+    ]
+   },
+   "exits": "all six 0",
+   "note": "the remaining Quake III difference predates this change",
+   "exportRerun": {
+    "GL_LINEAR_MIPMAP_LINEAR/vk": [
+     1.321,
+     1.042,
+     0.821
+    ],
+    "GL_LINEAR_MIPMAP_LINEAR/rtx": [
+     1.063,
+     0.764,
+     0.518
+    ],
+    "GL_LINEAR_MIPMAP_NEAREST/vk": [
+     1.36,
+     1.083,
+     0.865
+    ],
+    "GL_LINEAR_MIPMAP_NEAREST/rtx": [
+     1.009,
+     0.719,
+     0.487
+    ]
+   }
+  }
+ },
+ "featuresKept": [
+  "bloom",
+  "uncompressed textures",
+  "per-pixel and static lighting",
+  "fnTech3 fog and shadows"
+ ],
+ "notCovered": [
+  "RTX ray-traced mode (no x86 driver support here)",
+  "animated NPCs and effects",
+  "pixel identity",
+  "physical display",
+  "other GPUs"
+ ],
+ "validation": {
+  "tree": "git archive of f4d07ef0 with this round's files alone (.tmp/stvef-round-1023/export)",
+  "build": {
+   "targets": 1548,
+   "exit": 0,
+   "options": "win32-dev's, strict-warnings true"
+  },
+  "native": {
+   "tests": 283,
+   "ok": 281,
+   "skipped": [
+    "fnql_audio_loopback",
+    "fnql_retail_factory_probe"
+   ],
+   "failed": 0
+  },
+  "python": {
+   "files": 627,
+   "passed": 2905,
+   "skipped": 134,
+   "subtestsPassed": 69047,
+   "noTestsCollected": 9,
+   "failed": 0,
+   "seconds": 1870,
+   "runner": "one pytest process per file, four at a time (.tmp/jk2-cgame-slice/pytest_pool.py)"
+  },
+  "afterRewording": "changelog, docs generation, packaging, release workflow, player manual and this round's test files re-run on the final files"
+ }
+}

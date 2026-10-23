@@ -670,6 +670,11 @@ static constexpr std::array kInputCommandBindings{
 	InputCommandBinding{ "-altattack", IN_ButtonUp<7>, false, COM_GAME_STVEF_SP },
 	InputCommandBinding{ "+use", IN_ButtonDown<5>, false, COM_GAME_STVEF_SP },
 	InputCommandBinding{ "-use", IN_ButtonUp<5>, false, COM_GAME_STVEF_SP },
+	// SP's +careful and -careful (0x405310, 0x405320, registered at
+	// 0x40605a..0x406076) hold button 6, between +use's 5 and +altattack's
+	// 7; CL_CmdButtons (0x405940) sends button n as bit n.
+	InputCommandBinding{ "+careful", IN_ButtonDown<6>, false, COM_GAME_STVEF_SP },
+	InputCommandBinding{ "-careful", IN_ButtonUp<6>, false, COM_GAME_STVEF_SP },
 	// Both Jedi engines register +altattack with their +button7 handlers
 	// (jamp.exe 1.01 0x4192b0/0x4192c0 at 0x41aae7, jk2mp.exe 1.02a
 	// 0x406f70/0x406f80 at 0x4080eb): alternate fire is button 7.
@@ -2296,6 +2301,11 @@ void CL_InitInput( void ) {
 	// defaults and flags (alice.exe CL_Init 0x0042c8a5..0x0042ca99); every
 	// other profile keeps the registrations below unchanged.
 	const bool alice = Com_GameIsRitual() != 0;
+	// Both Elite Force engines register the key turning speeds, the speed
+	// key, the packet rate, cl_run and the sensitivity archived and
+	// unprotected (stvoyHM.exe 0x40f902..0x40f993, stvoy.exe
+	// 0x40866d..0x408705).
+	const bool eliteForce = Com_GameIsSTVEF() != 0;
 
 	IN_AddCommandBindings();
 	if ( alice ) {
@@ -2313,19 +2323,22 @@ void CL_InitInput( void ) {
 	cl_showSend = Cvar_Get( "cl_showSend", "0", CVAR_TEMP );
 	Cvar_SetDescription( cl_showSend, "Prints client to server packet information." );
 
-	// Alice archives both turning speeds and gives the speed key no flags.
+	// Alice archives both turning speeds and gives the speed key no flags;
+	// Elite Force archives all three, and its controls menus set the key.
 	cl_yawspeed = Cvar_Get( "cl_yawspeed", "140",
-		alice ? CVAR_ARCHIVE : CVAR_ARCHIVE_ND | CVAR_CHEAT );
+		alice || eliteForce ? CVAR_ARCHIVE : CVAR_ARCHIVE_ND | CVAR_CHEAT );
 	Cvar_SetDescription( cl_yawspeed, "Side-to-side turning speed using keys (+left and +right)." );
 	cl_pitchspeed = Cvar_Get( "cl_pitchspeed", "140",
-		alice ? CVAR_ARCHIVE : CVAR_ARCHIVE_ND | CVAR_CHEAT );
+		alice || eliteForce ? CVAR_ARCHIVE : CVAR_ARCHIVE_ND | CVAR_CHEAT );
 	Cvar_SetDescription( cl_pitchspeed, "Up and down pitching speed using keys (+lookup and +lookdown)." );
-	cl_anglespeedkey = Cvar_Get( "cl_anglespeedkey", "1.5", alice ? 0 : CVAR_CHEAT );
+	cl_anglespeedkey = Cvar_Get( "cl_anglespeedkey", "1.5",
+		eliteForce ? CVAR_ARCHIVE : alice ? 0 : CVAR_CHEAT );
 	Cvar_SetDescription( cl_anglespeedkey, "Set the speed that the direction keys (not mouse) change the view angle." );
 
-	if ( alice ) {
-		// Alice defaults to 30 and holds it to 15..100 where it sends
-		// (CL_ReadyToSendPacket 0x004289c0).
+	if ( alice || eliteForce ) {
+		// Alice and Elite Force default to 30 and hold it to 15..100 where
+		// they send (alice.exe CL_ReadyToSendPacket 0x004289c0, stvoyHM.exe
+		// 0x40a5f1..0x40a614; stvoy.exe sends every frame to its own server).
 		cl_maxpackets = Cvar_Get( "cl_maxpackets", "30", CVAR_ARCHIVE );
 		Cvar_CheckRange( cl_maxpackets, "15", "100", CV_INTEGER );
 	} else {
@@ -2337,9 +2350,15 @@ void CL_InitInput( void ) {
 	Cvar_CheckRange( cl_packetdup, "0", "5", CV_INTEGER );
 	Cvar_SetDescription( cl_packetdup, "Limits the number of previous client commands added in packet, helps in packet loss mitigation, increases client command packets size a bit." );
 
-	if ( alice ) {
+	if ( alice || Com_GameIsSTVEFSP() ) {
 		// Alice registers 0 and its default.cfg sets 1; its sensitivity is 5.
+		// Elite Force single player registers 0 (stvoy.exe 0x4086ef) and its
+		// default.cfg leaves it, so its player walks unless +speed is held.
 		cl_run = Cvar_Get( "cl_run", "0", CVAR_ARCHIVE );
+		cl_sensitivity = Cvar_Get( "sensitivity", "5", CVAR_ARCHIVE );
+	} else if ( eliteForce ) {
+		// Holomatch runs (stvoyHM.exe 0x40f97e) with sensitivity 5.
+		cl_run = Cvar_Get( "cl_run", "1", CVAR_ARCHIVE );
 		cl_sensitivity = Cvar_Get( "sensitivity", "5", CVAR_ARCHIVE );
 	} else {
 		cl_run = Cvar_Get( "cl_run", "1", CVAR_ARCHIVE_ND );

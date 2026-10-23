@@ -237,8 +237,11 @@ const comGameProfile_t profiles[] = { {
 	{ "0", "0", "1", "1", nullptr, nullptr, 0, "0", 0 },
 	{ "0", "1", "1024", 1024, 0, 1, 0, 0, 0, 64 },
 	COM_PURE_PROOF_UNAVAILABLE,
+	/* stvoy.exe 1.20 registers the three model keys userinfo-only (flags 2,
+	 * 0x408894..0x4088b9): the menus set them for a new game and every
+	 * savegame carries them. */
 	{ "hazard/default", "headModel", "munro/default", nullptr, nullptr, nullptr, 0, 1,
-		"legsModel", "torsoModel", "hazard/default", "Munro" },
+		"legsModel", "torsoModel", "hazard/default", "Munro", 1 },
 	{ "cinematic eflogo", nullptr, 0 }
 }, {
 	/* Retail stvoyHM.exe 1.20 (2001-04-18): Huffman-free protocol 24 and the

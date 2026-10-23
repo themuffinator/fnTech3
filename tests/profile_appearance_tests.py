@@ -62,6 +62,22 @@ int main(){
   for(const auto &pair:before){auto &actual=cvars.at(pair.first);
    assert(actual.value==pair.second.value&&actual.reset==pair.second.reset&&actual.flags==pair.second.flags);}
  }
+ // stvoy.exe 1.20 publishes its three model keys without archiving them
+ // (0x408894..0x4088b9, flags 2); stvoyHM.exe archives model and color.
+ for(const auto &p:profiles){
+  if(p.id!=COM_GAME_STVEF_SP&&p.id!=COM_GAME_STVEF_MP)continue;
+  profile=&p;cvars.clear();CL_RegisterAppearanceCvars();
+  if(p.id==COM_GAME_STVEF_SP){
+   assert(cvars.size()==3);
+   assert(cvars.at("legsModel").value=="hazard/default"&&cvars.at("torsoModel").value=="hazard/default");
+   assert(cvars.at("headModel").value=="munro/default");
+   for(const char *key:{"legsModel","torsoModel","headModel"})assert(cvars.at(key).flags==CVAR_USERINFO);
+  }else{
+   assert(cvars.size()==2&&cvars.at("model").value=="munro/red"&&cvars.at("color").value=="4");
+   assert(cvars.at("model").flags==(CVAR_USERINFO|CVAR_ARCHIVE));
+   assert(cvars.at("color").flags==(CVAR_USERINFO|CVAR_ARCHIVE));
+  }
+ }
 }
 '''
         with tempfile.TemporaryDirectory(prefix='profile-appearance-') as directory:

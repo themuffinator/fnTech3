@@ -268,6 +268,14 @@ Release packages include them as web pages in their `manual` folder, built by
 - [October 9 Elite Force single-player retail views](fntech3/2026-10-09-stvef-sp-retail-views.md)
   -- eighty synchronized runs across eight scenes, with presentation controls
   and measured limits for GLx, Vulkan and RTX raster SDR.
+- [Elite Force registrations beside retail](fntech3/2026-10-23-stvef-retail-registrations.md)
+  -- every command and cvar both retail executables register, compared with
+  fnTech3's: userinfo and serverinfo keys, savegames, cheats, `+careful`,
+  `rserverinfo` and the menus' settings made to follow retail.
+- [Elite Force renderer parity](fntech3/2026-10-23-stvef-renderer-parity.md)
+  -- why Vulkan and RTX drew Elite Force further from retail than GLx: bloom
+  and compression explained, and anisotropy and flare tests fixed for every
+  profile.
 - [October 8 Medal of Honor GameSpy LAN search](fntech3/2026-10-08-mohaa-gamespy-lan-search.md)
   -- the Join LAN Game list's GameSpy search beside its `getinfo` scan, and
   the query sockets on Linux.

@@ -596,7 +596,8 @@ void SV_BotInitCvars(void) {
 	Cvar_Get("bot_enable", Com_GameProfile()->bots.enabled, 0);
 	Cvar_Get("bot_developer", "0", CVAR_CHEAT);			//bot developer mode
 	Cvar_Get("bot_debug", "0", CVAR_CHEAT);				//enable bot debugging
-	Cvar_Get("bot_maxdebugpolys", "2", 0);				//maximum number of debug polys
+	// Holomatch registers 128 (stvoyHM.exe 0x42dd75).
+	Cvar_Get("bot_maxdebugpolys", Com_GameIsSTVEFMP() ? "128" : "2", 0);	//maximum number of debug polys
 	Cvar_Get("bot_groundonly", "1", 0);					//only show ground faces of areas
 	Cvar_Get("bot_reachability", "0", 0);				//show all reachabilities to other areas
 	Cvar_Get("bot_visualizejumppads", "0", CVAR_CHEAT);	//show jumppads
@@ -608,7 +609,9 @@ void SV_BotInitCvars(void) {
 	// ET's engines register 50 (etded.exe 0x425615, et.exe 0x43f245), and its
 	// game throttles its bot frame by it: at 100 the retail game lets bots
 	// think on every other 50 ms server frame, even with no AAS loaded.
-	Cvar_Get("bot_thinktime", Com_GameIsWolfET() ? "50" : "100", 0);	//msec the bots thinks
+	// Holomatch protects it as a cheat (stvoyHM.exe 0x42de06, flags 0x200).
+	Cvar_Get("bot_thinktime", Com_GameIsWolfET() ? "50" : "100",
+		Com_GameIsSTVEFMP() ? CVAR_CHEAT : 0);	//msec the bots thinks
 	Cvar_Get("bot_reloadcharacters", "0", 0);			//reload the bot characters each time
 	Cvar_Get("bot_testichat", "0", 0);					//test ichats
 	Cvar_Get("bot_testrchat", "0", 0);					//test rchats

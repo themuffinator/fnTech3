@@ -477,8 +477,11 @@ Single player needs Windows.
   as they speak, and the movies play using the movie player in your
   installation. The whole campaign plays through, from the first mission to
   the closing movie and credits, and so do the holodeck programmes and the
-  Virtual Voyager tour. Matching the original's picture exactly is still to
-  be checked.
+  Virtual Voyager tour. Your saves list the same settings an original save
+  does. Side by side with the original, the picture matches closely on all
+  three renderers, once you leave out the glow (bloom) Vulkan and RTX add
+  by default; light flares, when you turn them on, still look a little
+  different. An exact match is not claimed.
 - **Holomatch** runs the original game code and plays the original demos.
   fnTech3 has played with the original game and with Lilium Voyager, joining
   and hosting, including servers that check players' files, and downloaded
@@ -499,6 +502,13 @@ See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
 - The original's default keys are X or `/` to jump and Space to Use.
   `inputstatus` in the console shows what currently has control of the mouse
   and keys, if they stop responding.
+- The controls menus keep their settings as the original does, turn speed
+  included. On Windows fnTech3 has no joystick support, so the joystick
+  settings change nothing there. Single player walks unless you hold Shift
+  or switch on Always Run, as the original did. `+careful` can be bound to
+  a key, and `sv_cheats 1` in the console turns on cheats in the middle of
+  a level. The single-player voice volume slider does nothing, as in the
+  original.
 - On a widescreen display the LCARS gauges keep their shape in the lower
   corners and the view widens, and the brackets single player draws around a
   target stay on it ([Widescreen guide](ASPECT_CORRECTION.md)).

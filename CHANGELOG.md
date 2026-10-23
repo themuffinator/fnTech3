@@ -256,6 +256,19 @@ historical upstream records, not fnTech3 release history. See the
   players enter it
   ([record](docs/fntech3/2026-10-22-jka-g2-surfaces.md)).
 
+- Register Elite Force's console commands and settings as the original
+  engines do. The turn speed the controls menus set is saved and can be
+  changed from the console, single player walks
+  unless Shift or Always Run is used, `+careful` can be bound, `sv_cheats 1`
+  turns cheats on in the middle of a single-player level, and Holomatch has
+  `rserverinfo`. Both modes send the original's player settings, so a
+  single-player save lists the settings an original save does
+  ([record](docs/fntech3/2026-10-23-stvef-retail-registrations.md)).
+- Filter textures in Vulkan and RTX as the GL renderers do: the anisotropy
+  setting now applies with the bilinear texture mode too, and a light flare
+  sitting just behind its surface shows as it does in GLx
+  ([record](docs/fntech3/2026-10-23-stvef-renderer-parity.md)).
+
 ## [0.1.0] - 2026-10-11
 
 ### Highlights

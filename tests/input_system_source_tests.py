@@ -3676,5 +3676,85 @@ class AliceInputSourceTests(unittest.TestCase):
         )
 
 
+class EliteForceInputSourceTests(unittest.TestCase):
+    """Elite Force's retail input registrations: single player's +careful on
+    button 6 (stvoy.exe 0x405310/0x405320, sent as bit 6 by CL_CmdButtons
+    0x405940), and both engines' archived, unprotected turning speeds,
+    packet rate, cl_run and sensitivity (stvoyHM.exe 0x40f902..0x40f993,
+    stvoy.exe 0x40866d..0x408705; the send clamp is 0x40a5f1..0x40a614)."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.client = read_text("code/client/cl_input.cpp")
+        cls.abi = read_text("code/compat/stvef_game_abi.h")
+
+    def test_careful_is_single_player_button_six(self) -> None:
+        table = section(
+            self.client,
+            "static constexpr std::array kInputCommandBindings{",
+            "\n};",
+        )
+        found: dict[str, list[str]] = {}
+        for name, rest in re.findall(
+            r'InputCommandBinding\{ "([^"]+)", ([^}]*)\}', table
+        ):
+            found.setdefault(name, []).append(rest)
+        for sign, handler in (("+", "IN_ButtonDown<6>"), ("-", "IN_ButtonUp<6>")):
+            with self.subTest(command=sign + "careful"):
+                (entry,) = found[sign + "careful"]
+                self.assertIn(handler, entry)
+                self.assertIn("COM_GAME_STVEF_SP", entry)
+        # Single player sends eight buttons, so bit 6 reaches the command;
+        # Holomatch's seven end before its use button's neighbour.
+        self.assertIn("FNTECH3_STVEF_SP_BUTTON_COUNT = 8,", self.abi)
+        buttons = function_body(self.client, "CL_CmdButtons")
+        self.assertIn(
+            "Com_GameIsSTVEFSP() ? FNTECH3_STVEF_SP_BUTTON_COUNT :", buttons
+        )
+
+    def test_retail_input_cvars(self) -> None:
+        init = function_body(self.client, "CL_InitInput")
+        self.assertIn("const bool eliteForce = Com_GameIsSTVEF() != 0;", init)
+        for name in ("cl_yawspeed", "cl_pitchspeed"):
+            with self.subTest(cvar=name):
+                self.assertRegex(
+                    init,
+                    rf'Cvar_Get\( "{name}", "140",\s*'
+                    r"alice \|\| eliteForce \? CVAR_ARCHIVE : CVAR_ARCHIVE_ND \| CVAR_CHEAT \);",
+                )
+        self.assertRegex(
+            init,
+            r'Cvar_Get\( "cl_anglespeedkey", "1\.5",\s*'
+            r"eliteForce \? CVAR_ARCHIVE : alice \? 0 : CVAR_CHEAT \);",
+        )
+        assert_order(
+            self,
+            init,
+            "if ( alice || eliteForce ) {",
+            'cl_maxpackets = Cvar_Get( "cl_maxpackets", "30", CVAR_ARCHIVE );',
+            'Cvar_CheckRange( cl_maxpackets, "15", "100", CV_INTEGER );',
+            "} else {",
+            'cl_maxpackets = Cvar_Get( "cl_maxpackets", "125", CVAR_ARCHIVE | CVAR_CHEAT );',
+        )
+        # Single player walks unless +speed is held; Holomatch runs. Both
+        # register sensitivity 5.
+        assert_order(
+            self,
+            init,
+            "if ( alice || Com_GameIsSTVEFSP() ) {",
+            'cl_run = Cvar_Get( "cl_run", "0", CVAR_ARCHIVE );',
+            'cl_sensitivity = Cvar_Get( "sensitivity", "5", CVAR_ARCHIVE );',
+            "} else if ( eliteForce ) {",
+            'cl_run = Cvar_Get( "cl_run", "1", CVAR_ARCHIVE );',
+            'cl_sensitivity = Cvar_Get( "sensitivity", "5", CVAR_ARCHIVE );',
+            "} else {",
+            'cl_run = Cvar_Get( "cl_run", "1", CVAR_ARCHIVE_ND );',
+            'cl_sensitivity = Cvar_Get( "sensitivity", "2", CVAR_ARCHIVE );',
+        )
+        # The send gate reads the clamped value for every profile.
+        ready = function_body(self.client, "CL_ReadyToSendPacket")
+        self.assertIn("if ( delta < 1000 / cl_maxpackets->integer ) {", ready)
+
+
 if __name__ == "__main__":
     unittest.main()
