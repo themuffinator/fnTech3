@@ -191,15 +191,12 @@ uint rt_choice_stream(RtLightChoice c, uint k)
 bool rt_light_candidate(vec3 P, vec3 N, uvec2 cell, uint total, bool enumerate, float globalShare, uint exclude, uint stream,
 	uint k, out uint index, out RtLightSample s, out float target, out float weight)
 {
-	float proposal;
-	if (!enumerate && globalShare > 0.0 && rand01(stream) < globalShare) {
+	bool global = !enumerate && globalShare > 0.0 && rand01(stream) < globalShare;
+	if (global) {
 		index = rt_global_light_pick(rand01(stream));
-		proposal = rt_light_proposal_pdf(cell, total, globalShare, index);
 	} else {
 		uint pick = enumerate ? k : min(uint(rand01(stream) * float(total)), total - 1u);
 		index = pick < cell.y ? u_lightIndices.indices[cell.x + pick] : u_frame.counts.w + (pick - cell.y);
-		// A locally drawn index is already known to be in the list.
-		proposal = enumerate ? 1.0 : globalShare * rt_global_light_pdf(index) + (1.0-globalShare) / float(total);
 	}
 	target = 0.0;
 	weight = 0.0;
@@ -210,6 +207,12 @@ bool rt_light_candidate(vec3 P, vec3 N, uvec2 cell, uint total, bool enumerate, 
 	if (!(p > 0.0)) {
 		return false;
 	}
+	// Out-of-range, backfacing and excluded lights have zero target. Their
+	// proposal never contributes, so avoid its table reads and membership
+	// search. Keep the same draws, mixture PDF and reservoir weights.
+	// A locally drawn index is already known to be in the list.
+	float proposal = enumerate ? 1.0 : (global ? rt_light_proposal_pdf(cell, total, globalShare, index) :
+		globalShare * rt_global_light_pdf(index) + (1.0-globalShare) / float(total));
 	target = p;
 	weight = p / proposal;
 	return true;
@@ -398,6 +401,10 @@ vec3 rt_sample_lights(vec3 P, vec3 N, vec3 Ng, uint maxCandidates, uint exclude,
 	bool dynamicLight = chosenIndex >= u_frame.counts.w;
 	uint mask = dynamicLight ? (g_shadowMask | RT_MASK_NOSHADOW) : g_shadowMask;
 	float visibility = rt_trace_shadow_mask(origin, chosen.L, chosen.dist - 0.1, mask, !dynamicLight, reactive);
+	// Moving lamps and flashes change illumination even without a moving
+	// blocker. Carry their response flag into the denoiser and its short
+	// departure window, so retaining quiet history cannot smear a flash.
+	if (dynamicLight) reactive = 1.0;
 	vec3 transmission = vec3(visibility);
 	// ... and through its alphashadow and lightfilter surfaces, filtered
 	vec3 filtered = vec3(1.0);

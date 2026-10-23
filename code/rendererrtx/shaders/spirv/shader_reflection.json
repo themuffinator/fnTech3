@@ -697,7 +697,7 @@
       "source": "rt_denoise_atrous.comp",
       "stage": "comp",
       "defines": [],
-      "byte_size": 21272,
+      "byte_size": 29072,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -858,7 +858,7 @@
       "source": "rt_denoise_temporal.comp",
       "stage": "comp",
       "defines": [],
-      "byte_size": 38604,
+      "byte_size": 45992,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -1180,7 +1180,7 @@
       "source": "rt_trace.comp",
       "stage": "comp",
       "defines": [],
-      "byte_size": 266296,
+      "byte_size": 266520,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -1392,7 +1392,7 @@
       "source": "rt_main.rgen",
       "stage": "rgen",
       "defines": [],
-      "byte_size": 232116,
+      "byte_size": 232384,
       "reflection": {
         "descriptor_bindings": [
           {

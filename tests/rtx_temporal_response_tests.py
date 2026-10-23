@@ -27,6 +27,16 @@ static float max(float a, float b) { return a > b ? a : b; }
 static float clamp(float x, float a, float b) { return min(max(x, a), b); }
 ''' + helpers + r'''
 int main() {
+    // An isolated indirect sample must remain uncertain at every frame
+    // rate and sampling density, even when it almost replaces history.
+    for (int fps : {20, 60, 120, 240}) for (int density : {1, 4, 16}) {
+        float alpha = rt_indirect_sample_alpha(float(density), 1.0f/fps, 128);
+        float current = 100, old = 0, filtered = current * alpha;
+        float variance = rt_indirect_variance(0, filtered-current, current-old, alpha);
+        assert(variance >= 0.99f * filtered * filtered);
+        assert(variance >= 2500.0f);
+    }
+    assert(rt_indirect_variance(0, 0, 0, 0.5f) == 0);
     // An entity's departure must not immediately restore the slow policy.
     volatile float reactivePeriod = 0.15f;
     assert(rt_shadow_reactive_time(0, 1, 1.0f/60) == reactivePeriod);
@@ -39,8 +49,8 @@ int main() {
     for (int fps : {20, 60, 120, 240}) {
         float darkening = 1, brightening = 0;
         for (int frame = 0; frame < fps / 10; ++frame) {
-            darkening = rt_temporal_blend(0, darkening, 0, 1, 1.0f/fps, 0.035f, 128);
-            brightening = rt_temporal_blend(1, brightening, 0, 1, 1.0f/fps, 0.035f, 128);
+            darkening = rt_temporal_blend(0, darkening, 0, 1, 1.0f/fps, 0.035f, 128, true);
+            brightening = rt_temporal_blend(1, brightening, 0, 1, 1.0f/fps, 0.035f, 128, true);
         }
         assert(darkening < 0.06f && brightening > 0.94f);
         assert(std::abs(darkening + brightening - 1) < 1e-6f);
@@ -49,17 +59,30 @@ int main() {
     }
     // A coherent visibility change rejects old light immediately, in both
     // directions. A one-frame revealed highlight must not be clipped away.
-    assert(rt_temporal_blend(1, 0, 1, 1, 1.0f/60, 0.035f, 128) == 1);
-    assert(rt_temporal_blend(0, 1, 0, 0, 1.0f/60, 0.035f, 128) == 0);
-    assert(rt_temporal_blend(1, 0, 0, 1, 1.0f/60, 0.035f, 128) > 0.35f);
+    assert(rt_temporal_blend(1, 0, 1, 1, 1.0f/60, 0.035f, 128, true) == 1);
+    assert(rt_temporal_blend(0, 1, 0, 0, 1.0f/60, 0.035f, 128, true) == 0);
+    assert(rt_temporal_blend(1, 0, 0, 1, 1.0f/60, 0.035f, 128, true) > 0.35f);
     // Frozen capture accumulation is still the exact running mean, even
     // when the current neighborhood does not contain the old observation.
     float mean = 0, sum = 0;
     for (int sample = 1; sample <= 128; ++sample) {
         float current = sample % 7 == 0 ? 7.0f : 0.0f;
-        mean = rt_temporal_blend(current, mean, current, current, 0, 0.035f, float(sample));
+        mean = rt_temporal_blend(current, mean, current, current, 0, 0.035f, float(sample), true);
         sum += current;
         assert(std::abs(mean - sum / sample) < 2e-6f);
+    }
+    // A rare light sample followed by quiet neighborhoods retains its
+    // energy. Clipping every quiet neighborhood to zero creates both dark
+    // bias and sparkles (the mean becomes alpha rather than one).
+    for (int fps : {20, 60, 120, 240}) {
+        float filtered = 0; double total = 0;
+        for (int frame = 0; frame < 16000; ++frame) {
+            float current = frame % 16 == 0 ? 16.0f : 0.0f;
+            filtered = rt_temporal_blend(current, filtered, current, current,
+                                        1.0f/fps, 0.320f, 128, false);
+            if (frame >= 8000) total += filtered;
+        }
+        assert(std::abs(total / 8000 - 1.0) < 1e-4);
     }
     // Missing indirect samples leave history unchanged. Half-rate samples
     // have the same response over two frames as full-rate observations.

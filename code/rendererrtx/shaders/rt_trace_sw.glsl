@@ -96,7 +96,9 @@ bool rt_sw_trace(vec3 origin, vec3 dir, float tMin, float tMax, uint mask, bool 
 	float best = tMax;
 	bool found = false;
 	uint instanceCount = min(u_frame.swInfo.x, RT_SW_MAX_INSTANCES);
-	uint stack[RT_SW_STACK];
+	// Keep the already-tested entry distance with each deferred child. A
+	// closer hit can reject it without another node fetch and slab test.
+	uvec2 stack[RT_SW_STACK];
 
 	for (uint i = 0u; i < instanceCount; i++) {
 		uvec4 a = u_frame.swInstances[i * 2u];			// nodes, triangles, class, mask
@@ -122,7 +124,8 @@ bool rt_sw_trace(vec3 origin, vec3 dir, float tMin, float tMax, uint mask, bool 
 				if (tl >= 0.0 && tr >= 0.0) {
 					bool leftFirst = tl <= tr;
 					if (sp < RT_SW_STACK) {
-						stack[sp++] = leftFirst ? first + 1u : first;
+						stack[sp++] = uvec2(leftFirst ? first + 1u : first,
+							floatBitsToUint(leftFirst ? tr : tl));
 					}
 					node = leftFirst ? left : right;
 					continue;
@@ -170,8 +173,9 @@ bool rt_sw_trace(vec3 origin, vec3 dir, float tMin, float tMax, uint mask, bool 
 			// the next kept node the ray still reaches before its best hit
 			bool more = false;
 			while (sp > 0u) {
-				node = rt_sw_node(dynamic, a.x + stack[--sp]);
-				if (rt_sw_box(origin, invDir, node, tMin, best) >= 0.0) {
+				uvec2 deferred = stack[--sp];
+				if (uintBitsToFloat(deferred.y) <= best) {
+					node = rt_sw_node(dynamic, a.x + deferred.x);
 					more = true;
 					break;
 				}

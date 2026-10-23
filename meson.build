@@ -2582,6 +2582,24 @@ test('fntech3_rtx_lightmap_execution', python,
 test('fntech3_rtx_transport', python,
   args: files('tests/rtx_transport_tests.py'),
 )
+test('fntech3_rtx_sw_traversal', python,
+  args: files('tests/rtx_sw_traversal_tests.py'),
+)
+test('fntech3_rtx_variance_cache', python,
+  args: files('tests/rtx_variance_cache_tests.py'),
+)
+test('fntech3_rtx_direct_filter', python,
+  args: files('tests/rtx_direct_filter_tests.py'),
+)
+test('fntech3_rtx_denoise_geometry', python,
+  args: files('tests/rtx_denoise_geometry_tests.py'),
+)
+test('fntech3_rtx_temporal_response', python,
+  args: files('tests/rtx_temporal_response_tests.py'),
+)
+test('fntech3_rtx_bvh_refit', python,
+  args: files('tests/rtx_bvh_refit_tests.py'),
+)
 test('fntech3_rtx_lifecycle', python,
   args: files('tests/rtx_lifecycle_tests.py'),
 )

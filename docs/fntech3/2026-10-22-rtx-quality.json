@@ -1,0 +1,1304 @@
+{
+  "record": "2026-10-22-rtx-quality",
+  "date": "2026-10-22",
+  "evidenceLevels": [
+    "Source",
+    "Unit",
+    "Live subset"
+  ],
+  "gatesClosed": [],
+  "sourceCommit": "472344612922846a64b16490d8c093355123be84",
+  "workingTreeDirty": true,
+  "sourceSnapshotNote": "Only the listed RTX files were switched for the before/after experiment. Concurrent CSM changes were preserved. Initial before preceded final raster edits; repeated before and final after include those edits. Per-run binary identities identify the artifacts. Current shared build may subsequently be rebuilt by the coordinated CSM task.",
+  "sourceSha256": {
+    "code/rendererrtx/rt/rt_bvh.c": "9b71f3d8b0ff2708de509f8fa020d40d31c241d836b5a17ff39c3f81c1af52ad",
+    "code/rendererrtx/shaders/rt_denoise_common.glsl": "6b27915d93ab86b71328839df8eb2b89367ca04f0ce5d2e444cc1cb1e56fa4e5",
+    "code/rendererrtx/shaders/rt_denoise_temporal.comp": "399d97f937d26f2e2cf76b92ea4d6bf0e3b163a5ff895316770786c4aba2f46d",
+    "code/rendererrtx/shaders/rt_denoise_atrous.comp": "f9c3bc3d0430633e52d2d26a7b8419339aa5458f867fade5b0a6fcae9c70c394",
+    "code/rendererrtx/shaders/rt_temporal_response.glsl": "0dfe16e6ccc0efc78c139636fab7446f8bfb88f81ac05744819fbad69943ad4d",
+    "code/rendererrtx/shaders/rt_lighting.glsl": "d96263953e1ec17cb1459993f1efe84df5a641d3573c3f87a9279542a08fd982",
+    "code/rendererrtx/shaders/rt_denoise_geometry.glsl": "221679d52059177d4d1bef7bceb6e8bedf1b098dc314ea0fdbff202bb41b9133"
+  },
+  "baselineSourceSha256": {
+    "code/rendererrtx/rt/rt_bvh.c": "e6747b7713d1ecc7e17df5a814414a609059faf67662f1c18d04e9b6262a25b6",
+    "code/rendererrtx/shaders/rt_denoise_common.glsl": "93d17a6433a622e53c5fb506262b0057cd9202b975f3125938f45aea2b1355da",
+    "code/rendererrtx/shaders/rt_denoise_temporal.comp": "268a4c48153fd0dc4057f4f6e8f5732684ddfaa893d207275f284069975f01f7",
+    "code/rendererrtx/shaders/rt_denoise_atrous.comp": "6efc63fe139d88338bbd77dfc2028df6f4bdbcfc99c841d8d769ecfe5749fcf5",
+    "code/rendererrtx/shaders/rt_temporal_response.glsl": "784fe1c957914b19f948ee5d48fc2028d597b12bbc59c3040837c0312e544d4c",
+    "code/rendererrtx/shaders/rt_lighting.glsl": "a11fd20bd5231f9c4121c5a7f19811357582afe65b1e70bbf0451721b5c85216"
+  },
+  "testSha256": {
+    "tests/rtx_denoise_geometry_tests.py": "a3fef08f7e6a82dcef858bfeaad02ebedd18af1c2949b11eb96620d2eaca562b",
+    "tests/rtx_temporal_response_tests.py": "7737bae7899eb5f47e9d7f9ecf31642dfc4cdd14be641b261b3b2ea2f1b69ffa",
+    "tests/rtx_bvh_refit_tests.py": "49320e592f2837170fba325615fe0fba1de814af3c1aeba35047346339d33f7a",
+    "tests/rtx_light_proposal_tests.py": "fdd5a2e2ce149b746ad7e818ebc853011c986e7edb1a0ae3377e4acc3eea8b62",
+    "tests/rtx_renderer_contract_source_tests.py": "63dcb982b42325d356f58e1c2988001a3bea395b18ab18d091bb4ad62a44244a"
+  },
+  "platform": "Windows-10-10.0.26200-SP0",
+  "architecture": "Windows x86",
+  "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
+  "driver": "591.74.0.0",
+  "backend": "compute",
+  "hardwareRuntimeTested": false,
+  "externalModuleAbiChanged": false,
+  "retainedFeatures": [
+    "ray-traced primary/direct visibility",
+    "current-frame entity shadows",
+    "indirect bounces",
+    "material reflectance and specular transport",
+    "HDR",
+    "liquid transport",
+    "fog"
+  ],
+  "runtimeSafety": {
+    "windowed": true,
+    "unswitchedPrivateDesktop": true,
+    "inputInjected": false,
+    "screenshotCommand": "screenshotPNG",
+    "osCaptureUsed": false,
+    "isolatedHome": true
+  },
+  "fixtures": [
+    {
+      "installation": "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+      "gameDirectory": "Main",
+      "maps": [
+        {
+          "pak": "mp_pak0.pk3",
+          "pakBytes": 63211149,
+          "entry": "maps/mp_beach.bsp",
+          "crc32": "77533d56",
+          "bytes": 7343512
+        },
+        {
+          "pak": "pak0.pk3",
+          "pakBytes": 315823656,
+          "entry": "maps/forest.bsp",
+          "crc32": "89b8d4c5",
+          "bytes": 6366504
+        }
+      ],
+      "readOnly": true
+    },
+    {
+      "installation": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+      "gameDirectory": "baseq3",
+      "maps": [
+        {
+          "pak": "pak0.pk3",
+          "pakBytes": 479493658,
+          "entry": "maps/q3dm1.bsp",
+          "crc32": "ee62f4f9",
+          "bytes": 1906708
+        }
+      ],
+      "readOnly": true
+    }
+  ],
+  "runs": [
+    {
+      "run": "bench-before",
+      "profile": "rtcw-sp",
+      "map": "forest",
+      "renderer": "rtx",
+      "runtime": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev",
+      "identity": {
+        "fntech3.exe": "999a770420be57b76c792bfe2fe6b81503415dea42d6f9844e523daed561dda7",
+        "fnql_rtx_x86.dll": "e679f5fdeaf5b84bf5f24f19b2aa376db605039a1a4ade25556cf823b6a9ff4d",
+        "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+      },
+      "command": [
+        "+set",
+        "com_gameProfile",
+        "rtcw-sp",
+        "+set",
+        "fs_basepath",
+        "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\rtx-quality\\runs\\bench-before\\home",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "net_enabled",
+        "0",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "-1",
+        "+set",
+        "r_customWidth",
+        "800",
+        "+set",
+        "r_customHeight",
+        "600",
+        "+set",
+        "cl_renderer",
+        "rtx",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "cl_motd",
+        "0",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "com_maxfps",
+        "0",
+        "+set",
+        "com_maxfpsUnfocused",
+        "0",
+        "+set",
+        "com_maxfpsMinimized",
+        "0",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "rtx_rt_mode",
+        "2",
+        "+set",
+        "rtx_rt_require",
+        "1",
+        "+set",
+        "rtx_rt_perf_timing",
+        "1",
+        "+set",
+        "rtx_rt_accumulate",
+        "0",
+        "+exec",
+        "probeshadow.cfg",
+        "+devmap",
+        "forest"
+      ],
+      "commands": [
+        "timescale 0",
+        "con_notifytime 0",
+        "rtx_rt_perf_interval 30"
+      ],
+      "shots": [
+        [
+          "sample1",
+          ""
+        ],
+        [
+          "sample2",
+          ""
+        ],
+        [
+          "sample3",
+          ""
+        ],
+        [
+          "sample4",
+          ""
+        ],
+        [
+          "sample5",
+          ""
+        ],
+        [
+          "sample6",
+          ""
+        ]
+      ],
+      "outcome": "exited",
+      "exit": 0,
+      "forced": false,
+      "seconds": 26.2,
+      "installationUnchanged": true,
+      "binariesUnchanged": true,
+      "errors": [],
+      "csm": [],
+      "captures": [
+        {
+          "name": "sample1.png",
+          "sha256": "0edf14c0c7069a0a56d7e10a59f332a0bd3f214b75cd531f566205a905b4862e"
+        },
+        {
+          "name": "sample2.png",
+          "sha256": "38d6f3621ad573809b070e771a9d967cbce70802a746bdf23d7fe78cd01ed092"
+        },
+        {
+          "name": "sample3.png",
+          "sha256": "df56b7c25f550b85b7d255bcf8480c975a6c693ad67f99569b74a3dfd80ef1a1"
+        },
+        {
+          "name": "sample4.png",
+          "sha256": "ca45f5bf60a6ee22c2f2e3c5fd5e7565797e4ae11bfdab4fe911c9e77b70987d"
+        },
+        {
+          "name": "sample5.png",
+          "sha256": "233bac4e35f44fed3a0f9a8e57bb7bb955b361fa2618b3ad14652cf2c4e4d23b"
+        },
+        {
+          "name": "sample6.png",
+          "sha256": "5a16af5e31a0d41b38f03e695ef11ca1da84ccb597ac5aeb3da0843653911c14"
+        }
+      ],
+      "desktopSwitched": false,
+      "inputInjected": false,
+      "engineScript": "set shot00 \"wait 1; screenshotPNG sample1; wait 60; vstr shot01\"\nset shot01 \"wait 1; screenshotPNG sample2; wait 60; vstr shot02\"\nset shot02 \"wait 1; screenshotPNG sample3; wait 60; vstr shot03\"\nset shot03 \"wait 1; screenshotPNG sample4; wait 60; vstr shot04\"\nset shot04 \"wait 1; screenshotPNG sample5; wait 60; vstr shot05\"\nset shot05 \"wait 1; screenshotPNG sample6; wait 60; echo probe-step done; wait 30; quit\"\nset activeAction \"echo probe-step active; timescale 0; con_notifytime 0; rtx_rt_perf_interval 30; wait 240; echo probe-step shooting; vstr shot00\"\n",
+      "consoleSha256": "94f516e67ee3be2eaff713f58b61eab674aaad5705614b2340ce670cce23c047",
+      "evidenceDirectory": ".tmp/rtx-quality/runs/bench-before"
+    },
+    {
+      "run": "bench-repeat-before",
+      "profile": "rtcw-sp",
+      "map": "forest",
+      "renderer": "rtx",
+      "runtime": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev",
+      "identity": {
+        "fntech3.exe": "999a770420be57b76c792bfe2fe6b81503415dea42d6f9844e523daed561dda7",
+        "fnql_rtx_x86.dll": "676cf4a7f6bc97cbb65b0f38cbf2e3e7a32d70df13136fcc7942f17d93df3275",
+        "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+      },
+      "command": [
+        "+set",
+        "com_gameProfile",
+        "rtcw-sp",
+        "+set",
+        "fs_basepath",
+        "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\rtx-quality\\runs\\bench-repeat-before\\home",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "net_enabled",
+        "0",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "-1",
+        "+set",
+        "r_customWidth",
+        "800",
+        "+set",
+        "r_customHeight",
+        "600",
+        "+set",
+        "cl_renderer",
+        "rtx",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "cl_motd",
+        "0",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "com_maxfps",
+        "0",
+        "+set",
+        "com_maxfpsUnfocused",
+        "0",
+        "+set",
+        "com_maxfpsMinimized",
+        "0",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "rtx_rt_mode",
+        "2",
+        "+set",
+        "rtx_rt_require",
+        "1",
+        "+set",
+        "rtx_rt_perf_timing",
+        "1",
+        "+set",
+        "rtx_rt_accumulate",
+        "0",
+        "+exec",
+        "probeshadow.cfg",
+        "+devmap",
+        "forest"
+      ],
+      "commands": [
+        "timescale 0",
+        "con_notifytime 0",
+        "rtx_rt_perf_interval 30"
+      ],
+      "shots": [
+        [
+          "sample1",
+          ""
+        ],
+        [
+          "sample2",
+          ""
+        ],
+        [
+          "sample3",
+          ""
+        ],
+        [
+          "sample4",
+          ""
+        ],
+        [
+          "sample5",
+          ""
+        ],
+        [
+          "sample6",
+          ""
+        ]
+      ],
+      "outcome": "exited",
+      "exit": 0,
+      "forced": false,
+      "seconds": 24.9,
+      "installationUnchanged": true,
+      "binariesUnchanged": true,
+      "errors": [],
+      "csm": [],
+      "captures": [
+        {
+          "name": "sample1.png",
+          "sha256": "3d7099247b3022e2a487fc030804e499c5925538c8f14d79c7955e9f08224ca3"
+        },
+        {
+          "name": "sample2.png",
+          "sha256": "f9899485f5eb44c730873428c4f254ab834fd8b67e52f90ec955a304fb4aec23"
+        },
+        {
+          "name": "sample3.png",
+          "sha256": "ae9aa8d1001675d8cfc8c29a4ac1d83212167cac1dfd969d6114b52e988e7788"
+        },
+        {
+          "name": "sample4.png",
+          "sha256": "bb55c3e1c84129f764321df39a40465f1c1f94db201eee09a2d3a9de33f1fbae"
+        },
+        {
+          "name": "sample5.png",
+          "sha256": "116cc2ccae1cfdba3d72d96d0eb4503e1b914588e386349d760284bb8f21cf2c"
+        },
+        {
+          "name": "sample6.png",
+          "sha256": "47a0e838268e4de5b4342a38284a2d7e779c07681240523c4da24990e59fac75"
+        }
+      ],
+      "desktopSwitched": false,
+      "inputInjected": false,
+      "engineScript": "set shot00 \"wait 1; screenshotPNG sample1; wait 60; vstr shot01\"\nset shot01 \"wait 1; screenshotPNG sample2; wait 60; vstr shot02\"\nset shot02 \"wait 1; screenshotPNG sample3; wait 60; vstr shot03\"\nset shot03 \"wait 1; screenshotPNG sample4; wait 60; vstr shot04\"\nset shot04 \"wait 1; screenshotPNG sample5; wait 60; vstr shot05\"\nset shot05 \"wait 1; screenshotPNG sample6; wait 60; echo probe-step done; wait 30; quit\"\nset activeAction \"echo probe-step active; timescale 0; con_notifytime 0; rtx_rt_perf_interval 30; wait 240; echo probe-step shooting; vstr shot00\"\n",
+      "consoleSha256": "acf565f6deb35e0979c967b6f1cc38114fc8aaa204fea327396fce9b1366721b",
+      "evidenceDirectory": ".tmp/rtx-quality/runs/bench-repeat-before"
+    },
+    {
+      "run": "bench-final-proposal",
+      "profile": "rtcw-sp",
+      "map": "forest",
+      "renderer": "rtx",
+      "runtime": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev",
+      "identity": {
+        "fntech3.exe": "999a770420be57b76c792bfe2fe6b81503415dea42d6f9844e523daed561dda7",
+        "fnql_rtx_x86.dll": "dfa63d71d0ed71118b6e90aacb19807e7a0888e1b9399dba4b6d957e8053210e",
+        "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+      },
+      "command": [
+        "+set",
+        "com_gameProfile",
+        "rtcw-sp",
+        "+set",
+        "fs_basepath",
+        "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\rtx-quality\\runs\\bench-final-proposal\\home",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "net_enabled",
+        "0",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "-1",
+        "+set",
+        "r_customWidth",
+        "800",
+        "+set",
+        "r_customHeight",
+        "600",
+        "+set",
+        "cl_renderer",
+        "rtx",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "cl_motd",
+        "0",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "com_maxfps",
+        "0",
+        "+set",
+        "com_maxfpsUnfocused",
+        "0",
+        "+set",
+        "com_maxfpsMinimized",
+        "0",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "rtx_rt_mode",
+        "2",
+        "+set",
+        "rtx_rt_require",
+        "1",
+        "+set",
+        "rtx_rt_perf_timing",
+        "1",
+        "+set",
+        "rtx_rt_accumulate",
+        "0",
+        "+exec",
+        "probeshadow.cfg",
+        "+devmap",
+        "forest"
+      ],
+      "commands": [
+        "timescale 0",
+        "con_notifytime 0",
+        "rtx_rt_perf_interval 30"
+      ],
+      "shots": [
+        [
+          "sample1",
+          ""
+        ],
+        [
+          "sample2",
+          ""
+        ],
+        [
+          "sample3",
+          ""
+        ],
+        [
+          "sample4",
+          ""
+        ],
+        [
+          "sample5",
+          ""
+        ],
+        [
+          "sample6",
+          ""
+        ]
+      ],
+      "outcome": "exited",
+      "exit": 0,
+      "forced": false,
+      "seconds": 32.0,
+      "installationUnchanged": true,
+      "binariesUnchanged": true,
+      "errors": [],
+      "csm": [],
+      "captures": [
+        {
+          "name": "sample1.png",
+          "sha256": "6e1194c593234c6cc25e988d2f574d8a7152815aada126a518e7c49a3489a058"
+        },
+        {
+          "name": "sample2.png",
+          "sha256": "6b8c66245556c567b1bf8b5ffcf06db70bc0ce8d0a9e84f1dd95cee9b81c7794"
+        },
+        {
+          "name": "sample3.png",
+          "sha256": "ed9d484e5e7bd21fce44104411a441af5929c1351ed00e365a30db52f767e297"
+        },
+        {
+          "name": "sample4.png",
+          "sha256": "d5428a04fe55e2aece652cb5b40304725a3771532e70803d40b86d6750b6933d"
+        },
+        {
+          "name": "sample5.png",
+          "sha256": "2fd56e25a24e8de09151843491eb41d34f973a2f62775ac7816a6ba5991b2df8"
+        },
+        {
+          "name": "sample6.png",
+          "sha256": "23a651a09aed889404e9a9d51c9455201cbfe986301c429492a7be59b3d5d46d"
+        }
+      ],
+      "desktopSwitched": false,
+      "inputInjected": false,
+      "engineScript": "set shot00 \"wait 1; screenshotPNG sample1; wait 60; vstr shot01\"\nset shot01 \"wait 1; screenshotPNG sample2; wait 60; vstr shot02\"\nset shot02 \"wait 1; screenshotPNG sample3; wait 60; vstr shot03\"\nset shot03 \"wait 1; screenshotPNG sample4; wait 60; vstr shot04\"\nset shot04 \"wait 1; screenshotPNG sample5; wait 60; vstr shot05\"\nset shot05 \"wait 1; screenshotPNG sample6; wait 60; echo probe-step done; wait 30; quit\"\nset activeAction \"echo probe-step active; timescale 0; con_notifytime 0; rtx_rt_perf_interval 30; wait 240; echo probe-step shooting; vstr shot00\"\n",
+      "consoleSha256": "b330064ef73ba59eb64263b44078c2b02431bef47e034df97588e9b128c14a75",
+      "evidenceDirectory": ".tmp/rtx-quality/runs/bench-final-proposal"
+    },
+    {
+      "run": "final-q3-shadow",
+      "profile": "q3",
+      "map": "q3dm1",
+      "renderer": "rtx",
+      "runtime": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev",
+      "identity": {
+        "fntech3.exe": "999a770420be57b76c792bfe2fe6b81503415dea42d6f9844e523daed561dda7",
+        "fnql_rtx_x86.dll": "5db594290e7a73814f91cf0e71a0d4a80267eb8eb045cfef3f3fabb41a51198d",
+        "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+      },
+      "command": [
+        "+set",
+        "com_gameProfile",
+        "q3",
+        "+set",
+        "fs_basepath",
+        "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\rtx-quality\\runs\\final-q3-shadow\\home",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "net_enabled",
+        "0",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "-1",
+        "+set",
+        "r_customWidth",
+        "800",
+        "+set",
+        "r_customHeight",
+        "600",
+        "+set",
+        "cl_renderer",
+        "rtx",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "cl_motd",
+        "0",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "com_maxfps",
+        "60",
+        "+set",
+        "com_maxfpsUnfocused",
+        "60",
+        "+set",
+        "com_maxfpsMinimized",
+        "60",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "rtx_rt_mode",
+        "2",
+        "+set",
+        "rtx_rt_require",
+        "1",
+        "+set",
+        "rtx_rt_accumulate",
+        "0",
+        "+exec",
+        "probeshadow.cfg",
+        "+devmap",
+        "q3dm1"
+      ],
+      "commands": [
+        "setviewpos 212 2360 65 315",
+        "timescale 0",
+        "con_notifytime 0",
+        "cg_drawGun 0",
+        "cg_bobup 0",
+        "cg_bobpitch 0",
+        "cg_bobroll 0",
+        "rtx_rt_bounces 0",
+        "rtx_rt_debug_visualizer 11"
+      ],
+      "shots": [
+        [
+          "clear",
+          ""
+        ],
+        [
+          "start",
+          "rtx_rt_test_caster 340 2200 32 20; wait 60"
+        ],
+        [
+          "m01",
+          "rtx_rt_test_caster 344 2200 32 20"
+        ],
+        [
+          "m02",
+          "rtx_rt_test_caster 348 2200 32 20"
+        ],
+        [
+          "m03",
+          "rtx_rt_test_caster 352 2200 32 20"
+        ],
+        [
+          "m04",
+          "rtx_rt_test_caster 356 2200 32 20"
+        ],
+        [
+          "m05",
+          "rtx_rt_test_caster 360 2200 32 20"
+        ],
+        [
+          "m06",
+          "rtx_rt_test_caster 364 2200 32 20"
+        ],
+        [
+          "m07",
+          "rtx_rt_test_caster 368 2200 32 20"
+        ],
+        [
+          "m08",
+          "rtx_rt_test_caster 372 2200 32 20"
+        ],
+        [
+          "settled",
+          "wait 60"
+        ],
+        [
+          "clear-after",
+          "rtx_rt_test_caster 372 2200 32 20 1; wait 60"
+        ]
+      ],
+      "outcome": "exited",
+      "exit": 0,
+      "forced": false,
+      "seconds": 8.7,
+      "installationUnchanged": true,
+      "binariesUnchanged": true,
+      "errors": [],
+      "csm": [],
+      "captures": [
+        {
+          "name": "clear.png",
+          "sha256": "96676a73dd2097b5eb146b4017b1c58585364f4e5e9394d56159bbb51f29665f"
+        },
+        {
+          "name": "start.png",
+          "sha256": "a93475617bc833a23717faae9c0ab6d75c47cf2b061a892311c6a94209d958de"
+        },
+        {
+          "name": "m01.png",
+          "sha256": "8d64d67a7882a9bb72d7accc9699063bce3664ff4cacbe5fee8219b39a9f9352"
+        },
+        {
+          "name": "m02.png",
+          "sha256": "c37e7d11d62caec80de164417cfa69bc5588f9d7b16c1fb40cb3745ebd5281f9"
+        },
+        {
+          "name": "m03.png",
+          "sha256": "a4f0f69010cbd4e832c18888174d766ca10fb7794e325871aa0e0248a92995af"
+        },
+        {
+          "name": "m04.png",
+          "sha256": "a08b202bbe4bbfd9eef302b13d42d195b13a4df2f82fd18dd402a6cd78ecc9f9"
+        },
+        {
+          "name": "m05.png",
+          "sha256": "f5d75526f84c4e10902db34699e8a2f58551f962d2981eedee2d87ec97524178"
+        },
+        {
+          "name": "m06.png",
+          "sha256": "aff1f0acc472d2374c0243033832437a4441143b1d552e01cf60ce1a54960c0e"
+        },
+        {
+          "name": "m07.png",
+          "sha256": "9d574923bce24817de26185c2db68a8420c1d01868877800d6b57031cf707d8e"
+        },
+        {
+          "name": "m08.png",
+          "sha256": "daab55dd52752aa1310276809fe61987126599bb663c4ecd2ff6191f4b82f661"
+        },
+        {
+          "name": "settled.png",
+          "sha256": "cc9616958fcf2cebf1f08aab8ea065987297b93470464150159bf7672048e151"
+        },
+        {
+          "name": "clear-after.png",
+          "sha256": "50320bf84b52327ba9624f7bf76ee4eceda7d89cc479821a21240fdbea8da6f5"
+        }
+      ],
+      "desktopSwitched": false,
+      "inputInjected": false,
+      "engineScript": "set shot00 \"wait 1; screenshotPNG clear; wait 1; vstr shot01\"\nset shot01 \"rtx_rt_test_caster 340 2200 32 20; wait 60; wait 1; screenshotPNG start; wait 1; vstr shot02\"\nset shot02 \"rtx_rt_test_caster 344 2200 32 20; wait 1; screenshotPNG m01; wait 1; vstr shot03\"\nset shot03 \"rtx_rt_test_caster 348 2200 32 20; wait 1; screenshotPNG m02; wait 1; vstr shot04\"\nset shot04 \"rtx_rt_test_caster 352 2200 32 20; wait 1; screenshotPNG m03; wait 1; vstr shot05\"\nset shot05 \"rtx_rt_test_caster 356 2200 32 20; wait 1; screenshotPNG m04; wait 1; vstr shot06\"\nset shot06 \"rtx_rt_test_caster 360 2200 32 20; wait 1; screenshotPNG m05; wait 1; vstr shot07\"\nset shot07 \"rtx_rt_test_caster 364 2200 32 20; wait 1; screenshotPNG m06; wait 1; vstr shot08\"\nset shot08 \"rtx_rt_test_caster 368 2200 32 20; wait 1; screenshotPNG m07; wait 1; vstr shot09\"\nset shot09 \"rtx_rt_test_caster 372 2200 32 20; wait 1; screenshotPNG m08; wait 1; vstr shot10\"\nset shot10 \"wait 60; wait 1; screenshotPNG settled; wait 1; vstr shot11\"\nset shot11 \"rtx_rt_test_caster 372 2200 32 20 1; wait 60; wait 1; screenshotPNG clear-after; wait 1; echo probe-step done; wait 30; quit\"\nset activeAction \"echo probe-step active; setviewpos 212 2360 65 315; timescale 0; con_notifytime 0; cg_drawGun 0; cg_bobup 0; cg_bobpitch 0; cg_bobroll 0; rtx_rt_bounces 0; rtx_rt_debug_visualizer 11; wait 90; echo probe-step shooting; vstr shot00\"\n",
+      "consoleSha256": "616eb04167db45e8522b77573e5177360f025cf4cddbdb2cc811a1cf08885fb6",
+      "evidenceDirectory": ".tmp/rtx-quality/runs/final-q3-shadow"
+    },
+    {
+      "run": "final-rtcw-mp",
+      "profile": "rtcw-mp",
+      "map": "mp_beach",
+      "renderer": "rtx",
+      "runtime": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev",
+      "identity": {
+        "fntech3.exe": "999a770420be57b76c792bfe2fe6b81503415dea42d6f9844e523daed561dda7",
+        "fnql_rtx_x86.dll": "18aa4ef2edd38254cd544bafbaf962774377280af1683771363a76bc73b91408",
+        "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+      },
+      "command": [
+        "+set",
+        "com_gameProfile",
+        "rtcw-mp",
+        "+set",
+        "fs_basepath",
+        "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\rtx-quality\\runs\\final-rtcw-mp\\home",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "net_enabled",
+        "0",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "-1",
+        "+set",
+        "r_customWidth",
+        "800",
+        "+set",
+        "r_customHeight",
+        "600",
+        "+set",
+        "cl_renderer",
+        "rtx",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "cl_motd",
+        "0",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "com_maxfps",
+        "60",
+        "+set",
+        "com_maxfpsUnfocused",
+        "60",
+        "+set",
+        "com_maxfpsMinimized",
+        "60",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "rtx_rt_mode",
+        "2",
+        "+set",
+        "rtx_rt_require",
+        "1",
+        "+set",
+        "rtx_rt_accumulate",
+        "0",
+        "+exec",
+        "probeshadow.cfg",
+        "+devmap",
+        "mp_beach"
+      ],
+      "commands": [
+        "timescale 0",
+        "con_notifytime 0"
+      ],
+      "shots": [
+        [
+          "final",
+          ""
+        ],
+        [
+          "direct",
+          "rtx_rt_debug_visualizer 11"
+        ]
+      ],
+      "outcome": "exited",
+      "exit": 0,
+      "forced": false,
+      "seconds": 7.2,
+      "installationUnchanged": true,
+      "binariesUnchanged": true,
+      "errors": [],
+      "csm": [],
+      "captures": [
+        {
+          "name": "final.png",
+          "sha256": "6e06a6d30323183f69b94dd84213bf0e2807115cd278d715a9ecb29aa1c3b841"
+        },
+        {
+          "name": "direct.png",
+          "sha256": "c95666c13ee6f9bb681e0a091322c5f6f30ab2b3258358dea1c733c9a726d652"
+        }
+      ],
+      "desktopSwitched": false,
+      "inputInjected": false,
+      "engineScript": "set shot00 \"wait 3; screenshotPNG final; wait 60; vstr shot01\"\nset shot01 \"rtx_rt_debug_visualizer 11; wait 3; screenshotPNG direct; wait 60; echo probe-step done; wait 30; quit\"\nset activeAction \"echo probe-step active; timescale 0; con_notifytime 0; wait 120; echo probe-step shooting; vstr shot00\"\n",
+      "consoleSha256": "337c78df6361ffdf1fc540826b17d9e5119c412076c681f378ad0394fe5808f6",
+      "evidenceDirectory": ".tmp/rtx-quality/runs/final-rtcw-mp"
+    },
+    {
+      "run": "final-rtcw-mp-world",
+      "profile": "rtcw-mp",
+      "map": "mp_beach",
+      "renderer": "rtx",
+      "runtime": "E:\\Repositories\\fnTech3\\meson\\build\\win32-dev",
+      "identity": {
+        "fntech3.exe": "999a770420be57b76c792bfe2fe6b81503415dea42d6f9844e523daed561dda7",
+        "fnql_rtx_x86.dll": "18aa4ef2edd38254cd544bafbaf962774377280af1683771363a76bc73b91408",
+        "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+      },
+      "command": [
+        "+set",
+        "com_gameProfile",
+        "rtcw-mp",
+        "+set",
+        "fs_basepath",
+        "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+        "+set",
+        "fs_homepath",
+        "E:\\Repositories\\fnTech3\\.tmp\\rtx-quality\\runs\\final-rtcw-mp-world\\home",
+        "+set",
+        "com_steamIntegration",
+        "0",
+        "+set",
+        "developer",
+        "1",
+        "+set",
+        "logfile",
+        "2",
+        "+set",
+        "net_enabled",
+        "0",
+        "+set",
+        "r_fullscreen",
+        "0",
+        "+set",
+        "r_mode",
+        "-1",
+        "+set",
+        "r_customWidth",
+        "800",
+        "+set",
+        "r_customHeight",
+        "600",
+        "+set",
+        "cl_renderer",
+        "rtx",
+        "+set",
+        "in_mouse",
+        "0",
+        "+set",
+        "in_joystick",
+        "0",
+        "+set",
+        "in_nograb",
+        "1",
+        "+set",
+        "s_initsound",
+        "0",
+        "+set",
+        "cl_motd",
+        "0",
+        "+set",
+        "com_introplayed",
+        "1",
+        "+set",
+        "com_maxfps",
+        "60",
+        "+set",
+        "com_maxfpsUnfocused",
+        "60",
+        "+set",
+        "com_maxfpsMinimized",
+        "60",
+        "+set",
+        "sv_pure",
+        "0",
+        "+set",
+        "rtx_rt_mode",
+        "2",
+        "+set",
+        "rtx_rt_require",
+        "1",
+        "+set",
+        "rtx_rt_accumulate",
+        "0",
+        "+exec",
+        "probeshadow.cfg",
+        "+devmap",
+        "mp_beach"
+      ],
+      "commands": [
+        "CloseLimboMenu",
+        "timescale 0",
+        "con_notifytime 0"
+      ],
+      "shots": [
+        [
+          "final",
+          ""
+        ],
+        [
+          "direct",
+          "rtx_rt_debug_visualizer 11"
+        ]
+      ],
+      "outcome": "exited",
+      "exit": 0,
+      "forced": false,
+      "seconds": 8.7,
+      "installationUnchanged": true,
+      "binariesUnchanged": true,
+      "errors": [],
+      "csm": [],
+      "captures": [
+        {
+          "name": "final.png",
+          "sha256": "c0c45134a754c867ba30e8115fa155bb3627b4c471dd4c49777c1e6129e7a876"
+        },
+        {
+          "name": "direct.png",
+          "sha256": "1a6bf9f6749ae0924d0700a7f9adb1e46e7c25e58610c7dcce9d67a38091af11"
+        }
+      ],
+      "desktopSwitched": false,
+      "inputInjected": false,
+      "engineScript": "set shot00 \"wait 3; screenshotPNG final; wait 60; vstr shot01\"\nset shot01 \"rtx_rt_debug_visualizer 11; wait 3; screenshotPNG direct; wait 60; echo probe-step done; wait 30; quit\"\nset activeAction \"echo probe-step active; CloseLimboMenu; timescale 0; con_notifytime 0; wait 120; echo probe-step shooting; vstr shot00\"\n",
+      "consoleSha256": "73075b34bd1c8e7e9f2cae0696e668c811699650de4e268a3483bc5ea18f1925",
+      "evidenceDirectory": ".tmp/rtx-quality/runs/final-rtcw-mp-world"
+    }
+  ],
+  "metrics": {
+    "bench-before": {
+      "timingSamples": 13,
+      "medianTiming": {
+        "build": 0.0,
+        "trace": 27.09,
+        "denoise": 1.93,
+        "composite": 0.06,
+        "total": 29.19,
+        "cpu": 3.01
+      },
+      "medianFramePercentiles": [
+        35.87,
+        41.1,
+        88.25
+      ],
+      "groundRegion": {
+        "x": 320,
+        "y": 340,
+        "width": 460,
+        "height": 180
+      },
+      "imageSamples": [
+        {
+          "mean": 7.138977455716585,
+          "outliers10": 943,
+          "outliers30": 269
+        },
+        {
+          "mean": 7.261473429951691,
+          "outliers10": 1031,
+          "outliers30": 309
+        },
+        {
+          "mean": 7.136614331723028,
+          "outliers10": 831,
+          "outliers30": 219
+        },
+        {
+          "mean": 6.966751207729469,
+          "outliers10": 713,
+          "outliers30": 209
+        },
+        {
+          "mean": 7.222165861513688,
+          "outliers10": 988,
+          "outliers30": 263
+        },
+        {
+          "mean": 7.264496779388082,
+          "outliers10": 959,
+          "outliers30": 257
+        }
+      ],
+      "meanTemporalStd": 1.560474101366182
+    },
+    "bench-repeat-before": {
+      "timingSamples": 13,
+      "medianTiming": {
+        "build": 0.0,
+        "trace": 26.81,
+        "denoise": 1.76,
+        "composite": 0.06,
+        "total": 28.61,
+        "cpu": 2.59
+      },
+      "medianFramePercentiles": [
+        33.8,
+        38.2,
+        88.33
+      ],
+      "groundRegion": {
+        "x": 320,
+        "y": 340,
+        "width": 460,
+        "height": 180
+      },
+      "imageSamples": [
+        {
+          "mean": 7.0975,
+          "outliers10": 870,
+          "outliers30": 235
+        },
+        {
+          "mean": 7.228639291465377,
+          "outliers10": 998,
+          "outliers30": 310
+        },
+        {
+          "mean": 7.207584541062802,
+          "outliers10": 979,
+          "outliers30": 264
+        },
+        {
+          "mean": 6.969533011272141,
+          "outliers10": 680,
+          "outliers30": 192
+        },
+        {
+          "mean": 7.09852657004831,
+          "outliers10": 817,
+          "outliers30": 236
+        },
+        {
+          "mean": 7.305346215780998,
+          "outliers10": 942,
+          "outliers30": 267
+        }
+      ],
+      "meanTemporalStd": 1.5488756165919553
+    },
+    "bench-final-proposal": {
+      "timingSamples": 13,
+      "medianTiming": {
+        "build": 0.0,
+        "trace": 26.61,
+        "denoise": 2.21,
+        "composite": 0.06,
+        "total": 28.78,
+        "cpu": 2.77
+      },
+      "medianFramePercentiles": [
+        34.26,
+        40.26,
+        84.7
+      ],
+      "groundRegion": {
+        "x": 320,
+        "y": 340,
+        "width": 460,
+        "height": 180
+      },
+      "imageSamples": [
+        {
+          "mean": 6.949528985507246,
+          "outliers10": 454,
+          "outliers30": 121
+        },
+        {
+          "mean": 7.080048309178744,
+          "outliers10": 529,
+          "outliers30": 121
+        },
+        {
+          "mean": 7.02950080515298,
+          "outliers10": 456,
+          "outliers30": 97
+        },
+        {
+          "mean": 6.799327697262479,
+          "outliers10": 398,
+          "outliers30": 97
+        },
+        {
+          "mean": 6.961372785829308,
+          "outliers10": 468,
+          "outliers30": 113
+        },
+        {
+          "mean": 7.144597423510468,
+          "outliers10": 469,
+          "outliers30": 103
+        }
+      ],
+      "meanTemporalStd": 1.162319699630458
+    }
+  },
+  "metricMethod": {
+    "region": {
+      "x": 320,
+      "y": 340,
+      "width": 460,
+      "height": 180
+    },
+    "signal": "Mean of display RGB channels, code values 0..255",
+    "spatialOutlier": "Pixel minus 5x5 median exceeds 10 or 30",
+    "temporalVariation": "Mean per-pixel population standard deviation over six captures",
+    "warmupFrames": 240,
+    "captures": 6,
+    "frameSpacing": 61,
+    "timing": "Median of 13 periodic GPU pass observations after warmup; CPU median of rolling 256-frame p50 reports",
+    "primaryComparison": [
+      "bench-repeat-before",
+      "bench-final-proposal"
+    ]
+  },
+  "measuredConclusion": {
+    "strongOutliersMedianBefore": 250,
+    "strongOutliersMedianAfter": 108,
+    "strongOutliersReductionPercent": 56.8,
+    "temporalVariationReductionPercent": 24.95719558243481,
+    "reliableOverallFpsGain": false
+  },
+  "validation": {
+    "buildCommand": "meson compile -C meson/build/win32-dev -j 4 fnql_rtx_x86",
+    "buildLog": ".tmp/rtx-quality/final-restored-build.log",
+    "buildExit": 0,
+    "shaderCommand": "python code/rendererrtx/shaders/build_shaders.py",
+    "shaderVariants": 97,
+    "changedShaderSymbols": [
+      "csm_shadow_frag_spv",
+      "rt_denoise_atrous_comp_spv",
+      "rt_denoise_temporal_comp_spv",
+      "rt_trace_comp_spv",
+      "rt_main_rgen_spv"
+    ],
+    "shaderOwnershipNote": "csm_shadow_frag_spv belongs to the concurrent CSM task; all other changed symbols belong to this task.",
+    "testsCommand": "python -m pytest <all tests/rtx_*tests.py> tests/player_manual_tests.py -q",
+    "testsEnvironment": "Visual Studio 2022 x86 development shell; TMP/TEMP under .tmp/rtx-quality/temp",
+    "testsPassed": 155,
+    "subtestsPassed": 1061,
+    "testLog": ".tmp/rtx-quality/final-x86-tests.log",
+    "earlierFailures": "An obsolete proposal-order source assertion was updated. Two fog subtests first compiled without the required x86 target; the configured x86 rerun passed without relaxing the engine architecture policy."
+  },
+  "limitations": [
+    "No hardware-ray-tracing runtime on this 32-bit driver.",
+    "No reliable overall FPS improvement in repeated forest measurements.",
+    "Local outlier measurements do not establish ground-truth lighting accuracy.",
+    "Residual stochastic noise and foliage silhouette aliasing remain.",
+    "Q3 moving-caster test used the final denoiser before the last proposal-evaluation optimization.",
+    "RTCW MP final checks are short spectator world-view probes, not gameplay/interoperability evidence.",
+    "No full-profile compatibility, Linux runtime, or broad GPU-driver gate is closed."
+  ],
+  "unrelatedIssues": [
+    "Baseline forest warning: missing textures/lightimage/light_m15.blend.tga for textures/lights/mlight_10k."
+  ],
+  "externalCodeIncorporated": false,
+  "localEvidence": ".tmp/rtx-quality/"
+}

@@ -218,6 +218,17 @@ before input polling; it cannot remove the delay caused by a very long
 frame or the display's presentation queue. Try `2` if one frame in flight
 reduces throughput on your system, and compare the display's VSync setting.
 
+**Bright speckles on shaded ground.** Keep `rtx_rt_denoise 1`. The filter now
+follows the slope of floors and hills, and keeps rare lighting samples between
+frames. This reduces sparkling without filtering the textures. Moving shadows
+and flashes still update quickly. A `forest` comparison and its limits are in
+the [RTX quality record](fntech3/2026-10-22-rtx-quality.md).
+The [optimization follow-up](fntech3/2026-10-23-rtx-optimization.md) measures
+faster tracing and filtering with the same lighting and quality settings.
+The filter also gives noisy direct light more smoothing around model shadows,
+while keeping settled shadow edges sharp. This needs no extra rays or filter
+passes; see the [forest speckle follow-up](fntech3/2026-10-23-rtx-speckles.md).
+
 **The player's shadow moves in steps.** Direct shadows now have their own
 fast filter response when entities move, separate from the slower filter
 for bounced light. The renderer uses the current body pose every frame;

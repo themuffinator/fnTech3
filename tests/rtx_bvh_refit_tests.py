@@ -100,6 +100,20 @@ int main() {
     indices[0]=0; vertices[0].xyz[0]=std::numeric_limits<float>::quiet_NaN();
     assert(!RT_BvhRefit(&bvh,vertices.data(),unsigned(vertices.size()),indices.data(),96,oldBias,oldBias));
     RT_BvhFree(&bvh); assert(!bvh.nodes && !bvh.tris && !bvh.numNodes);
+    // Long, overlapping triangles have the widest centroid extent in X,
+    // but separate into two tight Y bands. The split must evaluate Y too.
+    vertices.resize(64*3); indices.resize(vertices.size());
+    for (unsigned t=0;t<64;++t) for(unsigned c=0;c<3;++c) {
+        auto& v=vertices[t*3+c]; indices[t*3+c]=t*3+c;
+        v.xyz[0]=float(t*2)+(c==0?-500.0f:c==1?500.0f:0.0f);
+        v.xyz[1]=(t%2?10.0f:-10.0f)+float(c==2);
+        v.xyz[2]=0;
+    }
+    assert(RT_BvhAppend(&bvh,vertices.data(),unsigned(vertices.size()),indices.data(),64,0,&no,&to));
+    const auto& root=bvh.nodes[0]; assert(!root.count);
+    assert(bvh.nodes[root.first].bmax[1] < bvh.nodes[root.first+1].bmin[1]);
+    validate(bvh,vertices,indices,0);
+    RT_BvhFree(&bvh);
     std::puts("BVH refit: translation, deformation, quality, invalid input and cleanup PASS");
 }
 '''

@@ -47,6 +47,7 @@ void main()
 	vec4 nd = read_normal_depth(cur, p);
 	vec3 n = oct_decode(nd.xy);
 	float z = nd.z;
+	vec2 depthGradient = denoise_depth_gradient(cur, p, n, z);
 	vec4 motion = read_motion(p);
 	float expectedPrevZ = motion.z;
 
@@ -113,7 +114,8 @@ void main()
 			uint qi = imageLoad(u_info[cur], q).r;
 			vec4 qnd = read_normal_depth(cur, q);
 			if ((qi & RT_PIXEL_OWNED) == 0u || (qi >> 8u) != (info >> 8u) ||
-				abs(qnd.z - z) > 0.01 * abs(z) + 1.0 || dot(oct_decode(qnd.xy), n) < 0.85) continue;
+				rt_depth_plane_distance(z, qnd.z, dot(depthGradient, vec2(q - p))) > 0.01 * abs(z) + 1.0 ||
+				dot(oct_decode(qnd.xy), n) < 0.85) continue;
 			vec4 qDirect = imageLoad(u_noisyDiffuse, q);
 			vec3 qD = qDirect.rgb;
 			if (qDirect.a > 0.0) reactiveTime = 0.15;
@@ -149,14 +151,16 @@ void main()
 			maxHistory = min(maxHistory, 16.0);
 		}
 		len = min(histLen + 1.0, maxHistory);
-		float directResponse = reactiveTime > 0.0 ? 0.035 : 0.320;
+		bool reactiveD = reactiveTime > 0.0 || (info & (RT_PIXEL_DYNAMIC | RT_PIXEL_WEAPON | RT_PIXEL_LIQUID)) != 0u;
+		float directResponse = reactiveD ? 0.035 : 0.320;
+		bool reactiveS = reactiveD || dot(motion.xy, motion.xy) > 1e-8;
 		float alphaD = rt_temporal_alpha(pc.params.x, directResponse, len);
 		float alphaS = rt_temporal_alpha(pc.params.x, 0.060, len);
 		for (int c = 0; c < 3; c++) {
-			accD[c] = rt_temporal_blend(D[c], histD[c], lowD[c], highD[c], pc.params.x, directResponse, len);
-			accS[c] = rt_temporal_blend(S[c], histS[c], lowS[c], highS[c], pc.params.x, 0.060, len);
-			histD[c] = rt_temporal_history(histD[c], lowD[c], highD[c], pc.params.x);
-			histS[c] = rt_temporal_history(histS[c], lowS[c], highS[c], pc.params.x);
+			accD[c] = rt_temporal_blend(D[c], histD[c], lowD[c], highD[c], pc.params.x, directResponse, len, reactiveD);
+			accS[c] = rt_temporal_blend(S[c], histS[c], lowS[c], highS[c], pc.params.x, 0.060, len, reactiveS);
+			histD[c] = rt_temporal_history(histD[c], lowD[c], highD[c], pc.params.x, reactiveD);
+			histS[c] = rt_temporal_history(histS[c], lowS[c], highS[c], pc.params.x, reactiveS);
 		}
 		// Recenter the old moments when history was clipped, retaining its
 		// variance instead of mixing a new mean with stale squared luminance.
@@ -167,6 +171,7 @@ void main()
 	}
 
 	float lenI = validI ? 1.0 : 0.0;
+	float innovationI = validI && iwsum > 0.01 ? denoise_luminance(I - histI.rgb / iwsum) : 0.0;
 	vec3 accI = validI ? I : (countI > 0.0 ? sumI / countI : vec3(0.0));
 	if (!validI && iwsum <= 0.01 && pc.view.w > 1u) {
 		// A disoccluded receiver may have neither history nor its own sample
@@ -188,7 +193,8 @@ void main()
 				uint qi = imageLoad(u_info[cur], q).r;
 				vec4 qnd = read_normal_depth(cur, q);
 				if ((qi & RT_PIXEL_OWNED) == 0u || (qi >> 8u) != (info >> 8u) ||
-					abs(qnd.z-z) > 0.01*abs(z)+1.0 || dot(oct_decode(qnd.xy), n) < 0.85) continue;
+					rt_depth_plane_distance(z, qnd.z, dot(depthGradient, vec2(q - p))) > 0.01*abs(z)+1.0 ||
+					dot(oct_decode(qnd.xy), n) < 0.85) continue;
 				vec2 delta = vec2(q-p);
 				float weight = 1.0 / (1.0 + dot(delta,delta));
 				reconstructed += weight * sampleI.rgb;
@@ -220,7 +226,10 @@ void main()
 	// of every spatial filter. Missing samples use the current neighborhood.
 	float aI = rt_indirect_sample_alpha(max(noisyI.a, 1.0), pc.params.x, max(lenI, 1.0));
 	float residualI = denoise_luminance(accI) - (validI ? denoise_luminance(I) : meanI);
-	varI = max(varI * aI / max(2.0 - aI, 1.0), residualI * residualI);
+	// At low FPS a sparse sample can almost replace history. Its residual
+	// AFTER blending then vanishes, even for a firefly. Keep its innovation
+	// against the old history so spatial filtering can still recognize noise.
+	varI = rt_indirect_variance(varI, residualI, innovationI, aI);
 	varI = max(varI, lenI < 4.0 ? meanI * meanI : 0.0);
 
 	float varD = max(moments.y - moments.x * moments.x, 0.0);
