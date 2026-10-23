@@ -166,6 +166,24 @@ static void HostDigest( const char *name ) {
 	printf( "\n" );
 }
 
+/* Each colour a stage draws with that the Ritual multitexture fold changes:
+ * a constant colour channel, or a constant alpha. */
+static void HostFoldReport( const char *name ) {
+	color4ub_t before[MAX_SHADER_STAGES];
+	int s, c;
+	for ( s = 0; s < MAX_SHADER_STAGES; s++ ) before[s] = R_ALICE_GEN( &stages[s] )->constantColor;
+	R_RitualFoldStageColours();
+	for ( s = 0; s < MAX_SHADER_STAGES && stages[s].active; s++ ) {
+		for ( c = 0; c < 4; c++ ) {
+			const qboolean drawn = c < 3 ? R_ALICE_GEN( &stages[s] )->rgbGen == CGEN_CONST
+				: R_ALICE_GEN( &stages[s] )->alphaGen == AGEN_CONST;
+			if ( drawn && before[s].rgba[c] != R_ALICE_GEN( &stages[s] )->constantColor.rgba[c] ) {
+				printf( "FOLD %s %d %d %d %d\n", name, s, c, before[s].rgba[c], R_ALICE_GEN( &stages[s] )->constantColor.rgba[c] );
+			}
+		}
+	}
+}
+
 static char *HostReadAll( FILE *in, long *length ) {
 	size_t capacity = 1 << 20, used = 0, n;
 	char *data = (char *)malloc( capacity + 1 );
@@ -212,6 +230,7 @@ static int HostCorpus( comGameId_t game ) {
 			printf( "WARN %s | %s\n", name, hostWarning );
 		}
 		if ( getenv( "FNTECH3_HOST_DIGEST" ) ) HostDigest( name );
+		if ( getenv( "FNTECH3_HOST_FOLD" ) && !hostWarning[0] ) HostFoldReport( name );
 	}
 	printf( "TOTAL %d FAILED %d\n", total, failed );
 	free( text );
@@ -455,6 +474,51 @@ static int HostChecks( void ) {
 			R_ALICE_GEN( &stages[0] )->rgbGen == CGEN_IDENTITY_LIGHTING );
 	}
 
+	/* the constant colours Ritual's multitexture fold leaves (fakk2.exe 1.02
+	 * 0x00478ead..0x004791c0, alice.exe 0x0048e798..0x0048ea83): channel k of
+	 * the folded pair's combined colour goes to the k-th stage on, so a
+	 * lightmap folded with a modulated texture leaves the next stage's blue at
+	 * their product, 0 */
+	CHECK( HostParseText( COM_GAME_FAKK2, "{\n{\nmap $lightmap\n}\n{\nmap a.tga\nblendFunc GL_DST_COLOR GL_ZERO\n}\n"
+		"{\nmap b.tga\nblendFunc GL_ONE GL_ONE\nrgbGen constant 0.5 0.8 0.5\n}\n}\n" ) );
+	R_RitualFoldStageColours();
+	CHECK( Color( &stages[2], 127, 204, 0 ) );
+	/* an add of two such stages leaves 255, its clamp raising the sum to 1 */
+	CHECK( HostParseText( COM_GAME_ALICE, "{\n{\nmap a.tga\n}\n{\nmap b.tga\nblendFunc add\n}\n"
+		"{\nmap c.tga\nblendFunc add\nrgbGen const 0 0 0.25\n}\n}\n" ) );
+	R_RitualFoldStageColours();
+	CHECK( Color( &stages[2], 0, 0, 255 ) );
+	/* the stage after that takes the pair's alpha */
+	CHECK( HostParseText( COM_GAME_FAKK2, "{\n{\nmap $lightmap\n}\n{\nmap a.tga\nblendFunc filter\n}\n"
+		"{\nmap b.tga\nblendFunc add\n}\n{\nmap c.tga\nblendFunc blend\nalphaGen const 0.5\n}\n}\n" ) );
+	CHECK( R_ALICE_GEN( &stages[3] )->constantColor.rgba[3] == 127 );
+	R_RitualFoldStageColours();
+	CHECK( R_ALICE_GEN( &stages[3] )->constantColor.rgba[3] == 0 );
+	/* two constant stages folded as an add: the first keeps the red of their
+	 * raised sum, and the second gives its colour up to the first's pass */
+	CHECK( HostParseText( COM_GAME_FAKK2, "{\n{\nmap a.tga\nrgbGen constant 0.5 0.25 0.05\n}\n"
+		"{\nmap a.tga\nblendFunc GL_ONE GL_ONE\nrgbGen constant 0.5 0.25 0.05\n}\n}\n" ) );
+	R_RitualFoldStageColours();
+	CHECK( Color( &stages[0], 255, 63, 12 ) && Color( &stages[1], 255, 255, 255 ) );
+	/* nothing folds across different colour sources, or a blend the second
+	 * stage does not share, or after nextBundle */
+	CHECK( HostParseText( COM_GAME_FAKK2, "{\n{\nmap $lightmap\n}\n{\nmap a.tga\nblendFunc GL_DST_COLOR GL_ZERO\nrgbGen vertex\n}\n"
+		"{\nmap b.tga\nblendFunc add\nrgbGen const 0 0 1\n}\n}\n" ) );
+	R_RitualFoldStageColours();
+	CHECK( Color( &stages[2], 0, 0, 255 ) );
+	CHECK( HostParseText( COM_GAME_FAKK2, "{\n{\nmap $lightmap\nnextBundle\nmap a.tga\n}\n{\nmap b.tga\nblendFunc filter\n}\n"
+		"{\nmap c.tga\nblendFunc add\nrgbGen const 0 0 1\n}\n}\n" ) );
+	R_RitualFoldStageColours();
+	CHECK( Color( &stages[2], 0, 0, 255 ) );
+	/* no other profile's colours move, Medal of Honor's included */
+	for ( game = COM_GAME_QUAKE3; game < COM_GAME_COUNT; game = (comGameId_t)( game + 1 ) ) {
+		if ( COM_GAME_ID_IS_RITUAL( game ) ) continue;
+		CHECK( HostParseText( game, "{\n{\nmap $lightmap\n}\n{\nmap a.tga\nblendFunc GL_DST_COLOR GL_ZERO\n}\n"
+			"{\nmap b.tga\nblendFunc GL_ONE GL_ONE\nrgbGen const ( 0.5 0.8 0.5 )\n}\n}\n" ) );
+		R_RitualFoldStageColours();
+		CHECK( Color( &stages[2], 127, 204, 127 ) );
+	}
+
 	/* Alice's nomipmaps leaves picmip alone; stage-level flags end with the stage */
 	CHECK( HostParseText( COM_GAME_ALICE, "{\nnomipmaps\n{\nmap a.tga\n}\n}\n" ) );
 	CHECK( shader.noMipMaps && !shader.noPicMip );
@@ -597,6 +661,17 @@ def run_corpus(exe, text, game_id, digest=False):
     if digest:
         return [line for line in lines if line.startswith('DIGEST ')]
     return int(parts[1]), int(parts[3]), [line for line in lines if line.startswith('FAIL ')]
+
+
+def run_fold(exe, text, game_id):
+    """The `FOLD <shader> <stage> <channel> <before> <after>` lines: each drawn
+    constant colour or alpha the Ritual multitexture fold changes."""
+    options = {'creationflags': subprocess.CREATE_NO_WINDOW} if os.name == 'nt' else {}
+    run = subprocess.run([str(exe), 'corpus', str(game_id)], input=text.encode('latin-1'), capture_output=True,
+                         timeout=120, env=dict(os.environ, FNTECH3_HOST_FOLD='1'), **options)
+    if run.returncode != 0:
+        raise AssertionError(run.stdout.decode('latin-1') + run.stderr.decode('latin-1'))
+    return [line for line in run.stdout.decode('latin-1').splitlines() if line.startswith('FOLD ')]
 
 
 BACKEND_HOST = r'''
@@ -824,6 +899,42 @@ class AliceShaderParseTests(unittest.TestCase):
             differ = [(gl, vk) for gl, vk in zip(digests['renderer'], digests[renderer]) if gl != vk]
             self.assertFalse(differ, renderer + ': ' + repr(differ[:3]))
 
+    def test_retail_fold_colours(self):
+        """The colours Ritual's multitexture fold leaves change eight shipped
+        F.A.K.K.2 shaders, alike in every parser, and no Alice one. The canal
+        water and the six caustics walls and ceilings of `under` lose their
+        constant's blue to the fold of their lightmap and texture, so the
+        water is the lime green of fakk2.exe 1.02's frames; the fluorescent
+        light's two constant stages fold as an add, its first stage drawing
+        with the raised red and its second with no colour of its own."""
+        if not shutil.which('clang'):
+            self.skipTest('Clang unavailable')
+        fakk2 = retail_scripts(FAKK2_ROOT, 'fakk')
+        alice = retail_scripts(ALICE_ROOT, 'base')
+        if fakk2 is None and alice is None:
+            self.skipTest('no Ritual installation')
+        caustics = ['textures/under/ceiling_caustic', 'textures/under/tunnelwater'] + [
+            f'textures/under/wl_machines{n}_caustic' for n in (2, 3, 4, 6, 10)]
+        reports = {}
+        for renderer in RENDERERS:
+            with self.subTest(renderer=renderer), work_folder(f'ritual-fold-{renderer}-') as temp:
+                exe = build_host(Path(temp), 'fold', renderer=renderer)
+                if fakk2 is not None:
+                    lines = run_fold(exe, fakk2, 14)
+                    blue = sorted(line.split()[1] for line in lines if line.split()[2:] == ['2', '2', '76', '0']
+                                  or line.split()[2:] == ['2', '2', '127', '0'])
+                    self.assertEqual(blue, sorted(caustics), '\n'.join(lines))
+                    light = [line.split()[2:] for line in lines if line.split()[1] == 'textures/otto/lt_fluorescent1']
+                    self.assertEqual(light, [['0', '0', '127', '255'], ['1', '0', '127', '255'],
+                                             ['1', '1', '63', '255'], ['1', '2', '12', '255']])
+                    self.assertEqual(len(lines), 11, '\n'.join(lines))
+                    reports[renderer] = lines
+                if alice is not None:
+                    self.assertEqual(run_fold(exe, alice, 13), [])
+        for renderer in ('renderervk', 'rendererrtx'):
+            if renderer in reports:
+                self.assertEqual(reports[renderer], reports['renderer'])
+
     def test_vulkan_back_end_matches_the_tested_formulas(self):
         """The Vulkan family's Alice sources and view features are GL's, which
         test_back_end_formulas measures; only where a stage keeps its alpha
@@ -865,7 +976,7 @@ class AliceShaderParseTests(unittest.TestCase):
                 for call in ('R_AliceShaderDirective(', 'R_AliceStageDirective(', 'R_AliceParseTexMod(',
                              'R_AliceParseDeform(', 'R_AliceFinishShaderSort(', 'R_AliceFinishShaderStages(',
                              'R_AliceStageCollapses(', 'R_AliceKeepsDetailStage(', 'R_AliceSortValue(',
-                             'R_AliceStageNeedsNormal(', 'R_ShaderWaveParm('):
+                             'R_AliceStageNeedsNormal(', 'R_ShaderWaveParm(', 'R_RitualFoldStageColours('):
                     self.assertIn(call, shader)
                 init = (code / 'tr_init.c').read_text()
                 start = init.index('if ( COM_GAME_ID_IS_RITUAL( ri.gameId ) ) {\n\t\t// alice.exe 0x004759ac')
@@ -904,7 +1015,8 @@ class AliceShaderParseTests(unittest.TestCase):
         self.assertIn('#include "../renderercommon/tr_alice_shader.h"', shader)
         for call in ('R_AliceShaderDirective(', 'R_AliceStageDirective(', 'R_AliceParseTexMod(',
                      'R_AliceParseDeform(', 'R_AliceFinishShaderSort(', 'R_AliceFinishShaderStages(',
-                     'R_AliceStageCollapses(', 'R_AliceKeepsDetailStage(', 'R_AliceSortValue('):
+                     'R_AliceStageCollapses(', 'R_AliceKeepsDetailStage(', 'R_AliceSortValue(',
+                     'R_RitualFoldStageColours('):
             self.assertIn(call, shader)
         init = (ROOT / 'code/renderer/tr_init.c').read_text()
         start = init.index('if ( COM_GAME_ID_IS_RITUAL( ri.gameId ) ) {\n\t\t// alice.exe 0x004759ac')

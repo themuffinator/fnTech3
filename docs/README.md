@@ -72,6 +72,10 @@ Release packages include them as web pages in their `manual` folder, built by
 
 ### Game-specific ledgers and records
 
+- [F.A.K.K.2 gap round](fntech3/2026-10-23-fakk2-gap-round.md)
+  -- the canal water's colour and Ritual's fog volumes drawn by retail's
+  rules, the whole campaign through its own exits, demos exchanged with
+  retail on every map, damaged demos, and retail's client under loss.
 - [Medal of Honor shader sweep](fntech3/2026-10-15-mohaa-shader-sweep.md)
   -- every map loaded in developer mode, each shader warning traced to the
   engine or to 1.00's data, and the engine's own fixed.

@@ -35,7 +35,9 @@
  *    other texture keyword does. No shipped Alice or Heavy Metal: F.A.K.K.2
  *    script puts `tcGen vector` after `nextBundle`.
  * Out-of-range constant colours are clamped to a byte rather than wrapped as
- * retail's ftol-to-byte store does (0x0048bd5b); no shipped value exceeds 1. */
+ * retail's ftol-to-byte store does (0x0048bd5b); no shipped value exceeds 1.
+ * One retail bug is reproduced, because shipped scripts look as it leaves
+ * them: the colours the multitexture fold writes (R_RitualFoldStageColours). */
 
 /* Retail marks a `fromEntity` waveform or texture-modifier parameter with this
  * value (0x0048d542, 0x0048d882). */
@@ -1037,6 +1039,107 @@ static qboolean R_AliceStageCollapses( const shaderStage_t *stage ) {
 	if ( R_ALICE_GEN( stage )->alphaGen >= AGEN_ALICE_DOT ) return qfalse;
 	if ( R_ALICE_GEN( stage )->alphaGen == AGEN_LIGHTING_SPECULAR && stage->aliceSpecularCustom ) return qfalse;
 	return qtrue;
+}
+
+/* The constant colours Ritual's multitexture fold leaves (alice.exe
+ * 0x0048e798..0x0048ea83; fakk2.exe 1.02 0x00478ead..0x004791c0, the same
+ * code). FinishShader walks neighbouring stages and folds a pair into one
+ * pass when neither has a texture environment yet (`nextBundle` gives one),
+ * their state but for blending and depth writes is the same, the first is
+ * opaque or blends as the second does, the second modulates (DST_COLOR ZERO,
+ * ZERO SRC_COLOR) or adds (ONE ONE), and their colour and alpha sources --
+ * and the waves of either -- are the same. It combines the two constant
+ * colours, a product for a modulate and for an add the sum, which its
+ * inverted clamp raises to at least 1, and stores the four bytes 0x2ed
+ * apart where its stages lie 0x2ec apart: channel k goes to the constant
+ * colour of the k-th stage on from the folded one, as the fold leaves them.
+ * So the stage after a folded pair takes the pair's blue and the one after
+ * that its alpha -- 0 after a modulate of two stages with no constant, 255
+ * after such an add. The shipped scripts' look depends on it: the canal
+ * water `textures/under/tunnelwater` (`rgbGen constant 0.5 0.8 0.5` after a
+ * lightmap and a modulated texture) is lime green in retail, its blue gone.
+ * fnTech3 folds by rules of its own, so the colours are put where retail's
+ * fold leaves them before any of that, and a folded pair's second stage
+ * gives its constant up, since retail's pass draws with the first's alone
+ * whether or not this renderer folds it. Medal of Honor is not included:
+ * its executable cannot be read, and OpenMoHAA's fold combines no colour. */
+static void R_RitualFoldStageColours( void ) {
+	shaderStage_t *list[MAX_SHADER_STAGES];
+	qboolean folded[MAX_SHADER_STAGES];
+	int count = 0, i, k;
+	if ( !COM_GAME_ID_IS_RITUAL( ri.gameId ) ) {
+		return;
+	}
+	for ( i = 0; i < MAX_SHADER_STAGES && stages[i].active && stages[i].bundle[0].image[0]; i++ ) {
+		list[count] = &stages[i];
+		folded[count] = R_AliceStageHasNextBundle( &stages[i] );
+		count++;
+	}
+	for ( i = 0; i + 1 < count; i++ ) {
+		const shaderStage_t *a = list[i], *b = list[i + 1];
+		const unsigned blendBits = GLS_SRCBLEND_BITS | GLS_DSTBLEND_BITS;
+		unsigned aBlend = a->stateBits & blendBits, bBlend = b->stateBits & blendBits;
+		float combined[4];
+		qboolean add;
+		if ( folded[i] ) {
+			continue;
+		}
+		if ( aBlend == ( GLS_SRCBLEND_ONE | GLS_DSTBLEND_ZERO ) ) {
+			aBlend = 0;
+		}
+		if ( ( a->stateBits ^ b->stateBits ) & ~( blendBits | GLS_DEPTHMASK_TRUE ) ) {
+			continue;
+		}
+		if ( aBlend && aBlend != bBlend ) {
+			continue;
+		}
+		if ( bBlend == ( GLS_SRCBLEND_DST_COLOR | GLS_DSTBLEND_ZERO ) || bBlend == ( GLS_SRCBLEND_ZERO | GLS_DSTBLEND_SRC_COLOR ) ) {
+			add = qfalse;
+		} else if ( bBlend == ( GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE ) ) {
+			add = qtrue;
+		} else {
+			continue;
+		}
+		if ( R_ALICE_GEN( a )->rgbGen != R_ALICE_GEN( b )->rgbGen || R_ALICE_GEN( a )->alphaGen != R_ALICE_GEN( b )->alphaGen ) {
+			continue;
+		}
+		if ( ( R_ALICE_GEN( a )->rgbGen == CGEN_WAVEFORM || R_ALICE_GEN( a )->rgbGen == CGEN_ALICE_COLORWAVE )
+			&& memcmp( &R_ALICE_GEN( a )->rgbWave, &R_ALICE_GEN( b )->rgbWave, sizeof( waveForm_t ) ) ) {
+			continue;
+		}
+		if ( R_ALICE_GEN( a )->alphaGen == AGEN_WAVEFORM
+			&& memcmp( &R_ALICE_GEN( a )->alphaWave, &R_ALICE_GEN( b )->alphaWave, sizeof( waveForm_t ) ) ) {
+			continue;
+		}
+		for ( k = 0; k < 4; k++ ) {
+			/* bytes over 255 as floats, then the product or the sum stored as
+			 * a float (0x0047903c..0x004790f4) */
+			const float scale = 1.0f / 255.0f;
+			const float x = (float)( (double)R_ALICE_GEN( a )->constantColor.rgba[k] * scale );
+			const float y = (float)( (double)R_ALICE_GEN( b )->constantColor.rgba[k] * scale );
+			if ( add ) {
+				const float sum = (float)( (double)x + (double)y );
+				combined[k] = sum < 1.0f ? 1.0f : sum;
+			} else {
+				combined[k] = (float)( (double)x * (double)y );
+			}
+		}
+		for ( k = 0; k < 4 && i + k < count; k++ ) {
+			/* truncated, its low byte kept (0x00479105..0x0047911e) */
+			R_ALICE_GEN( list[i + k] )->constantColor.rgba[k] = (byte)( (unsigned)(int)( (double)combined[k] * 255.0 ) & 0xff );
+		}
+		if ( R_ALICE_GEN( b )->rgbGen == CGEN_CONST || R_ALICE_GEN( b )->alphaGen == AGEN_CONST ) {
+			for ( k = 0; k < 4; k++ ) {
+				R_ALICE_GEN( list[i + 1] )->constantColor.rgba[k] = 255;
+			}
+		}
+		folded[i] = qtrue;
+		for ( k = i + 1; k + 1 < count; k++ ) {
+			list[k] = list[k + 1];
+			folded[k] = folded[k + 1];
+		}
+		count--;
+	}
 }
 
 /* A detail stage stays in an Alice shader: retail skips it while drawing,

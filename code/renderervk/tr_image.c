@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_image.c
 #include "tr_local.h"
 #include "../renderercommon/tr_rtcw_image_mip.h"
+#include "../renderercommon/tr_fog_math.h"
 
 static byte			 s_intensitytable[256];
 static unsigned char s_gammatable[256];
@@ -1561,6 +1562,11 @@ and for each vertex of transparent shaders in fog dynamically
 */
 float R_FogFactor( float s, float t ) {
 	float	d;
+
+	// Ritual's fog image and vertex fog (tr_fog_math.h)
+	if ( COM_GAME_ID_IS_RITUAL( ri.gameId ) ) {
+		return R_RitualFogFactor( s, t, tr.fogTable, FOG_TABLE_SIZE );
+	}
 
 	s -= 1.0/512;
 	if ( s < 0 ) {

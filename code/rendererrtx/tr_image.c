@@ -1604,20 +1604,30 @@ void R_InitFogTable( void ) {
 }
 
 
+/* The lookup the fog texture is built from: Ritual's under the Ritual
+ * profiles (tr_fog_math.h), else Quake III's. */
+static float R_CompatibilityFogFactor( float s, float t ) {
+	if ( COM_GAME_ID_IS_RITUAL( ri.gameId ) ) {
+		return R_RitualFogFactor( s, t, tr.fogTable, FOG_TABLE_SIZE );
+	}
+	return R_LegacyFogFactor( s, t, tr.fogTable, FOG_TABLE_SIZE );
+}
+
+
 /*
 ================
 R_FogFactor
 
 Returns a 0.0 to 1.0 fog density value
 This follows r_fogMode for transparent shader vertices. The compatibility
-fog texture is always generated from the legacy lookup below.
+fog texture is always generated from the profile's lookup above.
 ================
 */
 float R_FogFactor( float s, float t ) {
 	if ( r_fogMode && r_fogMode->integer ) {
 		return R_AnalyticFogFactor( s, t );
 	}
-	return R_LegacyFogFactor( s, t, tr.fogTable, FOG_TABLE_SIZE );
+	return R_CompatibilityFogFactor( s, t );
 }
 
 
@@ -1638,8 +1648,7 @@ static void R_CreateFogImage( void ) {
 	// S is distance, T is depth
 	for (x=0 ; x<FOG_S ; x++) {
 		for (y=0 ; y<FOG_T ; y++) {
-			d = R_LegacyFogFactor( ( x + 0.5f ) / FOG_S,
-				( y + 0.5f ) / FOG_T, tr.fogTable, FOG_TABLE_SIZE );
+			d = R_CompatibilityFogFactor( ( x + 0.5f ) / FOG_S, ( y + 0.5f ) / FOG_T );
 
 			data[(y*FOG_S+x)*4+0] = 
 			data[(y*FOG_S+x)*4+1] = 

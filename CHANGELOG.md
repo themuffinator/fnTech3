@@ -268,6 +268,11 @@ historical upstream records, not fnTech3 release history. See the
   setting now applies with the bilinear texture mode too, and a light flare
   sitting just behind its surface shows as it does in GLx
   ([record](docs/fntech3/2026-10-23-stvef-renderer-parity.md)).
+- Draw Heavy Metal: F.A.K.K.2's canal water and caustic walls the lime green
+  the original shows, and Alice's and F.A.K.K.2's fog volumes as thin as the
+  original draws them, in all three renderers; the damaged-demo probe now
+  runs under both games
+  ([record](docs/fntech3/2026-10-23-fakk2-gap-round.md)).
 
 ## [0.1.0] - 2026-10-11
 

@@ -743,13 +743,15 @@ and `fakk/cgamex86.dll`. A copy of the disc is not enough: the disc keeps the
 game's program files packed inside its installer.
 
 **Status:** experimental, in the Windows download. A server starts all thirty maps with the
-original game code. The client draws the menus, HUD and inventory, plays New
-Game and the level exits with your progress carried over, saves and loads,
-and records and plays demos. English and German copies both run. With the
-official 1.02 patch, the original game plays fnTech3's demos and
-joins fnTech3's server on all thirty levels; fnTech3 joins the original's
-server, and saves from the first level load in both. The original's server
-has only been run on that first level, and longer sessions and most of the
+original game code. The client draws the menus, HUD and inventory, plays the
+whole story from the first level to the ending through the game's own level
+exits with your progress carried over, saves and loads on every level, and
+records and plays demos. English and German copies both run. With the
+official 1.02 patch, the original game joins fnTech3's server on all thirty
+levels, and played a ten-minute session there with a tenth of the packets
+lost; each game plays the other's demos of every level. fnTech3 joins the
+original's server, and saves from the first level load in both. The
+original's server has only been run on that first level, and most of the
 game's pictures have not yet been compared with the original. See the
 [F.A.K.K.2 details](fntech3/COMPATIBILITY.md#fakk2-gate-matrix).
 

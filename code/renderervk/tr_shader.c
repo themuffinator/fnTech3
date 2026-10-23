@@ -3912,6 +3912,8 @@ static shader_t *FinishShader( void ) {
 
 	// Alice's portal-sky and fog-only sorts; a sky shader still sorts as sky
 	R_AliceFinishShaderSort();
+	// the constant colours Ritual's own multitexture fold leaves
+	R_RitualFoldStageColours();
 
 	//
 	// set sky stuff appropriate

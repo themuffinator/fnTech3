@@ -1,0 +1,2696 @@
+{
+ "record": "docs/fntech3/2026-10-23-fakk2-gap-round.md",
+ "date": "2026-10-23",
+ "baseHead": "f4d07ef0444817be60d910242b483b05db4ab548",
+ "platform": "Windows 11 x86 build, MSVC 2022 (x86), clang for fixtures",
+ "build": {
+  "tree": "git archive of the base head, this round's files laid over it",
+  "directory": ".tmp/fakk2-round/b",
+  "options": [
+   "--buildtype=debugoptimized",
+   "-Db_vscrt=static_from_buildtype",
+   "-Dstrict-warnings=true",
+   "-Drenderer-dlopen=true",
+   "-Drenderers=glx,vk,rtx",
+   "-Drenderer-default=glx",
+   "-Dbuild-client=true",
+   "-Dbuild-server=true",
+   "--wrap-mode=nodownload"
+  ],
+  "runtimes": {
+   "fakk2-base": {
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "fnql_glx_x86.dll": "ebabdbf6444bb0a3ab0c72ccd401c363c6540bed3a70b1887246f5b9323851d0",
+    "fnql_rtx_x86.dll": "3abac5736233e4ef4e59eb4663a07d87d1a923d9c6ae65d25e1ba076a9d61cf5",
+    "fnql_vk_x86.dll": "2c56e7cdaefc024f7da9568f9a60e832181a725e004af945868ee5f35170d826",
+    "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769",
+    "fntech3.ded.exe": "516533d36dcb9311792889fd26cca0ca276d26d3d60a31fb1de27aac7f0ee698",
+    "fntech3.exe": "e7159320d89394dc0ea5f3a671b075a1e5ba9f62b62aaa388701317ae6df8966"
+   },
+   "fakk2-fix": {
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "fnql_glx_x86.dll": "b15cb6a72451077131258361220d637bb0252bba73751eb8712f3f4212e30832",
+    "fnql_rtx_x86.dll": "af0909ff1c0f674dbe45eaa9b6ce1732065a671b25d81fcc109cc98b36a05bf7",
+    "fnql_vk_x86.dll": "980ace4bbab44e2b55f0f9e0a56b57d9c403adf25a1898df23279972d1616514",
+    "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769",
+    "fntech3.ded.exe": "516533d36dcb9311792889fd26cca0ca276d26d3d60a31fb1de27aac7f0ee698",
+    "fntech3.exe": "e7159320d89394dc0ea5f3a671b075a1e5ba9f62b62aaa388701317ae6df8966"
+   },
+   "fakk2-fog": {
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "fnql_glx_x86.dll": "8f0882e77953510f41943fddf3616efe21d1d0df1429428fff32767ab2b7efad",
+    "fnql_rtx_x86.dll": "b94553239db2a4e4f2f538139613b87a16cd7600c925ca9e5331b5ad7f2ffd81",
+    "fnql_vk_x86.dll": "b94f5915e2152e3e900beabcccb470bc9f896c15affeb4b8ab7e1dbc8cf49551",
+    "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769",
+    "fntech3.ded.exe": "516533d36dcb9311792889fd26cca0ca276d26d3d60a31fb1de27aac7f0ee698",
+    "fntech3.exe": "e7159320d89394dc0ea5f3a671b075a1e5ba9f62b62aaa388701317ae6df8966"
+   }
+  }
+ },
+ "retail": {
+  "executable": "fakk2.exe 1.02 (official patch)",
+  "sha256": "681bc51c3343d01d772c5ae4aae7523ae4547350b243c875156e138043335785",
+  "role": "client only; its server needs the game CD"
+ },
+ "installation": ".tmp/fakk2-install/game (laid down from the user's disc)",
+ "stageFold": {
+  "retail": {
+   "fold": "fakk2.exe 0x00478ead..0x004791c0; alice.exe 0x0048e798..0x0048ea83",
+   "combine": "modulate product, add sum raised to at least 1 (0x004790b0..0x004790dd)",
+   "store": "four bytes 0x2ed apart, stages 0x2ec apart (0x00479105..0x0047911e)",
+   "blendTable": "0x004f87d0: 0x13 and 0x31 modulate, 0x22 add",
+   "cdbWriter": "write breakpoint on the parsed blue byte (0x00476609) caught 0x00479112"
+  },
+  "census": {
+   "fakk2": {
+    "total": [
+     "TOTAL 1347 FAILED 17"
+    ],
+    "folds": [
+     "FOLD bwater2 stage=2/4 ch=0 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD bwater2 stage=3/4 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD shield_base stage=0/4 ch=0 0->255 rgb=1 alpha=0 bits=100",
+     "FOLD shield_base stage=1/4 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD shield_base stage=2/4 ch=2 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD shield_base stage=3/4 ch=3 0->255 rgb=9 alpha=1 bits=65",
+     "FOLD shield_tube stage=0/3 ch=0 0->255 rgb=1 alpha=0 bits=100",
+     "FOLD shield_tube stage=1/3 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD shield_tube stage=2/3 ch=2 0->255 rgb=9 alpha=1 bits=65",
+     "FOLD shield_tube1 stage=0/3 ch=0 0->255 rgb=1 alpha=0 bits=100",
+     "FOLD shield_tube1 stage=1/3 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD shield_tube1 stage=2/3 ch=2 0->255 rgb=9 alpha=1 bits=65",
+     "FOLD shield_tube2 stage=0/3 ch=0 0->255 rgb=1 alpha=0 bits=100",
+     "FOLD shield_tube2 stage=1/3 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD shield_tube2 stage=2/3 ch=2 0->255 rgb=9 alpha=1 bits=65",
+     "FOLD shield_tube3 stage=0/3 ch=0 0->255 rgb=1 alpha=0 bits=100",
+     "FOLD shield_tube3 stage=1/3 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD shield_tube3 stage=2/3 ch=2 0->255 rgb=9 alpha=1 bits=65",
+     "FOLD shield_tube4 stage=0/3 ch=0 0->255 rgb=1 alpha=0 bits=100",
+     "FOLD shield_tube4 stage=1/3 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD shield_tube4 stage=2/3 ch=2 0->255 rgb=9 alpha=1 bits=65",
+     "FOLD fleshtube stage=0/3 ch=0 0->255 rgb=1 alpha=0 bits=100",
+     "FOLD fleshtube stage=1/3 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD fleshtube stage=2/3 ch=2 0->255 rgb=9 alpha=1 bits=65",
+     "FOLD screen1 stage=0/3 ch=0 0->255 rgb=1 alpha=0 bits=100",
+     "FOLD screen1 stage=1/3 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD screen1 stage=2/3 ch=2 0->255 rgb=9 alpha=1 bits=65",
+     "FOLD screen3 stage=0/3 ch=0 0->255 rgb=1 alpha=0 bits=100",
+     "FOLD screen3 stage=1/3 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD screen3 stage=2/3 ch=2 0->255 rgb=9 alpha=1 bits=65",
+     "FOLD screen2 stage=0/3 ch=0 0->255 rgb=1 alpha=0 bits=100",
+     "FOLD screen2 stage=1/3 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD screen2 stage=2/3 ch=2 0->255 rgb=9 alpha=1 bits=65",
+     "FOLD orb stage=0/2 ch=0 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD orb stage=1/2 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD teleportmetal1 stage=1/5 ch=0 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD teleportmetal1 stage=2/5 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD teleportmetal1 stage=3/5 ch=2 0->255 rgb=9 alpha=1 bits=65",
+     "FOLD teleportmetal1 stage=4/5 ch=3 0->255 rgb=2 alpha=1 bits=23",
+     "FOLD teleportmetal2 stage=0/4 ch=0 0->255 rgb=1 alpha=0 bits=100",
+     "FOLD teleportmetal2 stage=1/4 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD teleportmetal2 stage=2/4 ch=2 0->255 rgb=9 alpha=1 bits=65",
+     "FOLD teleportmetal2 stage=3/4 ch=3 0->255 rgb=2 alpha=1 bits=23",
+     "FOLD holder1 stage=1/5 ch=0 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD holder1 stage=2/5 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD holder1 stage=3/5 ch=2 0->255 rgb=9 alpha=1 bits=65",
+     "FOLD holder1 stage=4/5 ch=3 0->255 rgb=2 alpha=1 bits=23",
+     "FOLD holder2 stage=0/4 ch=0 0->255 rgb=1 alpha=0 bits=100",
+     "FOLD holder2 stage=1/4 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD holder2 stage=2/4 ch=2 0->255 rgb=9 alpha=1 bits=65",
+     "FOLD holder2 stage=3/4 ch=3 0->255 rgb=2 alpha=1 bits=23",
+     "FOLD holder3 stage=0/4 ch=0 0->255 rgb=1 alpha=0 bits=100",
+     "FOLD holder3 stage=1/4 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD holder3 stage=2/4 ch=2 0->255 rgb=9 alpha=1 bits=65",
+     "FOLD holder3 stage=3/4 ch=3 0->255 rgb=2 alpha=1 bits=23",
+     "FOLD textures/eden/fake_lightsky stage=0/2 ch=0 0->255 rgb=1 alpha=0 bits=100",
+     "FOLD textures/eden/fake_lightsky stage=1/2 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD textures/eden/gith_screen1 stage=0/3 ch=0 0->255 rgb=1 alpha=0 bits=100",
+     "FOLD textures/eden/gith_screen1 stage=1/3 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD textures/eden/gith_screen1 stage=2/3 ch=2 0->255 rgb=9 alpha=1 bits=65",
+     "FOLD textures/eden/gith_screen2 stage=0/3 ch=0 0->255 rgb=1 alpha=0 bits=100",
+     "FOLD textures/eden/gith_screen2 stage=1/3 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD textures/eden/gith_screen2 stage=2/3 ch=2 0->255 rgb=9 alpha=1 bits=65",
+     "FOLD textures/eden/gith_screen3 stage=0/3 ch=0 0->255 rgb=1 alpha=0 bits=100",
+     "FOLD textures/eden/gith_screen3 stage=1/3 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD textures/eden/gith_screen3 stage=2/3 ch=2 0->255 rgb=9 alpha=1 bits=65",
+     "FOLD textures/otto/lt_fluorescent1 stage=0/2 ch=0 127->255 rgb=11 alpha=0 bits=100",
+     "FOLD textures/otto/lt_fluorescent1 stage=1/2 ch=0 127->255 rgb=11 alpha=0 bits=22",
+     "FOLD textures/otto/lt_fluorescent1 stage=1/2 ch=1 63->255 rgb=11 alpha=0 bits=22",
+     "FOLD textures/otto/lt_fluorescent1 stage=1/2 ch=2 12->255 rgb=11 alpha=0 bits=22",
+     "FOLD textures/otto/lt_fluorescent1 stage=1/2 ch=3 0->255 rgb=11 alpha=0 bits=22",
+     "FOLD textures/otto/lt_fluorescent2 stage=0/2 ch=0 0->255 rgb=1 alpha=0 bits=100",
+     "FOLD textures/otto/lt_fluorescent2 stage=1/2 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD textures/blood/fl_blood2 stage=0/4 ch=0 0->255 rgb=1 alpha=0 bits=100",
+     "FOLD textures/blood/fl_blood2 stage=1/4 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD textures/blood/fl_blood2 stage=2/4 ch=2 0->255 rgb=2 alpha=1 bits=62",
+     "FOLD textures/blood/fl_blood2 stage=3/4 ch=3 0->255 rgb=2 alpha=1 bits=13",
+     "FOLD textures/blood/tr_blood1 stage=0/4 ch=0 0->255 rgb=1 alpha=0 bits=100",
+     "FOLD textures/blood/tr_blood1 stage=1/4 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD textures/blood/tr_blood1 stage=2/4 ch=2 0->255 rgb=2 alpha=1 bits=62",
+     "FOLD textures/blood/tr_blood1 stage=3/4 ch=3 0->255 rgb=2 alpha=1 bits=13",
+     "FOLD textures/blood/tr_blood2 stage=0/4 ch=0 0->255 rgb=1 alpha=0 bits=100",
+     "FOLD textures/blood/tr_blood2 stage=1/4 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD textures/blood/tr_blood2 stage=2/4 ch=2 0->255 rgb=2 alpha=1 bits=62",
+     "FOLD textures/blood/tr_blood2 stage=3/4 ch=3 0->255 rgb=2 alpha=1 bits=13",
+     "FOLD textures/blood/tr_blood3 stage=0/4 ch=0 0->255 rgb=1 alpha=0 bits=100",
+     "FOLD textures/blood/tr_blood3 stage=1/4 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD textures/blood/tr_blood3 stage=2/4 ch=2 0->255 rgb=2 alpha=1 bits=62",
+     "FOLD textures/blood/tr_blood3 stage=3/4 ch=3 0->255 rgb=2 alpha=1 bits=13",
+     "FOLD textures/blood/tr_blood4 stage=0/4 ch=0 0->255 rgb=1 alpha=0 bits=100",
+     "FOLD textures/blood/tr_blood4 stage=1/4 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD textures/blood/tr_blood4 stage=2/4 ch=2 0->255 rgb=2 alpha=1 bits=62",
+     "FOLD textures/blood/tr_blood4 stage=3/4 ch=3 0->255 rgb=2 alpha=1 bits=13",
+     "FOLD shield_base_FE stage=0/4 ch=0 0->255 rgb=3 alpha=0 bits=100",
+     "FOLD shield_base_FE stage=1/4 ch=1 0->255 rgb=3 alpha=0 bits=22",
+     "FOLD shield_base_FE stage=2/4 ch=2 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD shield_base_FE stage=3/4 ch=3 0->255 rgb=9 alpha=1 bits=65",
+     "FOLD textures/shield/shield_base_FE stage=0/3 ch=0 0->255 rgb=3 alpha=0 bits=100",
+     "FOLD textures/shield/shield_base_FE stage=1/3 ch=1 0->255 rgb=3 alpha=0 bits=22",
+     "FOLD textures/shield/shield_base_FE stage=2/3 ch=2 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD shield_tube_dead stage=0/3 ch=0 0->255 rgb=1 alpha=0 bits=100",
+     "FOLD shield_tube_dead stage=1/3 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD shield_tube_dead stage=2/3 ch=2 0->255 rgb=9 alpha=1 bits=65",
+     "FOLD shield_base_dead stage=0/3 ch=0 0->255 rgb=1 alpha=0 bits=100",
+     "FOLD shield_base_dead stage=1/3 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD shield_base_dead stage=2/3 ch=2 0->255 rgb=9 alpha=1 bits=65",
+     "FOLD textures/under/ceiling_caustic stage=2/3 ch=2 76->0 rgb=11 alpha=0 bits=22",
+     "FOLD textures/under/wl_machines2_caustic stage=2/3 ch=2 76->0 rgb=11 alpha=0 bits=22",
+     "FOLD textures/under/wl_machines3_caustic stage=2/3 ch=2 76->0 rgb=11 alpha=0 bits=22",
+     "FOLD textures/under/wl_machines4_caustic stage=2/3 ch=2 76->0 rgb=11 alpha=0 bits=22",
+     "FOLD textures/under/wl_machines6_caustic stage=2/3 ch=2 76->0 rgb=11 alpha=0 bits=22",
+     "FOLD textures/under/wl_machines10_caustic stage=2/3 ch=2 76->0 rgb=11 alpha=0 bits=22",
+     "FOLD textures/under/tunnelwater stage=2/3 ch=2 127->0 rgb=11 alpha=0 bits=22"
+    ]
+   },
+   "alice": {
+    "total": [
+     "TOTAL 2162 FAILED 23"
+    ],
+    "folds": [
+     "FOLD textures/effects/starshootertube stage=1/4 ch=0 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD textures/effects/starshootertube stage=2/4 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD textures/effects/starshootertube stage=3/4 ch=2 0->255 rgb=2 alpha=1 bits=31",
+     "FOLD models/weapons/ragebox/skin01 stage=0/3 ch=0 0->255 rgb=8 alpha=0 bits=100",
+     "FOLD models/weapons/ragebox/skin01 stage=1/3 ch=1 0->255 rgb=8 alpha=0 bits=22",
+     "FOLD models/weapons/ragebox/skin01 stage=2/3 ch=2 0->255 rgb=9 alpha=1 bits=3065",
+     "FOLD torchgnome_ball stage=0/3 ch=0 0->255 rgb=1 alpha=0 bits=100",
+     "FOLD torchgnome_ball stage=1/3 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD torchgnome_ball stage=2/3 ch=2 0->255 rgb=2 alpha=1 bits=65",
+     "FOLD textures/effects/wallold stage=0/4 ch=0 0->255 rgb=1 alpha=0 bits=100",
+     "FOLD textures/effects/wallold stage=1/4 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD textures/effects/wallold stage=2/4 ch=2 0->255 rgb=1 alpha=0 bits=65",
+     "FOLD textures/effects/wallold stage=3/4 ch=3 76->255 rgb=1 alpha=11 bits=65",
+     "FOLD powerups/healthfluid stage=1/3 ch=0 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD powerups/healthfluid stage=2/3 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD powerups/manafluid stage=1/3 ch=0 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD powerups/manafluid stage=2/3 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD textures/sky/tempsky1 stage=0/2 ch=0 0->255 rgb=1 alpha=0 bits=100",
+     "FOLD textures/sky/tempsky1 stage=1/2 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD textures/sky/roguesky1 stage=0/2 ch=0 0->255 rgb=1 alpha=0 bits=100",
+     "FOLD textures/sky/roguesky1 stage=1/2 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD textures/sky/queen_portalsky stage=0/2 ch=0 0->255 rgb=1 alpha=0 bits=100",
+     "FOLD textures/sky/queen_portalsky stage=1/2 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD textures/sky/queen_sky1 stage=0/2 ch=0 0->255 rgb=1 alpha=0 bits=100",
+     "FOLD textures/sky/queen_sky1 stage=1/2 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD textures/sky/queen_skyjj stage=0/2 ch=0 0->255 rgb=1 alpha=0 bits=100",
+     "FOLD textures/sky/queen_skyjj stage=1/2 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD textures/sky/dtestsky stage=0/2 ch=0 0->255 rgb=1 alpha=0 bits=100",
+     "FOLD textures/sky/dtestsky stage=1/2 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD textures/special/teleporter2_1 stage=0/3 ch=0 0->255 rgb=1 alpha=0 bits=100",
+     "FOLD textures/special/teleporter2_1 stage=1/3 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD textures/special/teleporter2_1 stage=2/3 ch=2 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD textures/special/teleporter2_1red stage=0/3 ch=0 0->255 rgb=1 alpha=0 bits=100",
+     "FOLD textures/special/teleporter2_1red stage=1/3 ch=1 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD textures/special/teleporter2_1red stage=2/3 ch=2 0->255 rgb=1 alpha=0 bits=22",
+     "FOLD ui/ui_health stage=1/3 ch=0 0->255 rgb=1 alpha=0 bits=422",
+     "FOLD ui/ui_health stage=2/3 ch=1 0->255 rgb=1 alpha=0 bits=422",
+     "FOLD ui/ui_mana stage=1/3 ch=0 0->255 rgb=1 alpha=0 bits=422",
+     "FOLD ui/ui_mana stage=2/3 ch=1 0->255 rgb=1 alpha=0 bits=422"
+    ]
+   }
+  },
+  "canalRetailNoFarFog": {
+   "stock": {
+    "right": [
+     27.6,
+     58.0,
+     28.9
+    ],
+    "left": [
+     14.7,
+     33.1,
+     15.5
+    ]
+   },
+   "white": {
+    "right": [
+     128.2,
+     200.5,
+     28.8
+    ],
+    "left": [
+     116.1,
+     185.3,
+     15.4
+    ]
+   },
+   "white_identity": {
+    "right": [
+     204.0,
+     204.0,
+     204.0
+    ],
+    "left": [
+     203.7,
+     203.7,
+     203.7
+    ]
+   },
+   "white_blue": {
+    "right": [
+     26.6,
+     40.7,
+     28.8
+    ],
+    "left": [
+     14.7,
+     22.5,
+     15.4
+    ]
+   },
+   "white_red": {
+    "right": [
+     204.0,
+     40.7,
+     28.8
+    ],
+    "left": [
+     203.7,
+     22.4,
+     15.4
+    ]
+   },
+   "nocaustics": {
+    "right": [
+     26.6,
+     40.5,
+     28.7
+    ],
+    "left": [
+     14.4,
+     22.1,
+     15.3
+    ]
+   }
+  },
+  "canalDefault": {
+   "retail": {
+    "stock": {
+     "right": [
+      31.8,
+      61.0,
+      33.9
+     ],
+     "left": [
+      20.9,
+      43.3,
+      23.6
+     ]
+    },
+    "white": {
+     "right": [
+      134.1,
+      207.3,
+      34.0
+     ],
+     "left": [
+      133.1,
+      210.5,
+      23.8
+     ]
+    },
+    "nocaustics": {
+     "right": [
+      31.6,
+      45.9,
+      34.1
+     ],
+     "left": [
+      21.3,
+      31.3,
+      24.1
+     ]
+    }
+   },
+   "glBefore": {
+    "stock": {
+     "right": [
+      35.0,
+      68.6,
+      60.2
+     ],
+     "left": [
+      21.5,
+      42.1,
+      41.5
+     ]
+    },
+    "white": {
+     "right": [
+      149.5,
+      232.3,
+      152.4
+     ],
+     "left": [
+      139.8,
+      221.3,
+      142.9
+     ]
+    },
+    "nocaustics": {
+     "right": [
+      33.1,
+      48.9,
+      36.0
+     ],
+     "left": [
+      21.2,
+      31.3,
+      24.2
+     ]
+    }
+   },
+   "glAfter": {
+    "stock": {
+     "right": [
+      33.9,
+      66.4,
+      36.2
+     ],
+     "left": [
+      21.4,
+      45.3,
+      24.5
+     ]
+    },
+    "white": {
+     "right": [
+      149.7,
+      232.3,
+      36.1
+     ],
+     "left": [
+      139.7,
+      221.2,
+      24.4
+     ]
+    },
+    "nocaustics": {
+     "right": [
+      33.1,
+      49.0,
+      36.0
+     ],
+     "left": [
+      21.3,
+      31.3,
+      24.2
+     ]
+    }
+   },
+   "vkBefore": {
+    "stock": {
+     "right": [
+      33.1,
+      66.5,
+      59.0
+     ],
+     "left": [
+      21.4,
+      42.9,
+      42.6
+     ]
+    },
+    "white": {
+     "right": [
+      255.0,
+      255.0,
+      255.0
+     ],
+     "left": [
+      254.8,
+      254.9,
+      254.8
+     ]
+    }
+   },
+   "vkAfter": {
+    "stock": {
+     "right": [
+      33.2,
+      66.1,
+      35.6
+     ],
+     "left": [
+      23.1,
+      51.7,
+      24.3
+     ]
+    },
+    "white": {
+     "right": [
+      255.0,
+      255.0,
+      107.3
+     ],
+     "left": [
+      254.8,
+      254.9,
+      71.9
+     ]
+    }
+   },
+   "rtxBefore": {
+    "stock": {
+     "right": [
+      99.0,
+      114.2,
+      86.6
+     ],
+     "left": [
+      26.2,
+      48.8,
+      45.6
+     ]
+    },
+    "white": {
+     "right": [
+      255.0,
+      255.0,
+      255.0
+     ],
+     "left": [
+      254.9,
+      255.0,
+      254.8
+     ]
+    }
+   },
+   "rtxAfter": {
+    "stock": {
+     "right": [
+      92.5,
+      109.0,
+      59.1
+     ],
+     "left": [
+      25.7,
+      48.1,
+      23.5
+     ]
+    },
+    "white": {
+     "right": [
+      255.0,
+      255.0,
+      154.5
+     ],
+     "left": [
+      254.9,
+      255.0,
+      83.2
+     ]
+    }
+   }
+  },
+  "boxes": {
+   "right": [
+    520,
+    470,
+    700,
+    560
+   ],
+   "left": [
+    230,
+    500,
+    330,
+    580
+   ]
+  }
+ },
+ "fogImage": {
+  "retail": {
+   "image": "fakk2.exe 0x0046fdbb..0x0046fef1; alice.exe 0x00484b83..0x00484c9a",
+   "table": "pow(i/255, 0.5) at 0x0046fb50",
+   "tcScale": "1/(8 x depth), 0x00485c7b",
+   "insideT": "31/32, 0x00494f9a",
+   "cpuFade": "max(0, 1 - (t - 0.25) s 256): 0x004944f0 RGB, 0x00494650 RGBA, 0x004945c0 alpha (not reproduced)"
+  },
+  "mapsWithFogVolumesAndNoFarFog": {
+   "fakk2": [
+    "cemetery",
+    "cliff1",
+    "cliff2",
+    "oracleway"
+   ],
+   "alice": [
+    "centipede2",
+    "fortress1",
+    "grounds1",
+    "hedge3",
+    "jlair2",
+    "keep",
+    "skool1",
+    "tower1"
+   ]
+  },
+  "overNoFarFog": {
+   "over-fix-stock": {
+    "right": [
+     13.2,
+     27.3,
+     13.9
+    ],
+    "left": [
+     11.1,
+     25.0,
+     12.2
+    ]
+   },
+   "over-fix-nocaustics": {
+    "right": [
+     12.7,
+     18.9,
+     14.1
+    ],
+    "left": [
+     9.9,
+     14.7,
+     12.3
+    ]
+   },
+   "over-fog-stock": {
+    "right": [
+     27.2,
+     56.3,
+     28.3
+    ],
+    "left": [
+     19.5,
+     46.3,
+     20.0
+    ]
+   },
+   "over-fog-nocaustics": {
+    "right": [
+     26.0,
+     38.7,
+     28.4
+    ],
+    "left": [
+     17.0,
+     25.4,
+     20.0
+    ]
+   }
+  }
+ },
+ "campaignWalk": {
+  "entered": [
+   "fakkhouse",
+   "training$spawn_fakkhouse",
+   "fakkhouse$spawn_training",
+   "homes1$spawn_fakkhouse",
+   "landersroost$spawn_homes1",
+   "homes1$spawn_landersroost",
+   "creeperpens$spawn_homes1",
+   "homes2good",
+   "towncenter_good",
+   "under",
+   "over",
+   "shield",
+   "homes2evil",
+   "otto$spawn_homes2evil",
+   "towncenter_evil",
+   "cliff1",
+   "cliff2$spawn_cliff1",
+   "swamp1$spawn_cliff2",
+   "swamp2$spawn_swamp1",
+   "swamp3$spawn_swamp2",
+   "gruff",
+   "gruff_cinema",
+   "cemetery$spawn_gruff",
+   "fog",
+   "cemetery$spawn_fog",
+   "water",
+   "cemetery$spawn_water",
+   "blood",
+   "cemetery$spawn_blood",
+   "oracleway",
+   "oracle",
+   "end"
+  ],
+  "steps": 32,
+  "saveFiles": 125,
+  "errors": []
+ },
+ "autosaveLoads": [
+  {
+   "save": "blood0000",
+   "ok": true,
+   "entered": [
+    "blood"
+   ]
+  },
+  {
+   "save": "cemetery0000",
+   "ok": true,
+   "entered": [
+    "cemetery"
+   ]
+  },
+  {
+   "save": "cemetery0001",
+   "ok": true,
+   "entered": [
+    "cemetery"
+   ]
+  },
+  {
+   "save": "cemetery0002",
+   "ok": true,
+   "entered": [
+    "cemetery"
+   ]
+  },
+  {
+   "save": "cemetery0003",
+   "ok": true,
+   "entered": [
+    "cemetery"
+   ]
+  },
+  {
+   "save": "cliff10000",
+   "ok": true,
+   "entered": [
+    "cliff1"
+   ]
+  },
+  {
+   "save": "cliff20000",
+   "ok": true,
+   "entered": [
+    "cliff2"
+   ]
+  },
+  {
+   "save": "creeperpens0000",
+   "ok": true,
+   "entered": [
+    "creeperpens"
+   ]
+  },
+  {
+   "save": "end0000",
+   "ok": true,
+   "entered": [
+    "end"
+   ]
+  },
+  {
+   "save": "fakkhouse0000",
+   "ok": true,
+   "entered": [
+    "fakkhouse"
+   ]
+  },
+  {
+   "save": "fog0000",
+   "ok": true,
+   "entered": [
+    "fog"
+   ]
+  },
+  {
+   "save": "gruff0000",
+   "ok": true,
+   "entered": [
+    "gruff"
+   ]
+  },
+  {
+   "save": "gruff_cinema0000",
+   "ok": true,
+   "entered": [
+    "gruff_cinema"
+   ]
+  },
+  {
+   "save": "homes10000",
+   "ok": true,
+   "entered": [
+    "homes1"
+   ]
+  },
+  {
+   "save": "homes10001",
+   "ok": true,
+   "entered": [
+    "homes1"
+   ]
+  },
+  {
+   "save": "homes2evil0000",
+   "ok": true,
+   "entered": [
+    "homes2evil"
+   ]
+  },
+  {
+   "save": "homes2good0000",
+   "ok": true,
+   "entered": [
+    "homes2good"
+   ]
+  },
+  {
+   "save": "landersroost0000",
+   "ok": true,
+   "entered": [
+    "landersroost"
+   ]
+  },
+  {
+   "save": "oracle0000",
+   "ok": true,
+   "entered": [
+    "oracle"
+   ]
+  },
+  {
+   "save": "oracleway0000",
+   "ok": true,
+   "entered": [
+    "oracleway"
+   ]
+  },
+  {
+   "save": "otto0000",
+   "ok": true,
+   "entered": [
+    "otto"
+   ]
+  },
+  {
+   "save": "over0000",
+   "ok": true,
+   "entered": [
+    "over"
+   ]
+  },
+  {
+   "save": "shield0000",
+   "ok": true,
+   "entered": [
+    "shield"
+   ]
+  },
+  {
+   "save": "swamp10000",
+   "ok": true,
+   "entered": [
+    "swamp1"
+   ]
+  },
+  {
+   "save": "swamp20000",
+   "ok": true,
+   "entered": [
+    "swamp2"
+   ]
+  },
+  {
+   "save": "swamp30000",
+   "ok": true,
+   "entered": [
+    "swamp3"
+   ]
+  },
+  {
+   "save": "towncenter_evil0000",
+   "ok": true,
+   "entered": [
+    "towncenter_evil"
+   ]
+  },
+  {
+   "save": "towncenter_good0000",
+   "ok": true,
+   "entered": [
+    "towncenter_good"
+   ]
+  },
+  {
+   "save": "training0000",
+   "ok": true,
+   "entered": [
+    "training"
+   ]
+  },
+  {
+   "save": "under0000",
+   "ok": true,
+   "entered": [
+    "under"
+   ]
+  },
+  {
+   "save": "water0000",
+   "ok": true,
+   "entered": [
+    "water"
+   ]
+  }
+ ],
+ "demoFaults": {
+  "profile": "fakk2",
+  "sourceRecords": 188,
+  "outcomes": {
+   "completed": 4,
+   "rejected": 11,
+   "stalled": 0,
+   "crashed": 0,
+   "hung": 0
+  },
+  "passed": true,
+  "variants": {
+   "truncated-header": {
+    "outcome": "completed",
+    "expected": "completed",
+    "errors": [],
+    "inputSha256": "d1dc497409d954468d7e2c08a97d389061ea07e0133019b68003e83c5a8ebda5"
+   },
+   "truncated-body": {
+    "outcome": "completed",
+    "expected": "completed",
+    "errors": [],
+    "inputSha256": "ab5f5fd87235a074c0e8e240f5eea820d9ef08c97e8d7e636bd724b9771eac21"
+   },
+   "no-terminator": {
+    "outcome": "completed",
+    "expected": "completed",
+    "errors": [],
+    "inputSha256": "f2fd82a8d2074918116fadc3fd39f8313e87f6dac9f84fbfe285158faf93a55a"
+   },
+   "length-negative": {
+    "outcome": "rejected",
+    "expected": "rejected",
+    "errors": [
+     "ERROR: CL_ReadDemoMessage: invalid demo message length -2"
+    ],
+    "inputSha256": "6590f4d9224f0d85fb0e86fa48e1af8a8457be315fa1a24ab5dd7167ebc65b04"
+   },
+   "length-over-limit": {
+    "outcome": "rejected",
+    "expected": "rejected",
+    "errors": [
+     "ERROR: CL_ReadDemoMessage: invalid demo message length 49153"
+    ],
+    "inputSha256": "3d83f710133b47b0e4fc5f063c1b05a3d619fa8febd5da859e78ad4db02352c3"
+   },
+   "length-huge": {
+    "outcome": "rejected",
+    "expected": "rejected",
+    "errors": [
+     "ERROR: CL_ReadDemoMessage: invalid demo message length 2147483647"
+    ],
+    "inputSha256": "52acd4e7c166ed9744bac313b227e47e8bdb7941582be25e3bcd3cddb6364958"
+   },
+   "flipped-body": {
+    "outcome": "rejected",
+    "expected": "completed-or-rejected-or-stalled",
+    "errors": [
+     "ERROR: CL_ReadDeltaEntity: invalid or truncated entity delta"
+    ],
+    "inputSha256": "fe252ed4e68a78311089907b97bc5a970f6ecf5f32871e3588fa2049cab656dc"
+   },
+   "fuzz-20260918-000": {
+    "outcome": "rejected",
+    "expected": "completed-or-rejected-or-stalled",
+    "errors": [
+     "ERROR: CL_ReadDeltaEntity: invalid or truncated entity delta"
+    ],
+    "inputSha256": "e748771c434b8299ac821b5c17c9ceffe7a54d74758ee9b61853270bc287092b"
+   },
+   "fuzz-20260918-001": {
+    "outcome": "rejected",
+    "expected": "completed-or-rejected-or-stalled",
+    "errors": [
+     "ERROR: CL_ReadDeltaEntity: invalid or truncated entity delta"
+    ],
+    "inputSha256": "12438d687b8c0e67a94c1cd7a456f98aabfc36160b0ef4ba1f58e33fe2e51598"
+   },
+   "fuzz-20260918-002": {
+    "outcome": "rejected",
+    "expected": "completed-or-rejected-or-stalled",
+    "errors": [
+     "ERROR: CL_ReadDeltaEntity: invalid or truncated entity delta"
+    ],
+    "inputSha256": "58b9ef8a0a4cd962aa67e5c7c3d185caf4c25520a8ce753ac4f878596f2c3516"
+   },
+   "fuzz-20260918-003": {
+    "outcome": "rejected",
+    "expected": "completed-or-rejected-or-stalled",
+    "errors": [
+     "ERROR: CL_ReadDeltaEntity: invalid or truncated entity delta"
+    ],
+    "inputSha256": "cc7226aafb04eb4dd267f9a62c746b613700323d444dcc602ae90071083f3dcf"
+   },
+   "fuzz-20260918-004": {
+    "outcome": "rejected",
+    "expected": "completed-or-rejected-or-stalled",
+    "errors": [
+     "ERROR: CL_ReadDeltaEntity: invalid or truncated entity delta"
+    ],
+    "inputSha256": "677b76af59e674793b0bf0bd2754531852dc978696f7c7b72add5695f1b1b4d4"
+   },
+   "fuzz-20260918-005": {
+    "outcome": "rejected",
+    "expected": "completed-or-rejected-or-stalled",
+    "errors": [
+     "ERROR: CL_ParseServerMessage: Illegible server message"
+    ],
+    "inputSha256": "228640cb863672d5ca9ebc56d77ccbe4c3a687e59e1702aeafc9e87bc689b0f9"
+   },
+   "fuzz-20260918-006": {
+    "outcome": "completed",
+    "expected": "completed-or-rejected-or-stalled",
+    "errors": [],
+    "inputSha256": "cb68f6968eec8a389d72e217acb32f40f99e5881171db5c2d51e7da2c9f25496"
+   },
+   "fuzz-20260918-007": {
+    "outcome": "rejected",
+    "expected": "completed-or-rejected-or-stalled",
+    "errors": [
+     "ERROR: CL_ReadDeltaEntity: invalid or truncated entity delta"
+    ],
+    "inputSha256": "824918f7b3de9b9b27bee21f4793224a25bede7df82535b8aed407df01ce9b2a"
+   }
+  },
+  "installationUnchanged": true
+ },
+ "demoExchange": {
+  "blood": {
+   "fnrec": {
+    "messages": 193,
+    "bytes": 130486,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": null
+   },
+   "retailplay": {
+    "skipped": null,
+    "messagesInFile": 193,
+    "separatorsRead": 195,
+    "timedemo": [
+     "239",
+     "20.0",
+     "11.9"
+    ],
+    "problems": [],
+    "parentWarnings": 0
+   },
+   "retailrec": {
+    "messages": 238,
+    "bytes": 154853,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": true
+   },
+   "fnplay": {
+    "skipped": null,
+    "messagesInFile": 238,
+    "separatorsRead": 239,
+    "timedemo": [
+     "238",
+     "2.99",
+     "79.7"
+    ],
+    "problems": [],
+    "parentWarnings": 237
+   }
+  },
+  "cemetery": {
+   "fnrec": {
+    "messages": 188,
+    "bytes": 41577,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": null
+   },
+   "retailplay": {
+    "skipped": null,
+    "messagesInFile": 188,
+    "separatorsRead": 190,
+    "timedemo": [
+     "238",
+     "18.9",
+     "12.6"
+    ],
+    "problems": [],
+    "parentWarnings": 0
+   },
+   "retailrec": {
+    "messages": 234,
+    "bytes": 45149,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": true
+   },
+   "fnplay": {
+    "skipped": null,
+    "messagesInFile": 234,
+    "separatorsRead": 235,
+    "timedemo": [
+     "238",
+     "1.62",
+     "147.1"
+    ],
+    "problems": [],
+    "parentWarnings": 233
+   }
+  },
+  "cliff1": {
+   "fnrec": {
+    "messages": 189,
+    "bytes": 42209,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": null
+   },
+   "retailplay": {
+    "skipped": null,
+    "messagesInFile": 189,
+    "separatorsRead": 191,
+    "timedemo": [
+     "239",
+     "27.2",
+     "8.8"
+    ],
+    "problems": [],
+    "parentWarnings": 0
+   },
+   "retailrec": {
+    "messages": 233,
+    "bytes": 40481,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": true
+   },
+   "fnplay": {
+    "skipped": null,
+    "messagesInFile": 233,
+    "separatorsRead": 234,
+    "timedemo": [
+     "236",
+     "2.92",
+     "80.9"
+    ],
+    "problems": [],
+    "parentWarnings": 232
+   }
+  },
+  "cliff2": {
+   "fnrec": {
+    "messages": 188,
+    "bytes": 30810,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": null
+   },
+   "retailplay": {
+    "skipped": null,
+    "messagesInFile": 188,
+    "separatorsRead": 190,
+    "timedemo": [
+     "238",
+     "3.0",
+     "78.3"
+    ],
+    "problems": [],
+    "parentWarnings": 0
+   },
+   "retailrec": {
+    "messages": 235,
+    "bytes": 33058,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": true
+   },
+   "fnplay": {
+    "skipped": null,
+    "messagesInFile": 235,
+    "separatorsRead": 236,
+    "timedemo": [
+     "237",
+     "1.80",
+     "131.7"
+    ],
+    "problems": [],
+    "parentWarnings": 234
+   }
+  },
+  "creeperpens": {
+   "fnrec": {
+    "messages": 188,
+    "bytes": 56776,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": null
+   },
+   "retailplay": {
+    "skipped": null,
+    "messagesInFile": 188,
+    "separatorsRead": 190,
+    "timedemo": [
+     "237",
+     "36.7",
+     "6.5"
+    ],
+    "problems": [],
+    "parentWarnings": 0
+   },
+   "retailrec": {
+    "messages": 239,
+    "bytes": 64511,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": true
+   },
+   "fnplay": {
+    "skipped": null,
+    "messagesInFile": 239,
+    "separatorsRead": 240,
+    "timedemo": [
+     "239",
+     "4.09",
+     "58.4"
+    ],
+    "problems": [],
+    "parentWarnings": 238
+   }
+  },
+  "end": {
+   "fnrec": {
+    "messages": 188,
+    "bytes": 37884,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": null
+   },
+   "retailplay": {
+    "skipped": null,
+    "messagesInFile": 188,
+    "separatorsRead": 190,
+    "timedemo": [
+     "238",
+     "8.0",
+     "29.6"
+    ],
+    "problems": [],
+    "parentWarnings": 0
+   },
+   "retailrec": {
+    "messages": 236,
+    "bytes": 44811,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": true
+   },
+   "fnplay": {
+    "skipped": null,
+    "messagesInFile": 236,
+    "separatorsRead": 237,
+    "timedemo": [
+     "238",
+     "1.34",
+     "177.5"
+    ],
+    "problems": [],
+    "parentWarnings": 235
+   }
+  },
+  "fakkhouse": {
+   "fnrec": {
+    "messages": 188,
+    "bytes": 51334,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": null
+   },
+   "retailplay": {
+    "skipped": null,
+    "messagesInFile": 188,
+    "separatorsRead": 190,
+    "timedemo": [
+     "238",
+     "10.5",
+     "22.7"
+    ],
+    "problems": [],
+    "parentWarnings": 0
+   },
+   "retailrec": {
+    "messages": 230,
+    "bytes": 59674,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": true
+   },
+   "fnplay": {
+    "skipped": null,
+    "messagesInFile": 230,
+    "separatorsRead": 231,
+    "timedemo": [
+     "233",
+     "0.73",
+     "319.6"
+    ],
+    "problems": [],
+    "parentWarnings": 229
+   }
+  },
+  "fog": {
+   "fnrec": {
+    "messages": 188,
+    "bytes": 41059,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": null
+   },
+   "retailplay": {
+    "skipped": null,
+    "messagesInFile": 188,
+    "separatorsRead": 190,
+    "timedemo": [
+     "238",
+     "2.6",
+     "90.7"
+    ],
+    "problems": [],
+    "parentWarnings": 0
+   },
+   "retailrec": {
+    "messages": 201,
+    "bytes": 42471,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": true
+   },
+   "fnplay": {
+    "skipped": null,
+    "messagesInFile": 201,
+    "separatorsRead": 202,
+    "timedemo": [
+     "208",
+     "0.92",
+     "225.1"
+    ],
+    "problems": [],
+    "parentWarnings": 200
+   }
+  },
+  "gruff": {
+   "fnrec": {
+    "messages": 188,
+    "bytes": 32767,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": null
+   },
+   "retailplay": {
+    "skipped": null,
+    "messagesInFile": 188,
+    "separatorsRead": 190,
+    "timedemo": [
+     "238",
+     "2.0",
+     "118.2"
+    ],
+    "problems": [],
+    "parentWarnings": 0
+   },
+   "retailrec": {
+    "messages": 231,
+    "bytes": 34277,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": true
+   },
+   "fnplay": {
+    "skipped": null,
+    "messagesInFile": 231,
+    "separatorsRead": 232,
+    "timedemo": [
+     "238",
+     "0.87",
+     "274.8"
+    ],
+    "problems": [],
+    "parentWarnings": 230
+   }
+  },
+  "gruff_cinema": {
+   "fnrec": {
+    "messages": 188,
+    "bytes": 23986,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": null
+   },
+   "retailplay": {
+    "skipped": null,
+    "messagesInFile": 188,
+    "separatorsRead": 190,
+    "timedemo": [
+     "238",
+     "14.7",
+     "16.2"
+    ],
+    "problems": [],
+    "parentWarnings": 0
+   },
+   "retailrec": {
+    "messages": 126,
+    "bytes": 23210,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": true
+   },
+   "fnplay": {
+    "skipped": null,
+    "messagesInFile": 126,
+    "separatorsRead": 127,
+    "timedemo": [
+     "131",
+     "0.51",
+     "254.9"
+    ],
+    "problems": [],
+    "parentWarnings": 125
+   }
+  },
+  "homes1": {
+   "fnrec": {
+    "messages": 185,
+    "bytes": 37871,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": null
+   },
+   "retailplay": {
+    "skipped": null,
+    "messagesInFile": 185,
+    "separatorsRead": 187,
+    "timedemo": [
+     "237",
+     "4.8",
+     "49.7"
+    ],
+    "problems": [],
+    "parentWarnings": 0
+   },
+   "retailrec": {
+    "messages": 229,
+    "bytes": 42023,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": true
+   },
+   "fnplay": {
+    "skipped": null,
+    "messagesInFile": 229,
+    "separatorsRead": 230,
+    "timedemo": [
+     "236",
+     "1.13",
+     "208.5"
+    ],
+    "problems": [],
+    "parentWarnings": 228
+   }
+  },
+  "homes1_fullvis": {
+   "fnrec": {
+    "messages": 188,
+    "bytes": 23327,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": null
+   },
+   "retailplay": {
+    "skipped": null,
+    "messagesInFile": 188,
+    "separatorsRead": 190,
+    "timedemo": [
+     "237",
+     "1.6",
+     "145.2"
+    ],
+    "problems": [],
+    "parentWarnings": 0
+   },
+   "retailrec": {
+    "messages": 235,
+    "bytes": 24922,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": true
+   },
+   "fnplay": {
+    "skipped": null,
+    "messagesInFile": 235,
+    "separatorsRead": 236,
+    "timedemo": [
+     "238",
+     "1.16",
+     "204.6"
+    ],
+    "problems": [],
+    "parentWarnings": 234
+   }
+  },
+  "homes2evil": {
+   "fnrec": {
+    "messages": 188,
+    "bytes": 35372,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": null
+   },
+   "retailplay": {
+    "skipped": null,
+    "messagesInFile": 188,
+    "separatorsRead": 190,
+    "timedemo": [
+     "238",
+     "1.7",
+     "138.8"
+    ],
+    "problems": [],
+    "parentWarnings": 0
+   },
+   "retailrec": {
+    "messages": 231,
+    "bytes": 37360,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": true
+   },
+   "fnplay": {
+    "skipped": null,
+    "messagesInFile": 231,
+    "separatorsRead": 232,
+    "timedemo": [
+     "238",
+     "1.17",
+     "203.4"
+    ],
+    "problems": [],
+    "parentWarnings": 230
+   }
+  },
+  "homes2good": {
+   "fnrec": {
+    "messages": 188,
+    "bytes": 38753,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": null
+   },
+   "retailplay": {
+    "skipped": null,
+    "messagesInFile": 188,
+    "separatorsRead": 190,
+    "timedemo": [
+     "238",
+     "1.6",
+     "152.3"
+    ],
+    "problems": [],
+    "parentWarnings": 0
+   },
+   "retailrec": {
+    "messages": 238,
+    "bytes": 41738,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": true
+   },
+   "fnplay": {
+    "skipped": null,
+    "messagesInFile": 238,
+    "separatorsRead": 239,
+    "timedemo": [
+     "239",
+     "0.96",
+     "248.7"
+    ],
+    "problems": [],
+    "parentWarnings": 237
+   }
+  },
+  "intro": {
+   "fnrec": {
+    "messages": 188,
+    "bytes": 84073,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": null
+   },
+   "retailplay": {
+    "skipped": null,
+    "messagesInFile": 188,
+    "separatorsRead": 190,
+    "timedemo": [
+     "238",
+     "5.5",
+     "43.3"
+    ],
+    "problems": [],
+    "parentWarnings": 0
+   },
+   "retailrec": {
+    "messages": 210,
+    "bytes": 112826,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": true
+   },
+   "fnplay": {
+    "skipped": null,
+    "messagesInFile": 210,
+    "separatorsRead": 212,
+    "timedemo": [
+     "132",
+     "1.36",
+     "96.8"
+    ],
+    "problems": [],
+    "parentWarnings": 132
+   }
+  },
+  "landersroost": {
+   "fnrec": {
+    "messages": 188,
+    "bytes": 28881,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": null
+   },
+   "retailplay": {
+    "skipped": null,
+    "messagesInFile": 188,
+    "separatorsRead": 190,
+    "timedemo": [
+     "238",
+     "1.6",
+     "150.0"
+    ],
+    "problems": [],
+    "parentWarnings": 0
+   },
+   "retailrec": {
+    "messages": 234,
+    "bytes": 30973,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": true
+   },
+   "fnplay": {
+    "skipped": null,
+    "messagesInFile": 234,
+    "separatorsRead": 235,
+    "timedemo": [
+     "239",
+     "1.00",
+     "240.0"
+    ],
+    "problems": [],
+    "parentWarnings": 233
+   }
+  },
+  "oracle": {
+   "fnrec": {
+    "messages": 188,
+    "bytes": 46561,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": null
+   },
+   "retailplay": {
+    "skipped": null,
+    "messagesInFile": 188,
+    "separatorsRead": 190,
+    "timedemo": [
+     "238",
+     "1.2",
+     "194.8"
+    ],
+    "problems": [],
+    "parentWarnings": 0
+   },
+   "retailrec": {
+    "messages": 236,
+    "bytes": 48061,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": true
+   },
+   "fnplay": {
+    "skipped": null,
+    "messagesInFile": 236,
+    "separatorsRead": 237,
+    "timedemo": [
+     "239",
+     "0.93",
+     "256.7"
+    ],
+    "problems": [],
+    "parentWarnings": 235
+   }
+  },
+  "oracleway": {
+   "fnrec": {
+    "messages": 189,
+    "bytes": 26451,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": null
+   },
+   "retailplay": {
+    "skipped": null,
+    "messagesInFile": 189,
+    "separatorsRead": 191,
+    "timedemo": [
+     "239",
+     "1.5",
+     "157.1"
+    ],
+    "problems": [],
+    "parentWarnings": 0
+   },
+   "retailrec": {
+    "messages": 236,
+    "bytes": 26693,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": true
+   },
+   "fnplay": {
+    "skipped": null,
+    "messagesInFile": 236,
+    "separatorsRead": 237,
+    "timedemo": [
+     "238",
+     "0.92",
+     "258.7"
+    ],
+    "problems": [],
+    "parentWarnings": 235
+   }
+  },
+  "otto": {
+   "fnrec": {
+    "messages": 188,
+    "bytes": 40606,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": null
+   },
+   "retailplay": {
+    "skipped": null,
+    "messagesInFile": 188,
+    "separatorsRead": 190,
+    "timedemo": [
+     "238",
+     "1.9",
+     "126.9"
+    ],
+    "problems": [],
+    "parentWarnings": 0
+   },
+   "retailrec": {
+    "messages": 228,
+    "bytes": 41408,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": true
+   },
+   "fnplay": {
+    "skipped": null,
+    "messagesInFile": 228,
+    "separatorsRead": 229,
+    "timedemo": [
+     "233",
+     "0.83",
+     "280.4"
+    ],
+    "problems": [],
+    "parentWarnings": 227
+   }
+  },
+  "over": {
+   "fnrec": {
+    "messages": 188,
+    "bytes": 23558,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": null
+   },
+   "retailplay": {
+    "skipped": null,
+    "messagesInFile": 188,
+    "separatorsRead": 190,
+    "timedemo": [
+     "238",
+     "1.3",
+     "190.4"
+    ],
+    "problems": [],
+    "parentWarnings": 0
+   },
+   "retailrec": {
+    "messages": 230,
+    "bytes": 25227,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": true
+   },
+   "fnplay": {
+    "skipped": null,
+    "messagesInFile": 230,
+    "separatorsRead": 231,
+    "timedemo": [
+     "238",
+     "1.02",
+     "232.4"
+    ],
+    "problems": [],
+    "parentWarnings": 229
+   }
+  },
+  "shield": {
+   "fnrec": {
+    "messages": 188,
+    "bytes": 31775,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": null
+   },
+   "retailplay": {
+    "skipped": null,
+    "messagesInFile": 188,
+    "separatorsRead": 190,
+    "timedemo": [
+     "238",
+     "3.3",
+     "71.8"
+    ],
+    "problems": [],
+    "parentWarnings": 0
+   },
+   "retailrec": {
+    "messages": 219,
+    "bytes": 30107,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": true
+   },
+   "fnplay": {
+    "skipped": null,
+    "messagesInFile": 219,
+    "separatorsRead": 220,
+    "timedemo": [
+     "238",
+     "0.54",
+     "437.5"
+    ],
+    "problems": [],
+    "parentWarnings": 218
+   }
+  },
+  "swamp1": {
+   "fnrec": {
+    "messages": 188,
+    "bytes": 34254,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": null
+   },
+   "retailplay": {
+    "skipped": null,
+    "messagesInFile": 188,
+    "separatorsRead": 190,
+    "timedemo": [
+     "238",
+     "5.7",
+     "42.1"
+    ],
+    "problems": [],
+    "parentWarnings": 0
+   },
+   "retailrec": {
+    "messages": 238,
+    "bytes": 33498,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": true
+   },
+   "fnplay": {
+    "skipped": null,
+    "messagesInFile": 238,
+    "separatorsRead": 239,
+    "timedemo": [
+     "238",
+     "0.74",
+     "321.2"
+    ],
+    "problems": [],
+    "parentWarnings": 237
+   }
+  },
+  "swamp2": {
+   "fnrec": {
+    "messages": 188,
+    "bytes": 33378,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": null
+   },
+   "retailplay": {
+    "skipped": null,
+    "messagesInFile": 188,
+    "separatorsRead": 190,
+    "timedemo": [
+     "238",
+     "3.6",
+     "67.0"
+    ],
+    "problems": [],
+    "parentWarnings": 0
+   },
+   "retailrec": {
+    "messages": 227,
+    "bytes": 35426,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": true
+   },
+   "fnplay": {
+    "skipped": null,
+    "messagesInFile": 227,
+    "separatorsRead": 228,
+    "timedemo": [
+     "239",
+     "0.85",
+     "280.5"
+    ],
+    "problems": [],
+    "parentWarnings": 226
+   }
+  },
+  "swamp3": {
+   "fnrec": {
+    "messages": 188,
+    "bytes": 27937,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": null
+   },
+   "retailplay": {
+    "skipped": null,
+    "messagesInFile": 188,
+    "separatorsRead": 190,
+    "timedemo": [
+     "238",
+     "2.3",
+     "104.6"
+    ],
+    "problems": [],
+    "parentWarnings": 0
+   },
+   "retailrec": {
+    "messages": 231,
+    "bytes": 29674,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": true
+   },
+   "fnplay": {
+    "skipped": null,
+    "messagesInFile": 231,
+    "separatorsRead": 232,
+    "timedemo": [
+     "238",
+     "0.55",
+     "435.1"
+    ],
+    "problems": [],
+    "parentWarnings": 230
+   }
+  },
+  "towncenter_evil": {
+   "fnrec": {
+    "messages": 188,
+    "bytes": 28819,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": null
+   },
+   "retailplay": {
+    "skipped": null,
+    "messagesInFile": 188,
+    "separatorsRead": 190,
+    "timedemo": [
+     "238",
+     "3.6",
+     "66.6"
+    ],
+    "problems": [],
+    "parentWarnings": 0
+   },
+   "retailrec": {
+    "messages": 232,
+    "bytes": 31788,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": true
+   },
+   "fnplay": {
+    "skipped": null,
+    "messagesInFile": 232,
+    "separatorsRead": 233,
+    "timedemo": [
+     "237",
+     "0.67",
+     "355.3"
+    ],
+    "problems": [],
+    "parentWarnings": 231
+   }
+  },
+  "towncenter_good": {
+   "fnrec": {
+    "messages": 188,
+    "bytes": 36940,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": null
+   },
+   "retailplay": {
+    "skipped": null,
+    "messagesInFile": 188,
+    "separatorsRead": 190,
+    "timedemo": [
+     "238",
+     "1.7",
+     "139.1"
+    ],
+    "problems": [],
+    "parentWarnings": 0
+   },
+   "retailrec": {
+    "messages": 234,
+    "bytes": 38410,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": true
+   },
+   "fnplay": {
+    "skipped": null,
+    "messagesInFile": 234,
+    "separatorsRead": 235,
+    "timedemo": [
+     "239",
+     "0.48",
+     "496.9"
+    ],
+    "problems": [],
+    "parentWarnings": 233
+   }
+  },
+  "training": {
+   "fnrec": {
+    "messages": 188,
+    "bytes": 38375,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": null
+   },
+   "retailplay": {
+    "skipped": null,
+    "messagesInFile": 188,
+    "separatorsRead": 190,
+    "timedemo": [
+     "238",
+     "6.4",
+     "37.0"
+    ],
+    "problems": [],
+    "parentWarnings": 0
+   },
+   "retailrec": {
+    "messages": 237,
+    "bytes": 38015,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": true
+   },
+   "fnplay": {
+    "skipped": null,
+    "messagesInFile": 237,
+    "separatorsRead": 238,
+    "timedemo": [
+     "239",
+     "0.76",
+     "316.6"
+    ],
+    "problems": [],
+    "parentWarnings": 236
+   }
+  },
+  "under": {
+   "fnrec": {
+    "messages": 188,
+    "bytes": 33248,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": null
+   },
+   "retailplay": {
+    "skipped": null,
+    "messagesInFile": 188,
+    "separatorsRead": 190,
+    "timedemo": [
+     "238",
+     "6.6",
+     "36.2"
+    ],
+    "problems": [],
+    "parentWarnings": 0
+   },
+   "retailrec": {
+    "messages": 235,
+    "bytes": 32966,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": true
+   },
+   "fnplay": {
+    "skipped": null,
+    "messagesInFile": 235,
+    "separatorsRead": 236,
+    "timedemo": [
+     "237",
+     "0.92",
+     "257.0"
+    ],
+    "problems": [],
+    "parentWarnings": 234
+   }
+  },
+  "water": {
+   "fnrec": {
+    "messages": 188,
+    "bytes": 34140,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": null
+   },
+   "retailplay": {
+    "skipped": null,
+    "messagesInFile": 188,
+    "separatorsRead": 190,
+    "timedemo": [
+     "238",
+     "6.8",
+     "35.1"
+    ],
+    "problems": [],
+    "parentWarnings": 0
+   },
+   "retailrec": {
+    "messages": 236,
+    "bytes": 36538,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": true
+   },
+   "fnplay": {
+    "skipped": null,
+    "messagesInFile": 236,
+    "separatorsRead": 237,
+    "timedemo": [
+     "239",
+     "0.72",
+     "331.9"
+    ],
+    "problems": [],
+    "parentWarnings": 235
+   }
+  },
+  "zoo": {
+   "fnrec": {
+    "messages": 188,
+    "bytes": 19144,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": null
+   },
+   "retailplay": {
+    "skipped": null,
+    "messagesInFile": 188,
+    "separatorsRead": 190,
+    "timedemo": [
+     "238",
+     "3.1",
+     "77.2"
+    ],
+    "problems": [],
+    "parentWarnings": 0
+   },
+   "retailrec": {
+    "messages": 237,
+    "bytes": 21011,
+    "endMarker": true,
+    "problems": [],
+    "serverActive": true
+   },
+   "fnplay": {
+    "skipped": null,
+    "messagesInFile": 237,
+    "separatorsRead": 238,
+    "timedemo": [
+     "237",
+     "0.54",
+     "442.2"
+    ],
+    "problems": [],
+    "parentWarnings": 236
+   }
+  }
+ },
+ "retailClient": {
+  "savelist": {
+   "probe": "savelist",
+   "saves": 31,
+   "shot": ".tmp\\fakk2-round\\retail\\savelist\\retail\\fakk\\screenshots\\shot0000.tga",
+   "runtime": {
+    "fntech3.exe": "e7159320d89394dc0ea5f3a671b075a1e5ba9f62b62aaa388701317ae6df8966",
+    "fntech3.ded.exe": "516533d36dcb9311792889fd26cca0ca276d26d3d60a31fb1de27aac7f0ee698"
+   }
+  },
+  "pure": {
+   "probe": "pure",
+   "serverPure": [
+    "VM_LoadDll: loaded native module cache '.tmp\\fakk2-round\\retail\\pure\\server\\.tmp\\native\\15ac3d0afeef771688b5923f0d22b5fd\\gamex86.dll'"
+   ],
+   "active": true,
+   "began": true,
+   "whatis": [
+    "Origin     : ( 3160.000000, -1176.000000, -255.875000 )"
+   ],
+   "retailProblems": [],
+   "runtime": {
+    "fntech3.exe": "e7159320d89394dc0ea5f3a671b075a1e5ba9f62b62aaa388701317ae6df8966",
+    "fntech3.ded.exe": "516533d36dcb9311792889fd26cca0ca276d26d3d60a31fb1de27aac7f0ee698"
+   }
+  },
+  "loss": {
+   "probe": "loss",
+   "minutes": 10.0,
+   "rounds": 120,
+   "roundsRun": 120,
+   "answers": 120,
+   "levels": [
+    "fakkhouse",
+    "training$spawn_fakkhouse"
+   ],
+   "active": 3,
+   "begins": 2,
+   "serverDrops": [
+    "^5UnnamedPlayer: dropped gamestate, resending",
+    "^5UnnamedPlayer: dropped gamestate, resending",
+    "^5UnnamedPlayer: dropped gamestate, resending",
+    "^5UnnamedPlayer: dropped gamestate, resending",
+    "^5UnnamedPlayer: dropped gamestate, resending",
+    "^5UnnamedPlayer: dropped gamestate, resending",
+    "^5UnnamedPlayer: dropped gamestate, resending",
+    "^5UnnamedPlayer: dropped gamestate, resending"
+   ],
+   "retailProblems": [],
+   "manifest": {
+    "command": [
+     ".tmp\\runtime\\fakk2-retail\\fakk2.exe",
+     "+set",
+     "fs_basepath",
+     ".tmp\\runtime\\fakk2-retail",
+     "+set",
+     "fs_cdpath",
+     ".tmp\\fakk2-install\\game",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "4",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "net_noudp",
+     "0",
+     "+set",
+     "net_noipx",
+     "1",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "developer",
+     "1",
+     "+set",
+     "net_ip",
+     "127.0.0.1",
+     "+set",
+     "net_port",
+     "27995",
+     "+exec",
+     "retail-probe.cfg"
+    ],
+    "steps": "wait 3000\nset rconPassword probe\nconnect 127.0.0.1:27991\nwait 25000\nskipcinematic\nwait 3000\necho LOSS-ROUND 0\nwhatis 0\nwait 5000\necho LOSS-ROUND 1\nwhatis 0\nwait 5000\necho LOSS-ROUND 2\nwhatis 0\nwait 5000\necho LOSS-ROUND 3\nwhatis 0\nwait 5000\necho LOSS-ROUND 4\nwhatis 0\nwait 5000\necho LOSS-ROUND 5\nwhatis 0\nwait 5000\necho LOSS-ROUND 6\nwhatis 0\nwait 5000\necho LOSS-ROUND 7\nwhatis 0\nwait 5000\necho LOSS-ROUND 8\nwhatis 0\nwait 5000\necho LOSS-ROUND 9\nwhatis 0\nwait 5000\necho LOSS-ROUND 10\nwhatis 0\nwait 5000\necho LOSS-ROUND 11\nwhatis 0\nwait 5000\necho LOSS-ROUND 12\nwhatis 0\nwait 5000\necho LOSS-ROUND 13\nwhatis 0\nwait 5000\necho LOSS-ROUND 14\nwhatis 0\nwait 5000\necho LOSS-ROUND 15\nwhatis 0\nwait 5000\necho LOSS-ROUND 16\nwhatis 0\nwait 5000\necho LOSS-ROUND 17\nwhatis 0\nwait 5000\necho LOSS-ROUND 18\nwhatis 0\nwait 5000\necho LOSS-ROUND 19\nwhatis 0\nwait 5000\necho LOSS-ROUND 20\nwhatis 0\nwait 5000\necho LOSS-ROUND 21\nwhatis 0\nwait 5000\necho LOSS-ROUND 22\nwhatis 0\nwait 5000\necho LOSS-ROUND 23\nwhatis 0\nwait 5000\necho LOSS-ROUND 24\nwhatis 0\nwait 5000\necho LOSS-ROUND 25\nwhatis 0\nwait 5000\necho LOSS-ROUND 26\nwhatis 0\nwait 5000\necho LOSS-ROUND 27\nwhatis 0\nwait 5000\necho LOSS-ROUND 28\nwhatis 0\nwait 5000\necho LOSS-ROUND 29\nwhatis 0\nwait 5000\necho LOSS-ROUND 30\nwhatis 0\nwait 5000\necho LOSS-ROUND 31\nwhatis 0\nwait 5000\necho LOSS-ROUND 32\nwhatis 0\nwait 5000\necho LOSS-ROUND 33\nwhatis 0\nwait 5000\necho LOSS-ROUND 34\nwhatis 0\nwait 5000\necho LOSS-ROUND 35\nwhatis 0\nwait 5000\necho LOSS-ROUND 36\nwhatis 0\nwait 5000\necho LOSS-ROUND 37\nwhatis 0\nwait 5000\necho LOSS-ROUND 38\nwhatis 0\nwait 5000\necho LOSS-ROUND 39\nwhatis 0\nwait 5000\necho LOSS-ROUND 40\nwhatis 0\nwait 5000\necho LOSS-ROUND 41\nwhatis 0\nwait 5000\necho LOSS-ROUND 42\nwhatis 0\nwait 5000\necho LOSS-ROUND 43\nwhatis 0\nwait 5000\necho LOSS-ROUND 44\nwhatis 0\nwait 5000\necho LOSS-ROUND 45\nwhatis 0\nwait 5000\necho LOSS-ROUND 46\nwhatis 0\nwait 5000\necho LOSS-ROUND 47\nwhatis 0\nwait 5000\necho LOSS-ROUND 48\nwhatis 0\nwait 5000\necho LOSS-ROUND 49\nwhatis 0\nwait 5000\necho LOSS-ROUND 50\nwhatis 0\nwait 5000\necho LOSS-ROUND 51\nwhatis 0\nwait 5000\necho LOSS-ROUND 52\nwhatis 0\nwait 5000\necho LOSS-ROUND 53\nwhatis 0\nwait 5000\necho LOSS-ROUND 54\nwhatis 0\nwait 5000\necho LOSS-ROUND 55\nwhatis 0\nwait 5000\necho LOSS-ROUND 56\nwhatis 0\nwait 5000\necho LOSS-ROUND 57\nwhatis 0\nwait 5000\necho LOSS-ROUND 58\nwhatis 0\nwait 5000\necho LOSS-ROUND 59\nwhatis 0\nwait 5000\necho LOSS-ROUND 60\nwhatis 0\nwait 5000\nrcon script trigger $training_trigger\nwait 25000\nskipcinematic\nwait 2000\necho LOSS-ROUND 61\nwhatis 0\nwait 5000\necho LOSS-ROUND 62\nwhatis 0\nwait 5000\necho LOSS-ROUND 63\nwhatis 0\nwait 5000\necho LOSS-ROUND 64\nwhatis 0\nwait 5000\necho LOSS-ROUND 65\nwhatis 0\nwait 5000\necho LOSS-ROUND 66\nwhatis 0\nwait 5000\necho LOSS-ROUND 67\nwhatis 0\nwait 5000\necho LOSS-ROUND 68\nwhatis 0\nwait 5000\necho LOSS-ROUND 69\nwhatis 0\nwait 5000\necho LOSS-ROUND 70\nwhatis 0\nwait 5000\necho LOSS-ROUND 71\nwhatis 0\nwait 5000\necho LOSS-ROUND 72\nwhatis 0\nwait 5000\necho LOSS-ROUND 73\nwhatis 0\nwait 5000\necho LOSS-ROUND 74\nwhatis 0\nwait 5000\necho LOSS-ROUND 75\nwhatis 0\nwait 5000\necho LOSS-ROUND 76\nwhatis 0\nwait 5000\necho LOSS-ROUND 77\nwhatis 0\nwait 5000\necho LOSS-ROUND 78\nwhatis 0\nwait 5000\necho LOSS-ROUND 79\nwhatis 0\nwait 5000\necho LOSS-ROUND 80\nwhatis 0\nwait 5000\necho LOSS-ROUND 81\nwhatis 0\nwait 5000\necho LOSS-ROUND 82\nwhatis 0\nwait 5000\necho LOSS-ROUND 83\nwhatis 0\nwait 5000\necho LOSS-ROUND 84\nwhatis 0\nwait 5000\necho LOSS-ROUND 85\nwhatis 0\nwait 5000\necho LOSS-ROUND 86\nwhatis 0\nwait 5000\necho LOSS-ROUND 87\nwhatis 0\nwait 5000\necho LOSS-ROUND 88\nwhatis 0\nwait 5000\necho LOSS-ROUND 89\nwhatis 0\nwait 5000\necho LOSS-ROUND 90\nwhatis 0\nwait 5000\necho LOSS-ROUND 91\nwhatis 0\nwait 5000\necho LOSS-ROUND 92\nwhatis 0\nwait 5000\necho LOSS-ROUND 93\nwhatis 0\nwait 5000\necho LOSS-ROUND 94\nwhatis 0\nwait 5000\necho LOSS-ROUND 95\nwhatis 0\nwait 5000\necho LOSS-ROUND 96\nwhatis 0\nwait 5000\necho LOSS-ROUND 97\nwhatis 0\nwait 5000\necho LOSS-ROUND 98\nwhatis 0\nwait 5000\necho LOSS-ROUND 99\nwhatis 0\nwait 5000\necho LOSS-ROUND 100\nwhatis 0\nwait 5000\necho LOSS-ROUND 101\nwhatis 0\nwait 5000\necho LOSS-ROUND 102\nwhatis 0\nwait 5000\necho LOSS-ROUND 103\nwhatis 0\nwait 5000\necho LOSS-ROUND 104\nwhatis 0\nwait 5000\necho LOSS-ROUND 105\nwhatis 0\nwait 5000\necho LOSS-ROUND 106\nwhatis 0\nwait 5000\necho LOSS-ROUND 107\nwhatis 0\nwait 5000\necho LOSS-ROUND 108\nwhatis 0\nwait 5000\necho LOSS-ROUND 109\nwhatis 0\nwait 5000\necho LOSS-ROUND 110\nwhatis 0\nwait 5000\necho LOSS-ROUND 111\nwhatis 0\nwait 5000\necho LOSS-ROUND 112\nwhatis 0\nwait 5000\necho LOSS-ROUND 113\nwhatis 0\nwait 5000\necho LOSS-ROUND 114\nwhatis 0\nwait 5000\necho LOSS-ROUND 115\nwhatis 0\nwait 5000\necho LOSS-ROUND 116\nwhatis 0\nwait 5000\necho LOSS-ROUND 117\nwhatis 0\nwait 5000\necho LOSS-ROUND 118\nwhatis 0\nwait 5000\necho LOSS-ROUND 119\nwhatis 0\nwait 5000\necho LOSS-END\nwait 1000\nquit\n",
+    "forcedStop": false,
+    "doneSeen": true,
+    "seconds": 659.5,
+    "exeSha256": "681bc51c3343d01d772c5ae4aae7523ae4547350b243c875156e138043335785",
+    "gameUnchanged": true
+   },
+   "runtime": {
+    "fntech3.exe": "e7159320d89394dc0ea5f3a671b075a1e5ba9f62b62aaa388701317ae6df8966",
+    "fntech3.ded.exe": "516533d36dcb9311792889fd26cca0ca276d26d3d60a31fb1de27aac7f0ee698"
+   }
+  },
+  "faults": {
+   "probe": "faults",
+   "variants": {
+    "flipped-body": {
+     "completed": false,
+     "errors": [
+      "ERROR: CL_ParsePacketEntities: end of message"
+     ],
+     "truncated": 0,
+     "timedemo": [],
+     "forcedStop": true,
+     "doneSeen": true,
+     "lastLines": [
+      "ERROR: CL_ParsePacketEntities: end of message",
+      "********************",
+      "Setting up Shaders"
+     ],
+     "stdoutTail": ""
+    },
+    "fuzz-20260918-000": {
+     "completed": false,
+     "errors": [
+      "ERROR: CL_ParsePacketEntities: end of message"
+     ],
+     "truncated": 0,
+     "timedemo": [],
+     "forcedStop": true,
+     "doneSeen": true,
+     "lastLines": [
+      "ERROR: CL_ParsePacketEntities: end of message",
+      "********************",
+      "Setting up Shaders"
+     ],
+     "stdoutTail": ""
+    },
+    "fuzz-20260918-001": {
+     "completed": false,
+     "errors": [
+      "ERROR: CL_ParsePacketEntities: end of message"
+     ],
+     "truncated": 0,
+     "timedemo": [],
+     "forcedStop": true,
+     "doneSeen": true,
+     "lastLines": [
+      "ERROR: CL_ParsePacketEntities: end of message",
+      "********************",
+      "Setting up Shaders"
+     ],
+     "stdoutTail": ""
+    },
+    "fuzz-20260918-002": {
+     "completed": false,
+     "errors": [
+      "ERROR: CL_ParsePacketEntities: end of message"
+     ],
+     "truncated": 0,
+     "timedemo": [],
+     "forcedStop": true,
+     "doneSeen": true,
+     "lastLines": [
+      "ERROR: CL_ParsePacketEntities: end of message",
+      "********************",
+      "Setting up Shaders"
+     ],
+     "stdoutTail": ""
+    },
+    "fuzz-20260918-003": {
+     "completed": false,
+     "errors": [
+      "ERROR: CL_ParsePacketEntities: end of message"
+     ],
+     "truncated": 0,
+     "timedemo": [],
+     "forcedStop": true,
+     "doneSeen": true,
+     "lastLines": [
+      "ERROR: CL_ParsePacketEntities: end of message",
+      "********************",
+      "Setting up Shaders"
+     ],
+     "stdoutTail": ""
+    },
+    "fuzz-20260918-004": {
+     "completed": false,
+     "errors": [
+      "ERROR: CL_ParsePacketEntities: end of message"
+     ],
+     "truncated": 0,
+     "timedemo": [],
+     "forcedStop": true,
+     "doneSeen": true,
+     "lastLines": [
+      "ERROR: CL_ParsePacketEntities: end of message",
+      "********************",
+      "Setting up Shaders"
+     ],
+     "stdoutTail": ""
+    },
+    "fuzz-20260918-005": {
+     "completed": false,
+     "errors": [
+      "ERROR: CL_ParseServerMessage: Illegible server message"
+     ],
+     "truncated": 0,
+     "timedemo": [],
+     "forcedStop": true,
+     "doneSeen": true,
+     "lastLines": [
+      "",
+      "********************",
+      "Setting up Shaders"
+     ],
+     "stdoutTail": ""
+    },
+    "fuzz-20260918-006": {
+     "completed": true,
+     "errors": [],
+     "truncated": 0,
+     "timedemo": [
+      "238 frames, 0.6 seconds: 373.0 fps"
+     ],
+     "forcedStop": true,
+     "doneSeen": true,
+     "lastLines": [
+      "MUSIC: changing from [ aux1 | normal ] to [ normal | normal ]",
+      "238 frames, 0.6 seconds: 373.0 fps",
+      "CL_NextDemo: quit"
+     ],
+     "stdoutTail": ""
+    },
+    "fuzz-20260918-007": {
+     "completed": false,
+     "errors": [
+      "ERROR: CL_ParsePacketEntities: end of message"
+     ],
+     "truncated": 0,
+     "timedemo": [],
+     "forcedStop": true,
+     "doneSeen": true,
+     "lastLines": [
+      "ERROR: CL_ParsePacketEntities: end of message",
+      "********************",
+      "Setting up Shaders"
+     ],
+     "stdoutTail": ""
+    },
+    "length-huge": {
+     "completed": false,
+     "errors": [
+      "ERROR: CL_ReadDemoMessage: demoMsglen > MAX_MSGLEN"
+     ],
+     "truncated": 0,
+     "timedemo": [],
+     "forcedStop": true,
+     "doneSeen": true,
+     "lastLines": [
+      "ERROR: CL_ReadDemoMessage: demoMsglen > MAX_MSGLEN",
+      "********************",
+      "Setting up Shaders"
+     ],
+     "stdoutTail": ""
+    },
+    "length-negative": {
+     "completed": true,
+     "errors": [],
+     "truncated": 1,
+     "timedemo": [
+      "238 frames, 1.1 seconds: 210.1 fps"
+     ],
+     "forcedStop": true,
+     "doneSeen": true,
+     "lastLines": [
+      "Demo file was truncated.",
+      "238 frames, 1.1 seconds: 210.1 fps",
+      "CL_NextDemo: quit"
+     ],
+     "stdoutTail": ""
+    },
+    "length-over-limit": {
+     "completed": false,
+     "errors": [
+      "ERROR: CL_ReadDemoMessage: demoMsglen > MAX_MSGLEN"
+     ],
+     "truncated": 0,
+     "timedemo": [],
+     "forcedStop": true,
+     "doneSeen": true,
+     "lastLines": [
+      "ERROR: CL_ReadDemoMessage: demoMsglen > MAX_MSGLEN",
+      "********************",
+      "Setting up Shaders"
+     ],
+     "stdoutTail": ""
+    },
+    "no-terminator": {
+     "completed": true,
+     "errors": [],
+     "truncated": 0,
+     "timedemo": [
+      "238 frames, 4.1 seconds: 57.7 fps"
+     ],
+     "forcedStop": true,
+     "doneSeen": true,
+     "lastLines": [
+      "MUSIC: changing from [ aux1 | normal ] to [ normal | normal ]",
+      "238 frames, 4.1 seconds: 57.7 fps",
+      "CL_NextDemo: quit"
+     ],
+     "stdoutTail": ""
+    },
+    "truncated-body": {
+     "completed": true,
+     "errors": [],
+     "truncated": 1,
+     "timedemo": [
+      "237 frames, 5.9 seconds: 39.9 fps"
+     ],
+     "forcedStop": true,
+     "doneSeen": true,
+     "lastLines": [
+      "Demo file was truncated.",
+      "237 frames, 5.9 seconds: 39.9 fps",
+      "CL_NextDemo: quit"
+     ],
+     "stdoutTail": ""
+    },
+    "truncated-header": {
+     "completed": true,
+     "errors": [],
+     "truncated": 0,
+     "timedemo": [
+      "118 frames, 0.5 seconds: 233.7 fps"
+     ],
+     "forcedStop": true,
+     "doneSeen": true,
+     "lastLines": [
+      "MUSIC: changing from [ aux1 | normal ] to [ normal | normal ]",
+      "118 frames, 0.5 seconds: 233.7 fps",
+      "CL_NextDemo: quit"
+     ],
+     "stdoutTail": ""
+    }
+   },
+   "runtime": {
+    "fntech3.exe": "e7159320d89394dc0ea5f3a671b075a1e5ba9f62b62aaa388701317ae6df8966",
+    "fntech3.ded.exe": "516533d36dcb9311792889fd26cca0ca276d26d3d60a31fb1de27aac7f0ee698"
+   }
+  }
+ },
+ "firstViews": [
+  {
+   "map": "over",
+   "retailMean": [
+    34.4,
+    36.9,
+    22.2
+   ],
+   "fnMean": [
+    46.7,
+    48.0,
+    27.6
+   ],
+   "meanAbsDiff": 11.24
+  },
+  {
+   "map": "under",
+   "retailMean": null,
+   "fnMean": null,
+   "meanAbsDiff": null
+  },
+  {
+   "map": "otto",
+   "retailMean": [
+    21.0,
+    24.4,
+    20.8
+   ],
+   "fnMean": [
+    22.1,
+    27.4,
+    22.2
+   ],
+   "meanAbsDiff": 18.04
+  },
+  {
+   "map": "homes2evil",
+   "retailMean": [
+    14.8,
+    13.0,
+    10.8
+   ],
+   "fnMean": [
+    15.5,
+    13.3,
+    11.2
+   ],
+   "meanAbsDiff": 1.28
+  },
+  {
+   "map": "cemetery",
+   "retailMean": [
+    51.5,
+    42.0,
+    26.0
+   ],
+   "fnMean": [
+    53.5,
+    43.3,
+    27.1
+   ],
+   "meanAbsDiff": 4.21
+  },
+  {
+   "map": "cliff1",
+   "retailMean": [
+    47.1,
+    40.4,
+    30.5
+   ],
+   "fnMean": [
+    47.6,
+    40.6,
+    30.5
+   ],
+   "meanAbsDiff": 2.96
+  },
+  {
+   "map": "cliff2",
+   "retailMean": [
+    54.6,
+    65.7,
+    68.5
+   ],
+   "fnMean": [
+    56.7,
+    67.1,
+    69.2
+   ],
+   "meanAbsDiff": 5.22
+  },
+  {
+   "map": "oracleway",
+   "retailMean": [
+    69.5,
+    46.4,
+    40.9
+   ],
+   "fnMean": [
+    72.6,
+    49.5,
+    43.4
+   ],
+   "meanAbsDiff": 6.83
+  },
+  {
+   "map": "under",
+   "retailMean": [
+    33.5,
+    44.9,
+    42.8
+   ],
+   "fnMean": [
+    33.4,
+    44.3,
+    42.4
+   ],
+   "meanAbsDiff": 4.29
+  },
+  {
+   "map": "otto",
+   "retailMean": [
+    19.6,
+    22.2,
+    18.7
+   ],
+   "fnMean": [
+    21.9,
+    24.5,
+    20.6
+   ],
+   "meanAbsDiff": 5.03
+  }
+ ],
+ "proprietaryContentCommitted": false
+}

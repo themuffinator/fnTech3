@@ -1276,19 +1276,23 @@ a fourth:
   cap. Julie on `water` went from a third of retail's brightness to within
   7 to 9% of it; on `over` she is 17% above it
   ([model light record](2026-09-25-ritual-model-lights.md)).
-- Not traced: the canal water on `over` and `under` is lime green in retail
-  and a bluer green in fnTech3. Its last stage adds 47 caustics frames
-  (`textures/sprites/caustics/caus*.ftx`, blue, average 3, 22, 47) tinted
-  `rgbGen constant 0.5 0.8 0.5` with `GL_ONE GL_ONE`. Laid over retail and
-  fnTech3 alike as a generated `pak9.pk3`, black frames take away (0.8, 16.7,
-  0) of retail's water and white frames add (101.6, 159.5, 0), where fnTech3
-  adds the constant itself (127, 200, 127). Retail parses the constant with
-  its blue (0x004765c0..0x0047660f) and copies all four bytes to each vertex
-  (0x004940c0), and its alpha step leaves the colour alone (0x0047d716), so
-  its blue is lost somewhere later in the draw. fnTech3 had also kept 24 of
-  the 47 frames, so its caustics cycled in half the time; it now keeps
-  retail's 64 (`MAX_IMAGE_ANIMATIONS`; 0x00476e00, `alice.exe` 0x0048c5bc,
-  `tests/shader_animation_tests.py`).
+- Settled on 2026-10-23: the canal water on `over` and `under` is lime green
+  in retail and was a bluer green in fnTech3. Its last stage adds 47 caustics
+  frames (`textures/sprites/caustics/caus*.ftx`, blue, average 3, 22, 47)
+  tinted `rgbGen constant 0.5 0.8 0.5` with `GL_ONE GL_ONE`. Laid over retail
+  and fnTech3 alike as a generated `pak9.pk3`, black frames take away (0.8,
+  16.7, 0) of retail's water and white frames add (101.6, 159.5, 0), where
+  fnTech3 added the constant itself (127, 200, 127). Retail parses the
+  constant with its blue (0x004765c0..0x0047660f) and copies all four bytes
+  to each vertex (0x004940c0), and its alpha step leaves the colour alone
+  (0x0047d716); the blue is lost before the draw, when FinishShader folds the
+  lightmap and water stages and writes their combined colour one stage and
+  one byte on at a time (0x00479112), so the caustics stage's blue takes the
+  fold's 0. fnTech3 now leaves the colours where that fold does
+  ([gap round](2026-10-23-fakk2-gap-round.md#canal-water-and-the-stage-fold)).
+  fnTech3 had also kept 24 of the 47 frames, so its caustics cycled in half
+  the time; it now keeps retail's 64 (`MAX_IMAGE_ANIMATIONS`; 0x00476e00,
+  `alice.exe` 0x0048c5bc, `tests/shader_animation_tests.py`).
 - Not traced: on `creeperpens`, the pile beside the green glowing lumps
   (`obj_poopile.tik`, surfaces `material1` `pooshine` and `material2`
   `cartasteroid`) is dark green in retail and plain brown in fnTech3.

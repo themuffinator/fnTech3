@@ -16,8 +16,9 @@ and isolated home under the given profile:
 
 Demos play under `timedemo 1`, which advances demo time 50 ms per rendered
 frame, so long demos reach their damaged end within the time limit. Once the
-demo has loaded, a console loop prints a tick every 100 frames for as long as
-the engine's main loop runs; an engine error clears it. Each run ends in one of:
+demo has loaded, a console loop prints a tick every 100 frames (20 under the
+Ritual profiles, whose waits are counted otherwise) for as long as the engine's
+main loop runs; an engine error clears it. Each run ends in one of:
 
   completed  the demo completion path printed its timedemo line with no error,
              and the process was still running a second later
@@ -53,9 +54,13 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tests'))
 from windows_private_process import WindowsPrivateProcess
 
-GAMES = {'q3': 'baseq3', 'ql': 'baseq3', 'rtcw-sp': 'main', 'rtcw-mp': 'main', 'wolfet': 'etmain'}
+GAMES = {'q3': 'baseq3', 'ql': 'baseq3', 'rtcw-sp': 'main', 'rtcw-mp': 'main', 'wolfet': 'etmain', 'fakk2': 'fakk',
+         'alice': 'base'}
 RETAIL = {'q3': 'quake3.exe', 'rtcw-mp': 'WolfMP.exe'}
-LIMITS = {'q3': 16384, 'ql': 16384, 'rtcw-sp': 32768, 'rtcw-mp': 32768, 'wolfet': 32768}
+# The Ritual engines start every game message with 0xc000 bytes (Netchan_MessageLimit).
+LIMITS = {'q3': 16384, 'ql': 16384, 'rtcw-sp': 32768, 'rtcw-mp': 32768, 'wolfet': 32768, 'fakk2': 49152, 'alice': 49152}
+EXTENSIONS = {'q3': 'dm_68', 'ql': 'dm_91', 'rtcw-sp': 'dm_49', 'rtcw-mp': 'dm_60', 'wolfet': 'dm_84', 'fakk2': 'dm3',
+              'alice': 'dm3'}
 TICK = 'FAULT_DEMO_TICK'
 STATS = re.compile(r'^\d+ frames, [\d.]+ seconds: [\d.]+ fps', re.M)
 BODY_DAMAGE = 'completed-or-rejected-or-stalled'
@@ -133,10 +138,17 @@ def play(client, installation, profile, name, payload, output, retail=False):
     home = output / f'{name}-home'
     game = home / GAMES[profile]
     (game / 'demos').mkdir(parents=True)
-    extension = {'q3': 'dm_68', 'ql': 'dm_91', 'rtcw-sp': 'dm_49', 'rtcw-mp': 'dm_60', 'wolfet': 'dm_84'}[profile]
-    (game / 'demos' / f'fault.{extension}').write_bytes(payload)
-    (game / 'probe.cfg').write_text('set cl_allowDownload 0\nset cl_motd 0\nset com_introplayed 1\nset timedemo 1\n'
-                                    f'set fault_tick "echo {TICK}; wait 100; vstr fault_tick"\n'
+    (game / 'demos' / f'fault.{EXTENSIONS[profile]}').write_bytes(payload)
+    # The Ritual engines keep their intro's menu over a console `demo` unless
+    # developer is set. Their `wait N` counts the frame's milliseconds down
+    # before every line, so a frame longer than N -- the level load -- runs a
+    # `wait N; vstr` loop without end, in retail fakk2.exe 1.02 (Cbuf_Execute
+    # 0x0042c590) as in fnTech3; `wait 1` is one frame there whatever its time.
+    ritual = profile in ('fakk2', 'alice')
+    pause = '; '.join(['wait 1'] * 20) if ritual else 'wait 100'
+    (game / 'probe.cfg').write_text(('set developer 1\n' if ritual else '') +
+                                    'set cl_allowDownload 0\nset cl_motd 0\nset com_introplayed 1\nset timedemo 1\n'
+                                    f'set fault_tick "echo {TICK}; {pause}; vstr fault_tick"\n'
                                     'demo fault\nvstr fault_tick\n', encoding='utf-8')
     settings = dict(fs_basepath=str(installation), fs_homepath=str(home), fs_game='', r_fullscreen='0', r_mode='3',
                     in_mouse='0', in_joystick='0', in_nograb='1', s_initsound='0', logfile='2')
