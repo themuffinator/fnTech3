@@ -1759,6 +1759,17 @@ const char *Com_GameDefaultMasterServer( void )
 	return NULL;
 }
 
+const char *Com_GameCommunityMasterServer( void )
+{
+	/* sv_master2's default, where the retail master has gone and players
+	 * have moved to a community one. Raven's Elite Force master answered none
+	 * of three getservers queries on 2026-10-24; efmaster.tjps.eu, which
+	 * Lilium Voyager 1.40 lists as its sv_master2, answered in Holomatch's
+	 * own text format on Raven's port (docs/fntech3/2026-10-24-stvef-playability.md). */
+	if ( Com_GameIsSTVEFMP() ) return "efmaster.tjps.eu";
+	return NULL;
+}
+
 int Com_GameMasterPort( void )
 {
 	/* Where a master address names no port. Raven gave each title its own:

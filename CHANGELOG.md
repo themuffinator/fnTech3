@@ -268,6 +268,16 @@ historical upstream records, not fnTech3 release history. See the
   setting now applies with the bilinear texture mode too, and a light flare
   sitting just behind its surface shows as it does in GLx
   ([record](docs/fntech3/2026-10-23-stvef-renderer-parity.md)).
+- Fade Elite Force Holomatch's holodeck room under RTX's ray tracing as the
+  other renderers do: anything the game fades with its own alpha flag is
+  now drawn the normal way while it fades, where the trace had drawn the
+  room solid and hidden the level behind it
+  ([record](docs/fntech3/2026-10-24-stvef-playability.md)).
+- Find Elite Force Holomatch games on the internet again. The original
+  server list has shut down, so the browser also asks the community list
+  Lilium Voyager uses, `efmaster.tjps.eu` (INTERNET2 in the menu), and it now
+  reads Elite Force server lists as the original game does, where it had
+  shown none ([record](docs/fntech3/2026-10-24-stvef-playability.md)).
 - Draw Heavy Metal: F.A.K.K.2's canal water and caustic walls the lime green
   the original shows, and Alice's and F.A.K.K.2's fog volumes as thin as the
   original draws them, in all three renderers; the damaged-demo probe now

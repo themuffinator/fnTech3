@@ -904,6 +904,13 @@ static int RT_EntityClass( const trRefEntity_t *ent )
 	if ( ent->e.jka.rgbTint || ent->e.jka.forceAlpha || ent->e.jka.distortion ) {
 		return -1;
 	}
+	// nor can they carry Elite Force's forced alpha, which blends an entity's
+	// single-texture stages while its alpha is 1 to 254 (R_STVEFForcedAlpha,
+	// tr_stvef_alpha.h), as Holomatch's holodeck room fades away after a
+	// player joins: raster draws such an entity while the alpha is in force
+	if ( ent->e.stvef.forceAlpha && ent->e.shader.rgba[3] > 0 && ent->e.shader.rgba[3] < 255 ) {
+		return -1;
+	}
 	model = R_GetModelByHandle( ent->e.hModel );
 	if ( !model ) {
 		return -1;

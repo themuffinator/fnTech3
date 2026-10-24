@@ -66,6 +66,7 @@ extern "C" {
 #include <string>
 
 #include "client_stvef_sp_feedback.hpp"
+#include "client_stvef_masters.hpp"
 
 using fnql::CloseFile;
 using fnql::FileRead;
@@ -4451,6 +4452,21 @@ static hash_chain_t *hash_find( const netadr_t *addr )
 	return nullptr;
 }
 
+// Holomatch's masters list servers as text (client_stvef_masters.hpp)
+static int CL_STVEFMasterAddresses( const byte *buffptr, const byte *buffend, netadr_t *addresses )
+{
+	STVEFMasterEntry entries[kMaxServersPerPacket];
+	const int count = CL_STVEFParseMasterList( buffptr, buffend, entries, kMaxServersPerPacket );
+
+	for ( int i = 0; i < count; i++ ) {
+		addresses[i] = netadr_t{};
+		addresses[i].type = NA_IP;
+		std::memcpy( addresses[i].ipv._4, entries[i].ip, sizeof( entries[i].ip ) );
+		addresses[i].port = BigShort( static_cast<short>( entries[i].port ) );
+	}
+	return count;
+}
+
 
 /*
 ===================
@@ -4488,7 +4504,13 @@ static void CL_ServersResponsePacket( const netadr_t* from, msg_t *msg, qboolean
 		buffptr++;
 	} while (buffptr < buffend);
 
-	while (buffptr + 1 < buffend)
+	// Holomatch's masters answer getservers in text, as stvoyHM.exe reads it
+	const bool holomatchText = Com_GameIsSTVEFMP() && !extended;
+	if ( holomatchText ) {
+		numservers = CL_STVEFMasterAddresses( buffptr, buffend, addresses );
+	}
+
+	while (!holomatchText && buffptr + 1 < buffend)
 	{
 		// IPv4 address
 		if (*buffptr == '\\')

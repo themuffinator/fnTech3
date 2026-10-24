@@ -164,6 +164,23 @@ int main() {
     assert( RT_EntityClass( &entities[0] ) == 2 );
     entities[0].e.renderfx = RF_MINLIGHT | RF_NOSHADOW | RF_LIGHTING_ORIGIN;
     assert( RT_EntityClass( &entities[0] ) == 0 );
+    /* Elite Force's forced alpha blends an entity only while its alpha is 1
+     * to 254 (Holomatch's fading holodeck room): raster draws it then, and
+     * the trace keeps it at 0 and 255, where raster draws it as it is. */
+    for ( int alpha : { 1, 128, 254 } ) {
+        Model( MOD_MESH )->e.stvef.forceAlpha = qtrue;
+        entities[0].e.shader.rgba[3] = (byte)alpha;
+        assert( RT_EntityClass( &entities[0] ) < 0 );
+        assert( vk_rt_surface_owner( 0, &tracedShader, 0, SF_MD3 ) == RT_SURFACE_RASTER );
+        entities[0].e.stvef.forceAlpha = qfalse;
+        assert( RT_EntityClass( &entities[0] ) == 0 );
+    }
+    for ( int alpha : { 0, 255 } ) {
+        Model( MOD_MESH )->e.stvef.forceAlpha = qtrue;
+        entities[0].e.shader.rgba[3] = (byte)alpha;
+        assert( RT_EntityClass( &entities[0] ) == 0 );
+        assert( vk_rt_surface_owner( 0, &tracedShader, 0, SF_MD3 ) == RT_SURFACE_TRACED );
+    }
     /* Raster mode, or a failed tracer, leaves every surface to raster. */
     for ( int mode : { 0, 1 } ) {
         vk.caps.activeRtMode = mode;

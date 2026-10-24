@@ -487,6 +487,14 @@ Single player needs Windows.
   and hosting, including servers that check players' files, and downloaded
   from both. Every game type and Expansion Pack mode plays with bots as on
   the original server. The dedicated server also runs on Linux.
+- Holomatch's original internet server list has shut down. fnTech3 also
+  asks the community list Lilium Voyager uses, `efmaster.tjps.eu`: choose
+  INTERNET2 as the server source in the multiplayer menu to see its games.
+  A server you host is announced to both lists.
+- Both modes run faster than the original game with GLx, Vulkan and RTX's
+  normal drawing. RTX's ray tracing draws them too, more slowly, including
+  the holodeck room you stand in when you join a Holomatch game
+  ([RTX guide](RTX.md)).
 
 See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
 

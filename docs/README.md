@@ -280,6 +280,10 @@ Release packages include them as web pages in their `manual` folder, built by
   -- why Vulkan and RTX drew Elite Force further from retail than GLx: bloom
   and compression explained, and anisotropy and flare tests fixed for every
   profile.
+- [Elite Force against the replacement rule](fntech3/2026-10-24-stvef-playability.md)
+  -- path tracing in both modes and the holodeck intro fixed under it, frame
+  rates beside retail, a retail module fault below timescale 1, and which
+  differences are now accepted.
 - [October 8 Medal of Honor GameSpy LAN search](fntech3/2026-10-08-mohaa-gamespy-lan-search.md)
   -- the Join LAN Game list's GameSpy search beside its `getinfo` scan, and
   the query sockets on Linux.

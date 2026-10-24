@@ -114,6 +114,20 @@ evidence.
     may remain as an explicit, documented option, never as the default that
     switches the engine's features off. Where a feature cannot apply to a
     profile, record why in that profile's evidence.
+12. fnTech3 must replace each game's retail engine, client and dedicated
+    server alike. Every game plays fully and performs well: its modules,
+    levels, saves, demos, menus, input and gameplay work as the game
+    expects, and its servers and clients play with the retail ones in both
+    directions. Each game's own rendering -- its distinctive effects,
+    shaders, models, skies, fog and HUD elements -- must draw correctly
+    through fnTech3's renderers, with their features (invariant 11). Do not
+    reproduce what a modern replacement leaves behind: CD and
+    copy-protection checks, dead online services, obsolete hardware paths
+    and other outdated elements. Nor chase a retail engine's incidental
+    output -- pixel-identical frames, rounding, key or list order, debug or
+    never-read settings, console wording -- unless a module, peer, file or
+    player depends on it; record such a difference once as accepted, with
+    its reason, not as an open gap. This applies to every game.
 
 ## Evidence and non-regression
 

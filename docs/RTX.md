@@ -25,9 +25,9 @@ graphics card cannot ray trace, RTX draws the game the normal way instead.
 Every game with a client can use RTX. It traces the model formats of Quake
 III Arena and its relatives; models it cannot trace -- those of Alice,
 F.A.K.K.2 and Medal of Honor, for example -- are drawn the normal way, without
-traced shadows or reflections. Return to Castle Wolfenstein and Enemy
-Territory have been drawn with it in testing, but, like those games
-themselves, that is still experimental.
+traced shadows or reflections. Return to Castle Wolfenstein, Enemy
+Territory and both Elite Force modes have been drawn with it in testing,
+but, like those games themselves, that is still experimental.
 
 Medal of Honor's terrain and static map scenery are traced too; its
 animated characters and props still use normal drawing

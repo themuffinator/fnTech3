@@ -1587,11 +1587,14 @@ void SV_Init( void )
 	//sv_master[2] = Cvar_Get( "sv_master3", "master.maverickservers.com", CVAR_INIT | CVAR_ARCHIVE_ND );
 
 	// Each retail engine publishes to its own master as sv_master1 and leaves
-	// the other four to the operator; its browser asks the same master.
+	// the other four to the operator; its browser asks the same master. Where
+	// that master has gone, sv_master2 names the community one players use.
 	const char *defaultMaster = Com_GameDefaultMasterServer();
+	const char *communityMaster = Com_GameCommunityMasterServer();
 	for ( int index : SV_Indices( MAX_MASTER_SERVERS ) ) {
-		sv_master[ index ] = Cvar_Get( va( "sv_master%d", index + 1 ),
-			index == 0 && defaultMaster ? defaultMaster : "", CVAR_ARCHIVE_ND );
+		const char *value = index == 0 && defaultMaster ? defaultMaster :
+			index == 1 && communityMaster ? communityMaster : "";
+		sv_master[ index ] = Cvar_Get( va( "sv_master%d", index + 1 ), value, CVAR_ARCHIVE_ND );
 	}
 	sv_masterAdvertise = Cvar_Get( "sv_master", "1", CVAR_ARCHIVE );
 	Cvar_CheckRange( sv_masterAdvertise, "0", "1", CV_INTEGER );

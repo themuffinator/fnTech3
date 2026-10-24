@@ -35,6 +35,10 @@ EXPECTED.update({
     'JK2_MP': (28070, 'masterjk2.ravensoft.com', 28060) + QUAKE,
     'MOHAA': (12203, None, 27950) + QUAKE,
 })
+# sv_master2's default where the retail master has gone: Raven's Elite Force
+# master no longer answers, and Lilium Voyager's community one does
+# (docs/fntech3/2026-10-24-stvef-playability.md).
+COMMUNITY = {'STVEF_MP': 'efmaster.tjps.eu'}
 
 # The keys each retail SVC_Info adds beyond Quake III's, in its order, for
 # the cvar values given in VALUES below.
@@ -107,19 +111,21 @@ class LegacyServerDiscoveryTests(unittest.TestCase):
         profile = (ROOT / 'code/qcommon/game_profile.cpp').read_text(encoding='utf-8')
         functions = '\n'.join(function(profile, signature) for signature in (
             'int Com_GameDefaultServerPort( void )', 'const char *Com_GameDefaultMasterServer( void )',
+            'const char *Com_GameCommunityMasterServer( void )',
             'int Com_GameMasterPort( void )', 'const char *Com_GameHeartbeatName( void )',
             'const char *Com_GameFlatlineName( void )'))
         header = (ROOT / 'code/qcommon/game_profile.h').read_text(encoding='utf-8')
-        for name in ('Com_GameDefaultMasterServer', 'Com_GameMasterPort', 'Com_GameHeartbeatName',
-                     'Com_GameFlatlineName'):
+        for name in ('Com_GameDefaultMasterServer', 'Com_GameCommunityMasterServer', 'Com_GameMasterPort',
+                     'Com_GameHeartbeatName', 'Com_GameFlatlineName'):
             self.assertIn(name + '( void );', header)
         source = '#include <cstdio>\n#include <cstddef>\n' + PREDICATES + 'extern "C" {\n' + functions + r'''
 }
 int main() {
     for (id = 0; id <= ID_Q3TEST; ++id) {
         const char *master = Com_GameDefaultMasterServer();
-        std::printf("%d %d %s %d %s %s\n", id, Com_GameDefaultServerPort(), master ? master : "-",
-            Com_GameMasterPort(), Com_GameHeartbeatName(), Com_GameFlatlineName());
+        const char *community = Com_GameCommunityMasterServer();
+        std::printf("%d %d %s %d %s %s %s\n", id, Com_GameDefaultServerPort(), master ? master : "-",
+            Com_GameMasterPort(), Com_GameHeartbeatName(), Com_GameFlatlineName(), community ? community : "-");
     }
 }
 '''
@@ -134,6 +140,7 @@ int main() {
                 self.assertEqual(int(row[3]), master_port)
                 self.assertEqual(row[4], heartbeat)
                 self.assertEqual(row[5], flatline)
+                self.assertEqual(row[6], COMMUNITY.get(name, '-'))
 
     def test_info_keys_and_shutdown(self):
         main = (ROOT / 'code/server/sv_main.cpp').read_text(encoding='utf-8')
@@ -250,7 +257,8 @@ int main() {
         self.assertEqual(beat.count('kind, Cvar_VariableIntegerValue( "net_port'), 2)
         self.assertNotIn('STVEF_HEARTBEAT_GAME', main)
         init = (ROOT / 'code/server/sv_init.cpp').read_text(encoding='utf-8')
-        self.assertIn('index == 0 && defaultMaster ? defaultMaster : ""', init)
+        self.assertIn('index == 0 && defaultMaster ? defaultMaster :\n\t\t\tindex == 1 && communityMaster ? communityMaster : ""',
+                      init.replace('\r\n', '\n'))
         client = (ROOT / 'code/client/cl_main.cpp').read_text(encoding='utf-8')
         browse = function(client, 'static void CL_GlobalServers_f( void ) {')
         self.assertIn('BigShort( static_cast<short>( Com_GameMasterPort() ) )', browse)

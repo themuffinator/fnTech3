@@ -1,0 +1,2585 @@
+{
+ "record": "2026-10-24-stvef-playability.md",
+ "date": "2026-10-24",
+ "profiles": [
+  "stvef-sp",
+  "stvef-mp"
+ ],
+ "evidence": [
+  "Live subset",
+  "Unit",
+  "Source"
+ ],
+ "gatesClosed": [],
+ "rule": "AGENTS.md invariant 12 (added 2026-10-24)",
+ "baseCommit": "1b11e9e84f11d9ac29e21d2e9587585fb9a535fb",
+ "worktree": "AGENTS.md and scripts/probe_rtx_games.py modified; for the traced runs after the fix also code/rendererrtx/rt/rt_backend.c (RTX renderer rebuilt alone)",
+ "platform": "Windows 11 Home 10.0.26200, NVIDIA GeForce RTX 4060 Laptop GPU, driver 591.74, on mains power",
+ "binaries": [
+  {
+   "path": "meson/build/win32-dev/fntech3.exe",
+   "sha256": "3639aa0bd31beafa44a708f2f5ae0a589ed9a004308121b78b050585b977a82c"
+  },
+  {
+   "path": "meson/build/win32-dev/fnql_glx_x86.dll",
+   "sha256": "2e19649251f1873ffc0ad6903d34709849d7b5418ddd409dc59939d58aae7fe6"
+  },
+  {
+   "path": "meson/build/win32-dev/fnql_rtx_x86.dll",
+   "sha256": "583b3d122ba51fef79ce57538f39177f826643e6294dfd00cf21cb2dcb9497d9"
+  },
+  {
+   "path": "meson/build/win32-dev/fnql_vk_x86.dll",
+   "sha256": "064cdbce7410f4311092c6f2c41bbd593caca25b4bd5e7e28e9c99b525fce650"
+  },
+  {
+   "path": ".tmp/runtime/stvef-retail/stvoyHM.exe",
+   "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff"
+  },
+  {
+   "path": ".tmp/runtime/stvef-retail/stvoy.exe",
+   "sha256": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74"
+  }
+ ],
+ "binariesUnchangedAfterTiming": true,
+ "installation": {
+  "fnTech3": ".tmp/stvef-stock",
+  "retail": ".tmp/runtime/stvef-retail",
+  "paks": {
+   "pak0.pk3": "44feb77eeec4670975e3c9f6c09b930d73d12e5b586761107d20ec105c03c7ae",
+   "pak1.pk3": "19412051c2e48d0f51c27127f38280d12401afaf53c38e3af4517768641600eb",
+   "pak2.pk3": "8b573723b6827b38974d6da1619f485f4cd66a0ef26d06a3d0135b5e80988e39",
+   "pak3.pk3": "6cdbbdd34276eb52f9a3d9b54a4ac95156f8abeced7eee05f26ffa85b538a175"
+  }
+ },
+ "pathTracing": {
+  "tool": "scripts/probe_rtx_games.py",
+  "settings": "rtx_rt_mode 2, rtx_rt_require 1, 1280x720 windowed",
+  "renderer": {
+   "sha256": "6e1fcfb698a9b3a8981ffd3aae17fb9048c5349340c30405ef91ad7ef9f105d0",
+   "client": "d77c99d2cd4bb7ca621f54914f92ccfb1be64781b2c6a7a0df221f38d3ee2a12",
+   "source": "tree 44e61fb20527d4617787c35c5d9aed887d32066f (1b11e9e8 plus this round), built in .tmp/stvef-round-1024/export, staged at .tmp/runtime/stvef-compat-after"
+  },
+  "notCounted": "rtx-3: an in-place win32-dev RTX rebuild that also compiled another session's uncommitted renderer edits",
+  "runs": [
+   {
+    "profile": "stvef-sp",
+    "passed": true,
+    "exitCode": 0,
+    "forcedStop": false,
+    "errors": [],
+    "gates": [
+     {
+      "requested": 2,
+      "active": 2,
+      "require": 1,
+      "backend": "compute"
+     },
+     {
+      "requested": 2,
+      "active": 2,
+      "require": 1,
+      "backend": "compute"
+     },
+     {
+      "requested": 0,
+      "active": 0,
+      "require": 1,
+      "backend": "none"
+     }
+    ],
+    "tracing": [
+     "compute",
+     "compute"
+    ],
+    "timing": [
+     "RTX RT timing: gpu build 0.00 trace 27.49 denoise 3.69 composite 0.09 = 31.27 ms, cpu 0.77 ms, 1280x720, 0 still frames",
+     "RTX RT timing: gpu build 0.00 trace 18.46 denoise 3.61 composite 0.07 = 22.14 ms, cpu 0.32 ms, 1280x720, 0 still frames",
+     "RTX RT timing: gpu build 0.00 trace 17.70 denoise 3.56 composite 0.07 = 21.33 ms, cpu 0.35 ms, 1280x720, 0 still frames"
+    ],
+    "rtLines": [
+     "RTX RT: compute backend world BVH: 26719 nodes over 42962 triangles in 19.4 ms",
+     "RTX RT: 3094 lights (73 point, 3021 surface triangles, q3map model), grid 11x23x7 of 128 units, 68597 list entries, 27.1 ms",
+     "RTX RT: the level's own lights: 73 light entities and 8 glowing shaders over 30 triangles",
+     "RTX RT: world traced triangles opaque=42962 masked=0 special=0, casting no q3map shadow 0, filtering q3map's light 0, vertices=58036, materials=114",
+     "RTX RT: compute backend world BVH: 26719 nodes over 42962 triangles in 30.0 ms",
+     "RTX RT: 3094 lights (73 point, 3021 surface triangles, q3map model), grid 11x23x7 of 128 units, 68597 list entries, 36.8 ms",
+     "RTX RT: the level's own lights: 73 light entities and 8 glowing shaders over 30 triangles",
+     "RTX RT: world traced triangles opaque=42962 masked=0 special=0, casting no q3map shadow 0, filtering q3map's light 0, vertices=58036, materials=113"
+    ],
+    "tracedOverRaster": 2.636,
+    "screenshots": {
+     "rt": {
+      "sha256": "eb70a932da02a6de96325a9c570eb43a30b65135908ea0b5e010ad6c02e225a3",
+      "brightness": 28.97
+     },
+     "raster": {
+      "sha256": "3aa9c671aefad786a7ea9ef3056709cb2f8ef569f682f4763f78b1be1630fb5b",
+      "brightness": 10.99
+     }
+    },
+    "command": [
+     ".tmp/runtime/stvef-compat-after/fntech3.exe",
+     "+set",
+     "com_gameProfile",
+     "stvef-sp",
+     "+set",
+     "fs_basepath",
+     ".tmp/stvef-stock",
+     "+set",
+     "fs_homepath",
+     ".tmp/stvef-playability/rtx-4/stvef-sp/home",
+     "+set",
+     "fs_game",
+     "",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "1280",
+     "+set",
+     "r_customHeight",
+     "720",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "fs_skipWorkshop",
+     "1",
+     "+set",
+     "cl_webuiEnable",
+     "0",
+     "+set",
+     "cl_renderer",
+     "rtx",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_ip",
+     "127.0.0.1",
+     "+set",
+     "net_port",
+     "0",
+     "+set",
+     "net_ip6",
+     "::1",
+     "+set",
+     "net_port6",
+     "0",
+     "+set",
+     "rtx_rt_mode",
+     "2",
+     "+set",
+     "rtx_rt_require",
+     "1",
+     "+set",
+     "rtx_debug_vk_validation",
+     "1",
+     "+set",
+     "com_recommendedSet",
+     "1",
+     "+set",
+     "com_hunkMegs",
+     "256",
+     "+exec",
+     "rtxprobe.cfg",
+     "+devmap",
+     "voy2"
+    ]
+   },
+   {
+    "profile": "stvef-mp",
+    "passed": true,
+    "exitCode": 0,
+    "forcedStop": false,
+    "errors": [],
+    "gates": [
+     {
+      "requested": 2,
+      "active": 2,
+      "require": 1,
+      "backend": "compute"
+     },
+     {
+      "requested": 2,
+      "active": 2,
+      "require": 1,
+      "backend": "compute"
+     },
+     {
+      "requested": 0,
+      "active": 0,
+      "require": 1,
+      "backend": "none"
+     }
+    ],
+    "tracing": [
+     "compute",
+     "compute"
+    ],
+    "timing": [
+     "RTX RT timing: gpu build 0.00 trace 20.95 denoise 3.57 composite 0.08 = 24.60 ms, cpu 0.75 ms, 1280x720, 0 still frames",
+     "RTX RT timing: gpu build 0.00 trace 22.68 denoise 3.58 composite 0.08 = 26.34 ms, cpu 0.77 ms, 1280x720, 0 still frames",
+     "RTX RT timing: gpu build 0.00 trace 22.67 denoise 3.58 composite 0.08 = 26.33 ms, cpu 1.00 ms, 1280x720, 0 still frames"
+    ],
+    "rtLines": [
+     "RTX RT: compute backend world BVH: 9290 nodes over 14525 triangles in 6.5 ms",
+     "RTX RT: 525 lights (80 point, 445 surface triangles, q3map model), grid 16x13x13 of 128 units, 134208 list entries, 16.7 ms",
+     "RTX RT: the level's own lights: 80 light entities and 1 glowing shaders over 24 triangles",
+     "RTX RT: world traced triangles opaque=14393 masked=0 special=0, casting no q3map shadow 132, filtering q3map's light 0, vertices=19484, materials=87",
+     "RTX RT: compute backend world BVH: 9290 nodes over 14525 triangles in 12.9 ms",
+     "RTX RT: 525 lights (80 point, 445 surface triangles, q3map model), grid 16x13x13 of 128 units, 134208 list entries, 24.4 ms",
+     "RTX RT: the level's own lights: 80 light entities and 1 glowing shaders over 24 triangles",
+     "RTX RT: world traced triangles opaque=14393 masked=0 special=0, casting no q3map shadow 132, filtering q3map's light 0, vertices=19484, materials=88"
+    ],
+    "tracedOverRaster": 1.054,
+    "screenshots": {
+     "rt": {
+      "sha256": "7fbabefa4a4f76a781b8366cc4a58ebc86a141458366af94b1c617d1f8b242f7",
+      "brightness": 27.06
+     },
+     "raster": {
+      "sha256": "810e2b2eb4a68177224d3e701400f4f95f4f0eab3b0c68f11aed187032c111cd",
+      "brightness": 25.68
+     }
+    },
+    "command": [
+     ".tmp/runtime/stvef-compat-after/fntech3.exe",
+     "+set",
+     "com_gameProfile",
+     "stvef-mp",
+     "+set",
+     "fs_basepath",
+     ".tmp/stvef-stock",
+     "+set",
+     "fs_homepath",
+     ".tmp/stvef-playability/rtx-4/stvef-mp/home",
+     "+set",
+     "fs_game",
+     "",
+     "+set",
+     "r_fullscreen",
+     "0",
+     "+set",
+     "r_mode",
+     "-1",
+     "+set",
+     "r_customWidth",
+     "1280",
+     "+set",
+     "r_customHeight",
+     "720",
+     "+set",
+     "in_mouse",
+     "0",
+     "+set",
+     "in_joystick",
+     "0",
+     "+set",
+     "in_nograb",
+     "1",
+     "+set",
+     "s_initsound",
+     "0",
+     "+set",
+     "com_steamIntegration",
+     "0",
+     "+set",
+     "fs_skipWorkshop",
+     "1",
+     "+set",
+     "cl_webuiEnable",
+     "0",
+     "+set",
+     "cl_renderer",
+     "rtx",
+     "+set",
+     "logfile",
+     "2",
+     "+set",
+     "net_ip",
+     "127.0.0.1",
+     "+set",
+     "net_port",
+     "0",
+     "+set",
+     "net_ip6",
+     "::1",
+     "+set",
+     "net_port6",
+     "0",
+     "+set",
+     "rtx_rt_mode",
+     "2",
+     "+set",
+     "rtx_rt_require",
+     "1",
+     "+set",
+     "rtx_debug_vk_validation",
+     "1",
+     "+set",
+     "com_recommendedSet",
+     "1",
+     "+set",
+     "cl_motd",
+     "0",
+     "+set",
+     "com_hunkMegs",
+     "256",
+     "+exec",
+     "rtxprobe.cfg",
+     "+devmap",
+     "hm_borg1"
+    ]
+   }
+  ],
+  "beforeFix": {
+   "renderer": "583b3d122ba51fef79ce57538f39177f826643e6294dfd00cf21cb2dcb9497d9",
+   "runs": [
+    {
+     "profile": "stvef-sp",
+     "passed": true,
+     "exitCode": 0,
+     "forcedStop": false,
+     "errors": [],
+     "gates": [
+      {
+       "requested": 2,
+       "active": 2,
+       "require": 1,
+       "backend": "compute"
+      },
+      {
+       "requested": 2,
+       "active": 2,
+       "require": 1,
+       "backend": "compute"
+      },
+      {
+       "requested": 0,
+       "active": 0,
+       "require": 1,
+       "backend": "none"
+      }
+     ],
+     "tracing": [
+      "compute",
+      "compute"
+     ],
+     "timing": [
+      "RTX RT timing: gpu build 0.00 trace 28.04 denoise 3.74 composite 0.10 = 31.88 ms, cpu 1.24 ms, 1280x720, 0 still frames",
+      "RTX RT timing: gpu build 0.00 trace 17.78 denoise 3.57 composite 0.07 = 21.42 ms, cpu 0.38 ms, 1280x720, 0 still frames",
+      "RTX RT timing: gpu build 0.00 trace 17.78 denoise 3.57 composite 0.07 = 21.43 ms, cpu 0.39 ms, 1280x720, 0 still frames"
+     ],
+     "rtLines": [
+      "RTX RT: compute backend world BVH: 26719 nodes over 42962 triangles in 31.0 ms",
+      "RTX RT: 3094 lights (73 point, 3021 surface triangles, q3map model), grid 11x23x7 of 128 units, 68597 list entries, 48.1 ms",
+      "RTX RT: the level's own lights: 73 light entities and 8 glowing shaders over 30 triangles",
+      "RTX RT: world traced triangles opaque=42962 masked=0 special=0, casting no q3map shadow 0, filtering q3map's light 0, vertices=58036, materials=114",
+      "RTX RT: compute backend world BVH: 26719 nodes over 42962 triangles in 51.5 ms",
+      "RTX RT: 3094 lights (73 point, 3021 surface triangles, q3map model), grid 11x23x7 of 128 units, 68597 list entries, 52.0 ms",
+      "RTX RT: the level's own lights: 73 light entities and 8 glowing shaders over 30 triangles",
+      "RTX RT: world traced triangles opaque=42962 masked=0 special=0, casting no q3map shadow 0, filtering q3map's light 0, vertices=58036, materials=113"
+     ],
+     "tracedOverRaster": 2.633,
+     "screenshots": {
+      "rt": {
+       "sha256": "1e6d778a144b842c229c7e2131d2befc63670e3135559eafebac0cf427271faa",
+       "brightness": 28.94
+      },
+      "raster": {
+       "sha256": "3aa9c671aefad786a7ea9ef3056709cb2f8ef569f682f4763f78b1be1630fb5b",
+       "brightness": 10.99
+      }
+     },
+     "command": [
+      "meson/build/win32-dev/fntech3.exe",
+      "+set",
+      "com_gameProfile",
+      "stvef-sp",
+      "+set",
+      "fs_basepath",
+      ".tmp/stvef-stock",
+      "+set",
+      "fs_homepath",
+      ".tmp/stvef-playability/rtx-1/stvef-sp/home",
+      "+set",
+      "fs_game",
+      "",
+      "+set",
+      "r_fullscreen",
+      "0",
+      "+set",
+      "r_mode",
+      "-1",
+      "+set",
+      "r_customWidth",
+      "1280",
+      "+set",
+      "r_customHeight",
+      "720",
+      "+set",
+      "in_mouse",
+      "0",
+      "+set",
+      "in_joystick",
+      "0",
+      "+set",
+      "in_nograb",
+      "1",
+      "+set",
+      "s_initsound",
+      "0",
+      "+set",
+      "com_steamIntegration",
+      "0",
+      "+set",
+      "fs_skipWorkshop",
+      "1",
+      "+set",
+      "cl_webuiEnable",
+      "0",
+      "+set",
+      "cl_renderer",
+      "rtx",
+      "+set",
+      "logfile",
+      "2",
+      "+set",
+      "net_ip",
+      "127.0.0.1",
+      "+set",
+      "net_port",
+      "0",
+      "+set",
+      "net_ip6",
+      "::1",
+      "+set",
+      "net_port6",
+      "0",
+      "+set",
+      "rtx_rt_mode",
+      "2",
+      "+set",
+      "rtx_rt_require",
+      "1",
+      "+set",
+      "rtx_debug_vk_validation",
+      "1",
+      "+set",
+      "com_recommendedSet",
+      "1",
+      "+set",
+      "com_hunkMegs",
+      "256",
+      "+exec",
+      "rtxprobe.cfg",
+      "+devmap",
+      "voy2"
+     ]
+    },
+    {
+     "profile": "stvef-mp",
+     "passed": true,
+     "exitCode": 0,
+     "forcedStop": false,
+     "errors": [],
+     "gates": [
+      {
+       "requested": 2,
+       "active": 2,
+       "require": 1,
+       "backend": "compute"
+      },
+      {
+       "requested": 2,
+       "active": 2,
+       "require": 1,
+       "backend": "compute"
+      },
+      {
+       "requested": 0,
+       "active": 0,
+       "require": 1,
+       "backend": "none"
+      }
+     ],
+     "tracing": [
+      "compute",
+      "compute"
+     ],
+     "timing": [
+      "RTX RT timing: gpu build 0.00 trace 19.19 denoise 3.57 composite 0.08 = 22.84 ms, cpu 1.04 ms, 1280x720, 0 still frames",
+      "RTX RT timing: gpu build 0.00 trace 19.99 denoise 3.58 composite 0.07 = 23.65 ms, cpu 5.41 ms, 1280x720, 6 still frames",
+      "RTX RT timing: gpu build 0.00 trace 19.73 denoise 3.58 composite 0.07 = 23.39 ms, cpu 5.36 ms, 1280x720, 5 still frames"
+     ],
+     "rtLines": [
+      "RTX RT: compute backend world BVH: 9290 nodes over 14525 triangles in 13.1 ms",
+      "RTX RT: 525 lights (80 point, 445 surface triangles, q3map model), grid 16x13x13 of 128 units, 134208 list entries, 29.9 ms",
+      "RTX RT: the level's own lights: 80 light entities and 1 glowing shaders over 24 triangles",
+      "RTX RT: world traced triangles opaque=14393 masked=0 special=0, casting no q3map shadow 132, filtering q3map's light 0, vertices=19484, materials=87",
+      "RTX RT: compute backend world BVH: 9290 nodes over 14525 triangles in 16.9 ms",
+      "RTX RT: 525 lights (80 point, 445 surface triangles, q3map model), grid 16x13x13 of 128 units, 134208 list entries, 42.0 ms",
+      "RTX RT: the level's own lights: 80 light entities and 1 glowing shaders over 24 triangles",
+      "RTX RT: world traced triangles opaque=14393 masked=0 special=0, casting no q3map shadow 132, filtering q3map's light 0, vertices=19484, materials=106"
+     ],
+     "tracedOverRaster": 1.248,
+     "screenshots": {
+      "rt": {
+       "sha256": "0eaf76df5637fa8cdf39619b9d4b62c2bbedbd65bcbb00402b99ec6807cb7e6b",
+       "brightness": 30.13
+      },
+      "raster": {
+       "sha256": "2119860358def8d58e1fb60ae27ec526e2746c328b68556202d136a36c3920ec",
+       "brightness": 24.15
+      }
+     },
+     "command": [
+      "meson/build/win32-dev/fntech3.exe",
+      "+set",
+      "com_gameProfile",
+      "stvef-mp",
+      "+set",
+      "fs_basepath",
+      ".tmp/stvef-stock",
+      "+set",
+      "fs_homepath",
+      ".tmp/stvef-playability/rtx-1/stvef-mp/home",
+      "+set",
+      "fs_game",
+      "",
+      "+set",
+      "r_fullscreen",
+      "0",
+      "+set",
+      "r_mode",
+      "-1",
+      "+set",
+      "r_customWidth",
+      "1280",
+      "+set",
+      "r_customHeight",
+      "720",
+      "+set",
+      "in_mouse",
+      "0",
+      "+set",
+      "in_joystick",
+      "0",
+      "+set",
+      "in_nograb",
+      "1",
+      "+set",
+      "s_initsound",
+      "0",
+      "+set",
+      "com_steamIntegration",
+      "0",
+      "+set",
+      "fs_skipWorkshop",
+      "1",
+      "+set",
+      "cl_webuiEnable",
+      "0",
+      "+set",
+      "cl_renderer",
+      "rtx",
+      "+set",
+      "logfile",
+      "2",
+      "+set",
+      "net_ip",
+      "127.0.0.1",
+      "+set",
+      "net_port",
+      "0",
+      "+set",
+      "net_ip6",
+      "::1",
+      "+set",
+      "net_port6",
+      "0",
+      "+set",
+      "rtx_rt_mode",
+      "2",
+      "+set",
+      "rtx_rt_require",
+      "1",
+      "+set",
+      "rtx_debug_vk_validation",
+      "1",
+      "+set",
+      "com_recommendedSet",
+      "1",
+      "+set",
+      "cl_motd",
+      "0",
+      "+set",
+      "com_hunkMegs",
+      "256",
+      "+exec",
+      "rtxprobe.cfg",
+      "+devmap",
+      "hm_borg1"
+     ]
+    }
+   ]
+  },
+  "controls": {
+   "afterIntro": {
+    "extra": "fixedtime 0; wait 900; fixedtime 1 before the traced capture",
+    "renderer": "583b3d122ba51fef79ce57538f39177f826643e6294dfd00cf21cb2dcb9497d9",
+    "runs": [
+     {
+      "profile": "stvef-mp",
+      "passed": true,
+      "exitCode": 0,
+      "forcedStop": false,
+      "errors": [],
+      "gates": [
+       {
+        "requested": 2,
+        "active": 2,
+        "require": 1,
+        "backend": "compute"
+       },
+       {
+        "requested": 2,
+        "active": 2,
+        "require": 1,
+        "backend": "compute"
+       },
+       {
+        "requested": 0,
+        "active": 0,
+        "require": 1,
+        "backend": "none"
+       }
+      ],
+      "tracing": [
+       "compute",
+       "compute"
+      ],
+      "timing": [
+       "RTX RT timing: gpu build 0.00 trace 23.44 denoise 3.56 composite 0.08 = 27.08 ms, cpu 1.06 ms, 1280x720, 0 still frames",
+       "RTX RT timing: gpu build 0.00 trace 23.44 denoise 3.57 composite 0.08 = 27.10 ms, cpu 1.15 ms, 1280x720, 0 still frames",
+       "RTX RT timing: gpu build 0.00 trace 23.43 denoise 3.57 composite 0.08 = 27.09 ms, cpu 1.26 ms, 1280x720, 0 still frames"
+      ],
+      "rtLines": [
+       "RTX RT: compute backend world BVH: 9290 nodes over 14525 triangles in 6.1 ms",
+       "RTX RT: 525 lights (80 point, 445 surface triangles, q3map model), grid 16x13x13 of 128 units, 134208 list entries, 17.2 ms",
+       "RTX RT: the level's own lights: 80 light entities and 1 glowing shaders over 24 triangles",
+       "RTX RT: world traced triangles opaque=14393 masked=0 special=0, casting no q3map shadow 132, filtering q3map's light 0, vertices=19484, materials=87",
+       "RTX RT: compute backend world BVH: 9290 nodes over 14525 triangles in 6.0 ms",
+       "RTX RT: 525 lights (80 point, 445 surface triangles, q3map model), grid 16x13x13 of 128 units, 134208 list entries, 16.7 ms",
+       "RTX RT: the level's own lights: 80 light entities and 1 glowing shaders over 24 triangles",
+       "RTX RT: world traced triangles opaque=14393 masked=0 special=0, casting no q3map shadow 132, filtering q3map's light 0, vertices=19484, materials=108"
+      ],
+      "tracedOverRaster": 1.526,
+      "screenshots": {
+       "rt": {
+        "sha256": "821049634c23ebde0f49e35a4ead097506374fe041c17e5d536d394e947a5c38",
+        "brightness": 28.73
+       },
+       "raster": {
+        "sha256": "061c8d718f919eed54acebd5b774aa4c582199cdde966a04bada4894b84d26d3",
+        "brightness": 18.83
+       }
+      },
+      "command": [
+       "meson/build/win32-dev/fntech3.exe",
+       "+set",
+       "com_gameProfile",
+       "stvef-mp",
+       "+set",
+       "fs_basepath",
+       ".tmp/stvef-stock",
+       "+set",
+       "fs_homepath",
+       ".tmp/stvef-playability/rtx-2/stvef-mp/home",
+       "+set",
+       "fs_game",
+       "",
+       "+set",
+       "r_fullscreen",
+       "0",
+       "+set",
+       "r_mode",
+       "-1",
+       "+set",
+       "r_customWidth",
+       "1280",
+       "+set",
+       "r_customHeight",
+       "720",
+       "+set",
+       "in_mouse",
+       "0",
+       "+set",
+       "in_joystick",
+       "0",
+       "+set",
+       "in_nograb",
+       "1",
+       "+set",
+       "s_initsound",
+       "0",
+       "+set",
+       "com_steamIntegration",
+       "0",
+       "+set",
+       "fs_skipWorkshop",
+       "1",
+       "+set",
+       "cl_webuiEnable",
+       "0",
+       "+set",
+       "cl_renderer",
+       "rtx",
+       "+set",
+       "logfile",
+       "2",
+       "+set",
+       "net_ip",
+       "127.0.0.1",
+       "+set",
+       "net_port",
+       "0",
+       "+set",
+       "net_ip6",
+       "::1",
+       "+set",
+       "net_port6",
+       "0",
+       "+set",
+       "rtx_rt_mode",
+       "2",
+       "+set",
+       "rtx_rt_require",
+       "1",
+       "+set",
+       "rtx_debug_vk_validation",
+       "1",
+       "+set",
+       "com_recommendedSet",
+       "1",
+       "+set",
+       "cl_motd",
+       "0",
+       "+set",
+       "com_hunkMegs",
+       "256",
+       "+exec",
+       "rtxprobe.cfg",
+       "+devmap",
+       "hm_borg1"
+      ]
+     }
+    ]
+   },
+   "singlePlayerScenes": {
+    "tool": ".tmp/stvef-playability/sp_scenes_rtx.py",
+    "summary": [
+     {
+      "scene": "stasis1",
+      "passed": true,
+      "ratio": 0.61,
+      "shots": {
+       "rt": 16.07,
+       "raster": 26.35
+      }
+     },
+     {
+      "scene": "scav2",
+      "passed": true,
+      "ratio": 1.379,
+      "shots": {
+       "rt": 48.22,
+       "raster": 34.97
+      }
+     },
+     {
+      "scene": "borg2",
+      "passed": true,
+      "ratio": 1.189,
+      "shots": {
+       "rt": 13.33,
+       "raster": 11.21
+      }
+     },
+     {
+      "scene": "forge2",
+      "passed": true,
+      "ratio": 1.17,
+      "shots": {
+       "rt": 15.2,
+       "raster": 12.99
+      }
+     },
+     {
+      "scene": "voy14",
+      "passed": true,
+      "ratio": 1.189,
+      "shots": {
+       "rt": 29.48,
+       "raster": 24.79
+      }
+     }
+    ],
+    "stasis1Door": {
+     "shaders": [
+      "textures/stasis/m_stasisdoor3",
+      "textures/stasis/m_stasisdoor3_mem"
+     ],
+     "stage": "one opaque stage, surfaceparm nolightmap, no rgbGen",
+     "textures": {
+      "m_stasisdoor2.jpg": {
+       "mean": [
+        0.075,
+        0.084,
+        0.106
+       ],
+       "maxChannelP99": 0.459
+      },
+      "m_stasisdoor2_mem.jpg": {
+       "mean": [
+        0.071,
+        0.129,
+        0.156
+       ],
+       "maxChannelP99": 0.6
+      }
+     },
+     "rule": "RT_ShaderFullbrightLit: scene-lit, texels glow from 0.55 to 0.85 (RT_BrightTexel)",
+     "decision": "left open: a cross-profile RTX lighting choice"
+    }
+   },
+   "introOnGlx": {
+    "extra": "cl_renderer glx: both captures raster, at the probe timing",
+    "meanAbsDifference": 5.95,
+    "runs": [
+     {
+      "profile": "stvef-mp",
+      "passed": false,
+      "exitCode": 0,
+      "forcedStop": false,
+      "errors": [],
+      "gates": [],
+      "tracing": [],
+      "timing": [],
+      "rtLines": [],
+      "tracedOverRaster": 1.139,
+      "screenshots": {
+       "rt": {
+        "sha256": "285fe3a300207142d21ebcaf4ea5caf74735729e644057d2933447971fd598f9",
+        "brightness": 26.66
+       },
+       "raster": {
+        "sha256": "50cc6a4788d74abeab03a5c21b9a68a19189b8274b34aeaf6460d680633bed1b",
+        "brightness": 23.4
+       }
+      },
+      "command": [
+       "meson/build/win32-dev/fntech3.exe",
+       "+set",
+       "com_gameProfile",
+       "stvef-mp",
+       "+set",
+       "fs_basepath",
+       ".tmp/stvef-stock",
+       "+set",
+       "fs_homepath",
+       ".tmp/stvef-playability/intro-glx/stvef-mp/home",
+       "+set",
+       "fs_game",
+       "",
+       "+set",
+       "r_fullscreen",
+       "0",
+       "+set",
+       "r_mode",
+       "-1",
+       "+set",
+       "r_customWidth",
+       "1280",
+       "+set",
+       "r_customHeight",
+       "720",
+       "+set",
+       "in_mouse",
+       "0",
+       "+set",
+       "in_joystick",
+       "0",
+       "+set",
+       "in_nograb",
+       "1",
+       "+set",
+       "s_initsound",
+       "0",
+       "+set",
+       "com_steamIntegration",
+       "0",
+       "+set",
+       "fs_skipWorkshop",
+       "1",
+       "+set",
+       "cl_webuiEnable",
+       "0",
+       "+set",
+       "cl_renderer",
+       "glx",
+       "+set",
+       "logfile",
+       "2",
+       "+set",
+       "net_ip",
+       "127.0.0.1",
+       "+set",
+       "net_port",
+       "0",
+       "+set",
+       "net_ip6",
+       "::1",
+       "+set",
+       "net_port6",
+       "0",
+       "+set",
+       "rtx_rt_mode",
+       "2",
+       "+set",
+       "rtx_rt_require",
+       "1",
+       "+set",
+       "rtx_debug_vk_validation",
+       "1",
+       "+set",
+       "com_recommendedSet",
+       "1",
+       "+set",
+       "cl_motd",
+       "0",
+       "+set",
+       "com_hunkMegs",
+       "256",
+       "+exec",
+       "rtxprobe.cfg",
+       "+devmap",
+       "hm_borg1"
+      ]
+     }
+    ]
+   },
+   "vidRestartPosition": {
+    "tool": ".tmp/stvef-playability/restart_pos.py",
+    "renderer": "glx",
+    "viewposBefore": [
+     "(160 -360 -206) : 45",
+     "(160 -360 -206) : 45",
+     "(160 -360 -206) : 45"
+    ],
+    "viewposAfter": [
+     "(160 -360 -206) : 45",
+     "(160 -360 -206) : 45"
+    ]
+   }
+  }
+ },
+ "holodeckIntro": {
+  "cgame": {
+   "file": "vm/cgame.qvm",
+   "pak": "pak2.pk3",
+   "procedureInstruction": 72472,
+   "model": "models/mapobjects/podium/hm_room.md3",
+   "handle": 1046452,
+   "renderfx": "0x818 (BOR 2072)",
+   "alpha": "255 until 3000 ms after joining while frames 0..15 assemble the room, then 255 * (1 - (t - 3000) / 2000), at least 1"
+  },
+  "shader": "models/mapobjects/podium/holodeck: cull disable, one stage, alphaGen entity, no blendFunc",
+  "fix": "code/rendererrtx/rt/rt_backend.c RT_EntityClass: -1 while e.stvef.forceAlpha and 0 < e.shader.rgba[3] < 255",
+  "test": "tests/rtx_surface_owner_tests.py (fails against 1b11e9e8, passes with the fix); jka_entity_override_tests, q3_ihv_entity_renderer_tests, jka_entity_refraction_tests pass"
+ },
+ "retailModuleCrash": {
+  "observed": "ACCESS_VIOLATION efgamex86.dll@131d8 after the RTX probe set timescale 0 with the player in voy2 brush 2233 (textures/common/ladder, contents 0x20000080); the same on GLx",
+  "module": {
+   "file": "efgamex86.dll",
+   "sha256": "c159cba671544ddcc8694887c21bbeba13fead35bbf4488c08914f66695105a9"
+  },
+  "sites": {
+   "CG_PredictPlayerState gate: timescale value below 1.0 predicts": "0x20032659..0x2003266a",
+   "cg_pmove.gent = NULL": "0x200326a3 (0x2026e1cc = cg_pmove 0x2026e0f0 + 0xdc)",
+   "Pmove call": "0x2003289b",
+   "water level: contents & 0xb8 (ladder 0x80 included) at feet, then waist": "0x2001315c, 0x200131c8",
+   "reads pm->gent->NPC_type against \"biohulk\"": "0x200131d2..0x200131e4",
+   "script timescale hook (value from a level script)": "0x200a71d0"
+  },
+  "retail": [
+   {
+    "engine": "retail",
+    "timescale": "0.5",
+    "exe": ".tmp\\runtime\\stvef-retail\\stvoy.exe",
+    "exit": 3221225477,
+    "exitHex": "0xc0000005",
+    "forced": false,
+    "seconds": 21.9,
+    "before": true,
+    "survived": false,
+    "logTail": [
+     "^1Error streaming file music/elite31.mp3: MP3ERR: Decoder unable to convert to current game audio settings",
+     "CL_InitCGame:  0.52 seconds",
+     "3 msec to draw all images",
+     "Com_TouchMemory: 1 msec",
+     "maps/voy2.bsp (-2048 3846 -152) : 0",
+     "TS_BEFORE "
+    ]
+   },
+   {
+    "engine": "fntech3",
+    "timescale": "0.5",
+    "exe": ".tmp\\runtime\\stvef-compat-after\\fntech3.exe",
+    "exit": null,
+    "exitHex": null,
+    "forced": true,
+    "seconds": 240.4,
+    "before": true,
+    "survived": false,
+    "logTail": [
+     "texture bits: 32",
+     "picmip: 0, filter: 1",
+     "Initializing Shaders",
+     "----- finished R_Init -----",
+     "VM_LoadDll: loaded native module cache 'E:\\Repositories\\fnTech3\\.tmp\\stvef-playability\\retail-ts\\fntech3-ts0.5\\home\\.tmp\\native\\af111bd06da7a6e7b122b9f020fa2e39\\efuix86.dll'",
+     "VM_CreateTable 'efuix86.dll' ok"
+    ]
+   },
+   {
+    "engine": "retail",
+    "timescale": "1",
+    "exe": ".tmp\\runtime\\stvef-retail\\stvoy.exe",
+    "exit": 0,
+    "exitHex": "0x0",
+    "forced": false,
+    "seconds": 15.5,
+    "before": true,
+    "survived": true,
+    "logTail": [
+     "...deleting GL context: success",
+     "...releasing DC: success",
+     "...destroying window",
+     "...shutting down QGL",
+     "...unloading OpenGL DLL",
+     "-----------------------"
+    ]
+   }
+  ],
+  "retailDump": {
+   "file": "stvoy.exe.38264.dmp (kept in .tmp/stvef-playability/retail-ts, not committed)",
+   "sha256": "2191360b6099c1fe483fed40a8c002612098833f92f0bf17696cd3408c709bfd",
+   "fault": "efgamex86+0x131d8: mov ecx,dword ptr [eax+35Ch], eax=00000000 (cdb .ecxr)",
+   "evicted": "mutation31.exe.10476.dmp, restored from a backup with its own hash"
+  },
+  "engineOutcome": "fnTech3 reports the fault as an ERR_DROP and returns to the menu",
+  "probeChange": "scripts/probe_rtx_games.py no longer lowers timescale for either Elite Force profile"
+ },
+ "performance": {
+  "tool": ".tmp/stvef-playability/perf.py",
+  "method": "timedemo 1 per demo and engine, interleaved, three rounds (perf-1); SP (perf-2): voy2 view, NPCs and effects frozen, 3000 uncapped frames timed between two console markers; 1024x768 windowed (retail r_mode 6), r_swapInterval 0, com_maxfps 0, fnTech3 com_maxfpsUnfocused 0 for SP, no sound, private desktop",
+  "machineLoad": "other sessions ran compile and test jobs at the same time; cpuPercent is the whole machine during each run",
+  "table": [
+   {
+    "kind": "holomatch",
+    "engine": "glx",
+    "scene": "demo0000",
+    "fps": [
+     313.7,
+     586.3,
+     557.1
+    ],
+    "best": 586.3,
+    "median": 557.1
+   },
+   {
+    "kind": "holomatch",
+    "engine": "glx",
+    "scene": "demo0001",
+    "fps": [
+     660.5,
+     667.7,
+     765.8
+    ],
+    "best": 765.8,
+    "median": 667.7
+   },
+   {
+    "kind": "holomatch",
+    "engine": "glx",
+    "scene": "extreme",
+    "fps": [
+     444.5,
+     504.6,
+     533.0
+    ],
+    "best": 533.0,
+    "median": 504.6
+   },
+   {
+    "kind": "holomatch",
+    "engine": "retail",
+    "scene": "demo0000",
+    "fps": [
+     226.1,
+     82.2,
+     103.2
+    ],
+    "best": 226.1,
+    "median": 103.2
+   },
+   {
+    "kind": "holomatch",
+    "engine": "retail",
+    "scene": "demo0001",
+    "fps": [
+     277.7,
+     332.0,
+     344.4
+    ],
+    "best": 344.4,
+    "median": 332.0
+   },
+   {
+    "kind": "holomatch",
+    "engine": "retail",
+    "scene": "extreme",
+    "fps": [
+     229.5,
+     252.7,
+     284.3
+    ],
+    "best": 284.3,
+    "median": 252.7
+   },
+   {
+    "kind": "holomatch",
+    "engine": "rtx-raster",
+    "scene": "demo0000",
+    "fps": [
+     758.0,
+     618.1,
+     771.5
+    ],
+    "best": 771.5,
+    "median": 758.0
+   },
+   {
+    "kind": "holomatch",
+    "engine": "rtx-raster",
+    "scene": "demo0001",
+    "fps": [
+     846.7,
+     1067.1,
+     1180.9
+    ],
+    "best": 1180.9,
+    "median": 1067.1
+   },
+   {
+    "kind": "holomatch",
+    "engine": "rtx-raster",
+    "scene": "extreme",
+    "fps": [
+     678.8,
+     725.8,
+     729.3
+    ],
+    "best": 729.3,
+    "median": 725.8
+   },
+   {
+    "kind": "holomatch",
+    "engine": "rtx-traced",
+    "scene": "demo0000",
+    "fps": [
+     52.9,
+     50.0,
+     51.4
+    ],
+    "best": 52.9,
+    "median": 51.4
+   },
+   {
+    "kind": "holomatch",
+    "engine": "rtx-traced",
+    "scene": "demo0001",
+    "fps": [
+     31.5,
+     32.2,
+     32.3
+    ],
+    "best": 32.3,
+    "median": 32.2
+   },
+   {
+    "kind": "holomatch",
+    "engine": "rtx-traced",
+    "scene": "extreme",
+    "fps": [
+     33.0,
+     35.3,
+     35.7
+    ],
+    "best": 35.7,
+    "median": 35.3
+   },
+   {
+    "kind": "holomatch",
+    "engine": "vulkan",
+    "scene": "demo0000",
+    "fps": [
+     357.8,
+     427.6,
+     409.9
+    ],
+    "best": 427.6,
+    "median": 409.9
+   },
+   {
+    "kind": "holomatch",
+    "engine": "vulkan",
+    "scene": "demo0001",
+    "fps": [
+     584.8,
+     755.0,
+     770.5
+    ],
+    "best": 770.5,
+    "median": 755.0
+   },
+   {
+    "kind": "holomatch",
+    "engine": "vulkan",
+    "scene": "extreme",
+    "fps": [
+     475.8,
+     489.8,
+     472.7
+    ],
+    "best": 489.8,
+    "median": 475.8
+   },
+   {
+    "kind": "single-player",
+    "engine": "glx",
+    "scene": "voy2-view",
+    "fps": [
+     995.0,
+     960.0,
+     969.6
+    ],
+    "best": 995.0,
+    "median": 969.6
+   },
+   {
+    "kind": "single-player",
+    "engine": "retail",
+    "scene": "voy2-view",
+    "fps": [
+     872.9,
+     806.9,
+     888.9
+    ],
+    "best": 888.9,
+    "median": 872.9
+   },
+   {
+    "kind": "single-player",
+    "engine": "rtx-raster",
+    "scene": "voy2-view",
+    "fps": [
+     1000.0,
+     1000.0,
+     1005.4
+    ],
+    "best": 1005.4,
+    "median": 1000.0
+   },
+   {
+    "kind": "single-player",
+    "engine": "rtx-traced",
+    "scene": "voy2-view",
+    "fps": [
+     40.5,
+     50.0,
+     49.7
+    ],
+    "best": 50.0,
+    "median": 49.7
+   },
+   {
+    "kind": "single-player",
+    "engine": "vulkan",
+    "scene": "voy2-view",
+    "fps": [
+     995.0,
+     994.7,
+     955.1
+    ],
+    "best": 995.0,
+    "median": 994.7
+   }
+  ],
+  "runs": [
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 54.5,
+    "cpuPercent": 78.3,
+    "kind": "holomatch",
+    "engine": "retail",
+    "demo": "demo0000",
+    "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+    "frames": 11803,
+    "demoSeconds": 52.2,
+    "fps": 226.1,
+    "errors": [],
+    "round": 0
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 40.6,
+    "cpuPercent": 72.2,
+    "kind": "holomatch",
+    "engine": "glx",
+    "demo": "demo0000",
+    "sha256": "3639aa0bd31beafa44a708f2f5ae0a589ed9a004308121b78b050585b977a82c",
+    "frames": 11803,
+    "demoSeconds": 37.6,
+    "fps": 313.7,
+    "errors": [],
+    "round": 0
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 34.9,
+    "cpuPercent": 71.0,
+    "kind": "holomatch",
+    "engine": "vulkan",
+    "demo": "demo0000",
+    "sha256": "3639aa0bd31beafa44a708f2f5ae0a589ed9a004308121b78b050585b977a82c",
+    "frames": 11803,
+    "demoSeconds": 33.0,
+    "fps": 357.8,
+    "errors": [],
+    "round": 0
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 18.1,
+    "cpuPercent": 73.3,
+    "kind": "holomatch",
+    "engine": "rtx-raster",
+    "demo": "demo0000",
+    "sha256": "3639aa0bd31beafa44a708f2f5ae0a589ed9a004308121b78b050585b977a82c",
+    "frames": 11803,
+    "demoSeconds": 15.6,
+    "fps": 758.0,
+    "errors": [],
+    "round": 0
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 225.2,
+    "cpuPercent": 48.3,
+    "kind": "holomatch",
+    "engine": "rtx-traced",
+    "demo": "demo0000",
+    "sha256": "3639aa0bd31beafa44a708f2f5ae0a589ed9a004308121b78b050585b977a82c",
+    "frames": 11803,
+    "demoSeconds": 223.2,
+    "fps": 52.9,
+    "errors": [],
+    "round": 0
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 24.7,
+    "cpuPercent": 38.7,
+    "kind": "holomatch",
+    "engine": "retail",
+    "demo": "demo0001",
+    "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+    "frames": 6248,
+    "demoSeconds": 22.5,
+    "fps": 277.7,
+    "errors": [],
+    "round": 0
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 11.4,
+    "cpuPercent": 36.9,
+    "kind": "holomatch",
+    "engine": "glx",
+    "demo": "demo0001",
+    "sha256": "3639aa0bd31beafa44a708f2f5ae0a589ed9a004308121b78b050585b977a82c",
+    "frames": 6248,
+    "demoSeconds": 9.46,
+    "fps": 660.5,
+    "errors": [],
+    "round": 0
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 12.8,
+    "cpuPercent": 47.1,
+    "kind": "holomatch",
+    "engine": "vulkan",
+    "demo": "demo0001",
+    "sha256": "3639aa0bd31beafa44a708f2f5ae0a589ed9a004308121b78b050585b977a82c",
+    "frames": 6248,
+    "demoSeconds": 10.7,
+    "fps": 584.8,
+    "errors": [],
+    "round": 0
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 9.2,
+    "cpuPercent": 51.1,
+    "kind": "holomatch",
+    "engine": "rtx-raster",
+    "demo": "demo0001",
+    "sha256": "3639aa0bd31beafa44a708f2f5ae0a589ed9a004308121b78b050585b977a82c",
+    "frames": 6248,
+    "demoSeconds": 7.38,
+    "fps": 846.7,
+    "errors": [],
+    "round": 0
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 201.3,
+    "cpuPercent": 52.4,
+    "kind": "holomatch",
+    "engine": "rtx-traced",
+    "demo": "demo0001",
+    "sha256": "3639aa0bd31beafa44a708f2f5ae0a589ed9a004308121b78b050585b977a82c",
+    "frames": 6248,
+    "demoSeconds": 198.4,
+    "fps": 31.5,
+    "errors": [],
+    "round": 0
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 11.8,
+    "cpuPercent": 54.3,
+    "kind": "holomatch",
+    "engine": "retail",
+    "demo": "extreme",
+    "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+    "frames": 2268,
+    "demoSeconds": 9.9,
+    "fps": 229.5,
+    "errors": [],
+    "round": 0
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 7.4,
+    "cpuPercent": 46.8,
+    "kind": "holomatch",
+    "engine": "glx",
+    "demo": "extreme",
+    "sha256": "3639aa0bd31beafa44a708f2f5ae0a589ed9a004308121b78b050585b977a82c",
+    "frames": 2268,
+    "demoSeconds": 5.1,
+    "fps": 444.5,
+    "errors": [],
+    "round": 0
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 6.8,
+    "cpuPercent": 29.9,
+    "kind": "holomatch",
+    "engine": "vulkan",
+    "demo": "extreme",
+    "sha256": "3639aa0bd31beafa44a708f2f5ae0a589ed9a004308121b78b050585b977a82c",
+    "frames": 2268,
+    "demoSeconds": 4.77,
+    "fps": 475.8,
+    "errors": [],
+    "round": 0
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 5.0,
+    "cpuPercent": 42.1,
+    "kind": "holomatch",
+    "engine": "rtx-raster",
+    "demo": "extreme",
+    "sha256": "3639aa0bd31beafa44a708f2f5ae0a589ed9a004308121b78b050585b977a82c",
+    "frames": 2268,
+    "demoSeconds": 3.34,
+    "fps": 678.8,
+    "errors": [],
+    "round": 0
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 71.0,
+    "cpuPercent": 41.7,
+    "kind": "holomatch",
+    "engine": "rtx-traced",
+    "demo": "extreme",
+    "sha256": "3639aa0bd31beafa44a708f2f5ae0a589ed9a004308121b78b050585b977a82c",
+    "frames": 2268,
+    "demoSeconds": 68.6,
+    "fps": 33.0,
+    "errors": [],
+    "round": 0
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 164.3,
+    "cpuPercent": 97.1,
+    "kind": "holomatch",
+    "engine": "retail",
+    "demo": "demo0000",
+    "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+    "frames": 11803,
+    "demoSeconds": 143.6,
+    "fps": 82.2,
+    "errors": [],
+    "round": 1
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 24.0,
+    "cpuPercent": 29.2,
+    "kind": "holomatch",
+    "engine": "glx",
+    "demo": "demo0000",
+    "sha256": "3639aa0bd31beafa44a708f2f5ae0a589ed9a004308121b78b050585b977a82c",
+    "frames": 11803,
+    "demoSeconds": 20.1,
+    "fps": 586.3,
+    "errors": [],
+    "round": 1
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 29.5,
+    "cpuPercent": 31.7,
+    "kind": "holomatch",
+    "engine": "vulkan",
+    "demo": "demo0000",
+    "sha256": "3639aa0bd31beafa44a708f2f5ae0a589ed9a004308121b78b050585b977a82c",
+    "frames": 11803,
+    "demoSeconds": 27.6,
+    "fps": 427.6,
+    "errors": [],
+    "round": 1
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 21.2,
+    "cpuPercent": 59.5,
+    "kind": "holomatch",
+    "engine": "rtx-raster",
+    "demo": "demo0000",
+    "sha256": "3639aa0bd31beafa44a708f2f5ae0a589ed9a004308121b78b050585b977a82c",
+    "frames": 11803,
+    "demoSeconds": 19.1,
+    "fps": 618.1,
+    "errors": [],
+    "round": 1
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 238.5,
+    "cpuPercent": 44.9,
+    "kind": "holomatch",
+    "engine": "rtx-traced",
+    "demo": "demo0000",
+    "sha256": "3639aa0bd31beafa44a708f2f5ae0a589ed9a004308121b78b050585b977a82c",
+    "frames": 11803,
+    "demoSeconds": 236.1,
+    "fps": 50.0,
+    "errors": [],
+    "round": 1
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 20.9,
+    "cpuPercent": 27.9,
+    "kind": "holomatch",
+    "engine": "retail",
+    "demo": "demo0001",
+    "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+    "frames": 6248,
+    "demoSeconds": 18.8,
+    "fps": 332.0,
+    "errors": [],
+    "round": 1
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 11.2,
+    "cpuPercent": 36.6,
+    "kind": "holomatch",
+    "engine": "glx",
+    "demo": "demo0001",
+    "sha256": "3639aa0bd31beafa44a708f2f5ae0a589ed9a004308121b78b050585b977a82c",
+    "frames": 6248,
+    "demoSeconds": 9.36,
+    "fps": 667.7,
+    "errors": [],
+    "round": 1
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 10.2,
+    "cpuPercent": 28.9,
+    "kind": "holomatch",
+    "engine": "vulkan",
+    "demo": "demo0001",
+    "sha256": "3639aa0bd31beafa44a708f2f5ae0a589ed9a004308121b78b050585b977a82c",
+    "frames": 6248,
+    "demoSeconds": 8.28,
+    "fps": 755.0,
+    "errors": [],
+    "round": 1
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 7.8,
+    "cpuPercent": 45.7,
+    "kind": "holomatch",
+    "engine": "rtx-raster",
+    "demo": "demo0001",
+    "sha256": "3639aa0bd31beafa44a708f2f5ae0a589ed9a004308121b78b050585b977a82c",
+    "frames": 6248,
+    "demoSeconds": 5.86,
+    "fps": 1067.1,
+    "errors": [],
+    "round": 1
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 195.8,
+    "cpuPercent": 23.4,
+    "kind": "holomatch",
+    "engine": "rtx-traced",
+    "demo": "demo0001",
+    "sha256": "3639aa0bd31beafa44a708f2f5ae0a589ed9a004308121b78b050585b977a82c",
+    "frames": 6248,
+    "demoSeconds": 194.1,
+    "fps": 32.2,
+    "errors": [],
+    "round": 1
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 10.6,
+    "cpuPercent": 24.8,
+    "kind": "holomatch",
+    "engine": "retail",
+    "demo": "extreme",
+    "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+    "frames": 2268,
+    "demoSeconds": 9.0,
+    "fps": 252.7,
+    "errors": [],
+    "round": 1
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 6.4,
+    "cpuPercent": 28.7,
+    "kind": "holomatch",
+    "engine": "glx",
+    "demo": "extreme",
+    "sha256": "3639aa0bd31beafa44a708f2f5ae0a589ed9a004308121b78b050585b977a82c",
+    "frames": 2268,
+    "demoSeconds": 4.5,
+    "fps": 504.6,
+    "errors": [],
+    "round": 1
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 6.4,
+    "cpuPercent": 26.8,
+    "kind": "holomatch",
+    "engine": "vulkan",
+    "demo": "extreme",
+    "sha256": "3639aa0bd31beafa44a708f2f5ae0a589ed9a004308121b78b050585b977a82c",
+    "frames": 2268,
+    "demoSeconds": 4.63,
+    "fps": 489.8,
+    "errors": [],
+    "round": 1
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 4.6,
+    "cpuPercent": 27.4,
+    "kind": "holomatch",
+    "engine": "rtx-raster",
+    "demo": "extreme",
+    "sha256": "3639aa0bd31beafa44a708f2f5ae0a589ed9a004308121b78b050585b977a82c",
+    "frames": 2268,
+    "demoSeconds": 3.12,
+    "fps": 725.8,
+    "errors": [],
+    "round": 1
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 66.0,
+    "cpuPercent": 21.8,
+    "kind": "holomatch",
+    "engine": "rtx-traced",
+    "demo": "extreme",
+    "sha256": "3639aa0bd31beafa44a708f2f5ae0a589ed9a004308121b78b050585b977a82c",
+    "frames": 2268,
+    "demoSeconds": 64.3,
+    "fps": 35.3,
+    "errors": [],
+    "round": 1
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 127.9,
+    "cpuPercent": 94.6,
+    "kind": "holomatch",
+    "engine": "retail",
+    "demo": "demo0000",
+    "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+    "frames": 11803,
+    "demoSeconds": 114.3,
+    "fps": 103.2,
+    "errors": [],
+    "round": 2
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 30.6,
+    "cpuPercent": 36.9,
+    "kind": "holomatch",
+    "engine": "glx",
+    "demo": "demo0000",
+    "sha256": "3639aa0bd31beafa44a708f2f5ae0a589ed9a004308121b78b050585b977a82c",
+    "frames": 11803,
+    "demoSeconds": 21.2,
+    "fps": 557.1,
+    "errors": [],
+    "round": 2
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 30.5,
+    "cpuPercent": 22.8,
+    "kind": "holomatch",
+    "engine": "vulkan",
+    "demo": "demo0000",
+    "sha256": "3639aa0bd31beafa44a708f2f5ae0a589ed9a004308121b78b050585b977a82c",
+    "frames": 11803,
+    "demoSeconds": 28.8,
+    "fps": 409.9,
+    "errors": [],
+    "round": 2
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 17.5,
+    "cpuPercent": 40.2,
+    "kind": "holomatch",
+    "engine": "rtx-raster",
+    "demo": "demo0000",
+    "sha256": "3639aa0bd31beafa44a708f2f5ae0a589ed9a004308121b78b050585b977a82c",
+    "frames": 11803,
+    "demoSeconds": 15.3,
+    "fps": 771.5,
+    "errors": [],
+    "round": 2
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 232.0,
+    "cpuPercent": 35.1,
+    "kind": "holomatch",
+    "engine": "rtx-traced",
+    "demo": "demo0000",
+    "sha256": "3639aa0bd31beafa44a708f2f5ae0a589ed9a004308121b78b050585b977a82c",
+    "frames": 11803,
+    "demoSeconds": 229.8,
+    "fps": 51.4,
+    "errors": [],
+    "round": 2
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 20.0,
+    "cpuPercent": 25.4,
+    "kind": "holomatch",
+    "engine": "retail",
+    "demo": "demo0001",
+    "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+    "frames": 6248,
+    "demoSeconds": 18.1,
+    "fps": 344.4,
+    "errors": [],
+    "round": 2
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 10.0,
+    "cpuPercent": 25.5,
+    "kind": "holomatch",
+    "engine": "glx",
+    "demo": "demo0001",
+    "sha256": "3639aa0bd31beafa44a708f2f5ae0a589ed9a004308121b78b050585b977a82c",
+    "frames": 6248,
+    "demoSeconds": 8.16,
+    "fps": 765.8,
+    "errors": [],
+    "round": 2
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 10.0,
+    "cpuPercent": 25.0,
+    "kind": "holomatch",
+    "engine": "vulkan",
+    "demo": "demo0001",
+    "sha256": "3639aa0bd31beafa44a708f2f5ae0a589ed9a004308121b78b050585b977a82c",
+    "frames": 6248,
+    "demoSeconds": 8.11,
+    "fps": 770.5,
+    "errors": [],
+    "round": 2
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 7.2,
+    "cpuPercent": 28.4,
+    "kind": "holomatch",
+    "engine": "rtx-raster",
+    "demo": "demo0001",
+    "sha256": "3639aa0bd31beafa44a708f2f5ae0a589ed9a004308121b78b050585b977a82c",
+    "frames": 6248,
+    "demoSeconds": 5.29,
+    "fps": 1180.9,
+    "errors": [],
+    "round": 2
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 195.4,
+    "cpuPercent": 20.8,
+    "kind": "holomatch",
+    "engine": "rtx-traced",
+    "demo": "demo0001",
+    "sha256": "3639aa0bd31beafa44a708f2f5ae0a589ed9a004308121b78b050585b977a82c",
+    "frames": 6248,
+    "demoSeconds": 193.6,
+    "fps": 32.3,
+    "errors": [],
+    "round": 2
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 9.6,
+    "cpuPercent": 24.6,
+    "kind": "holomatch",
+    "engine": "retail",
+    "demo": "extreme",
+    "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+    "frames": 2268,
+    "demoSeconds": 8.0,
+    "fps": 284.3,
+    "errors": [],
+    "round": 2
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 6.2,
+    "cpuPercent": 26.1,
+    "kind": "holomatch",
+    "engine": "glx",
+    "demo": "extreme",
+    "sha256": "3639aa0bd31beafa44a708f2f5ae0a589ed9a004308121b78b050585b977a82c",
+    "frames": 2268,
+    "demoSeconds": 4.25,
+    "fps": 533.0,
+    "errors": [],
+    "round": 2
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 6.6,
+    "cpuPercent": 35.6,
+    "kind": "holomatch",
+    "engine": "vulkan",
+    "demo": "extreme",
+    "sha256": "3639aa0bd31beafa44a708f2f5ae0a589ed9a004308121b78b050585b977a82c",
+    "frames": 2268,
+    "demoSeconds": 4.8,
+    "fps": 472.7,
+    "errors": [],
+    "round": 2
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 4.8,
+    "cpuPercent": 41.4,
+    "kind": "holomatch",
+    "engine": "rtx-raster",
+    "demo": "extreme",
+    "sha256": "3639aa0bd31beafa44a708f2f5ae0a589ed9a004308121b78b050585b977a82c",
+    "frames": 2268,
+    "demoSeconds": 3.11,
+    "fps": 729.3,
+    "errors": [],
+    "round": 2
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 65.2,
+    "cpuPercent": 23.3,
+    "kind": "holomatch",
+    "engine": "rtx-traced",
+    "demo": "extreme",
+    "sha256": "3639aa0bd31beafa44a708f2f5ae0a589ed9a004308121b78b050585b977a82c",
+    "frames": 2268,
+    "demoSeconds": 63.4,
+    "fps": 35.7,
+    "errors": [],
+    "round": 2
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 6.3,
+    "cpuPercent": 44.0,
+    "kind": "single-player",
+    "engine": "retail",
+    "frames": 3000,
+    "wallSeconds": 3.437,
+    "fps": 872.9,
+    "errors": [],
+    "round": 0
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 6.1,
+    "cpuPercent": 32.3,
+    "kind": "single-player",
+    "engine": "glx",
+    "frames": 3000,
+    "wallSeconds": 3.015,
+    "fps": 995.0,
+    "errors": [],
+    "round": 0
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 6.1,
+    "cpuPercent": 37.9,
+    "kind": "single-player",
+    "engine": "vulkan",
+    "frames": 3000,
+    "wallSeconds": 3.015,
+    "fps": 995.0,
+    "errors": [],
+    "round": 0
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 5.9,
+    "cpuPercent": 56.1,
+    "kind": "single-player",
+    "engine": "rtx-raster",
+    "frames": 3000,
+    "wallSeconds": 3.0,
+    "fps": 1000.0,
+    "errors": [],
+    "round": 0
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 99.8,
+    "cpuPercent": 39.6,
+    "kind": "single-player",
+    "engine": "rtx-traced",
+    "frames": 3000,
+    "wallSeconds": 74.094,
+    "fps": 40.5,
+    "errors": [],
+    "round": 0
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 6.3,
+    "cpuPercent": 46.0,
+    "kind": "single-player",
+    "engine": "retail",
+    "frames": 3000,
+    "wallSeconds": 3.718,
+    "fps": 806.9,
+    "errors": [],
+    "round": 1
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 6.7,
+    "cpuPercent": 62.0,
+    "kind": "single-player",
+    "engine": "glx",
+    "frames": 3000,
+    "wallSeconds": 3.125,
+    "fps": 960.0,
+    "errors": [],
+    "round": 1
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 6.8,
+    "cpuPercent": 51.9,
+    "kind": "single-player",
+    "engine": "vulkan",
+    "frames": 3000,
+    "wallSeconds": 3.016,
+    "fps": 994.7,
+    "errors": [],
+    "round": 1
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 5.7,
+    "cpuPercent": 54.0,
+    "kind": "single-player",
+    "engine": "rtx-raster",
+    "frames": 3000,
+    "wallSeconds": 3.0,
+    "fps": 1000.0,
+    "errors": [],
+    "round": 1
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 85.8,
+    "cpuPercent": 32.7,
+    "kind": "single-player",
+    "engine": "rtx-traced",
+    "frames": 3000,
+    "wallSeconds": 60.031,
+    "fps": 50.0,
+    "errors": [],
+    "round": 1
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 6.0,
+    "cpuPercent": 34.5,
+    "kind": "single-player",
+    "engine": "retail",
+    "frames": 3000,
+    "wallSeconds": 3.375,
+    "fps": 888.9,
+    "errors": [],
+    "round": 2
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 7.0,
+    "cpuPercent": 53.6,
+    "kind": "single-player",
+    "engine": "glx",
+    "frames": 3000,
+    "wallSeconds": 3.094,
+    "fps": 969.6,
+    "errors": [],
+    "round": 2
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 6.2,
+    "cpuPercent": 39.0,
+    "kind": "single-player",
+    "engine": "vulkan",
+    "frames": 3000,
+    "wallSeconds": 3.141,
+    "fps": 955.1,
+    "errors": [],
+    "round": 2
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 6.0,
+    "cpuPercent": 45.2,
+    "kind": "single-player",
+    "engine": "rtx-raster",
+    "frames": 3000,
+    "wallSeconds": 2.984,
+    "fps": 1005.4,
+    "errors": [],
+    "round": 2
+   },
+   {
+    "exit": 0,
+    "forced": false,
+    "seconds": 85.3,
+    "cpuPercent": 41.1,
+    "kind": "single-player",
+    "engine": "rtx-traced",
+    "frames": 3000,
+    "wallSeconds": 60.343,
+    "fps": 49.7,
+    "errors": [],
+    "round": 2
+   }
+  ],
+  "cappedSinglePlayerRuns": {
+   "note": "first pass: com_maxfpsUnfocused kept its default 60 on the never-focused private-desktop window, so fnTech3 reported 62.5 fps; rerun with it 0",
+   "runs": [
+    {
+     "exit": 0,
+     "forced": false,
+     "seconds": 8.7,
+     "cpuPercent": 74.7,
+     "kind": "single-player",
+     "engine": "retail",
+     "frames": 3000,
+     "wallSeconds": 5.578,
+     "fps": 537.8,
+     "errors": [],
+     "round": 0
+    },
+    {
+     "exit": 0,
+     "forced": false,
+     "seconds": 64.0,
+     "cpuPercent": 41.1,
+     "kind": "single-player",
+     "engine": "glx",
+     "frames": 3000,
+     "wallSeconds": 48.015,
+     "fps": 62.5,
+     "errors": [],
+     "round": 0
+    },
+    {
+     "exit": 0,
+     "forced": false,
+     "seconds": 63.8,
+     "cpuPercent": 47.3,
+     "kind": "single-player",
+     "engine": "vulkan",
+     "frames": 3000,
+     "wallSeconds": 47.969,
+     "fps": 62.5,
+     "errors": [],
+     "round": 0
+    },
+    {
+     "exit": 0,
+     "forced": false,
+     "seconds": 63.8,
+     "cpuPercent": 50.5,
+     "kind": "single-player",
+     "engine": "rtx-raster",
+     "frames": 3000,
+     "wallSeconds": 48.0,
+     "fps": 62.5,
+     "errors": [],
+     "round": 0
+    },
+    {
+     "exit": 0,
+     "forced": false,
+     "seconds": 84.8,
+     "cpuPercent": 55.8,
+     "kind": "single-player",
+     "engine": "rtx-traced",
+     "frames": 3000,
+     "wallSeconds": 60.344,
+     "fps": 49.7,
+     "errors": [],
+     "round": 0
+    },
+    {
+     "exit": 0,
+     "forced": false,
+     "seconds": 6.0,
+     "cpuPercent": 23.4,
+     "kind": "single-player",
+     "engine": "retail",
+     "frames": 3000,
+     "wallSeconds": 3.344,
+     "fps": 897.1,
+     "errors": [],
+     "round": 1
+    },
+    {
+     "exit": 0,
+     "forced": false,
+     "seconds": 63.7,
+     "cpuPercent": 25.5,
+     "kind": "single-player",
+     "engine": "glx",
+     "frames": 3000,
+     "wallSeconds": 48.0,
+     "fps": 62.5,
+     "errors": [],
+     "round": 1
+    },
+    {
+     "exit": 0,
+     "forced": false,
+     "seconds": 63.7,
+     "cpuPercent": 22.1,
+     "kind": "single-player",
+     "engine": "vulkan",
+     "frames": 3000,
+     "wallSeconds": 47.984,
+     "fps": 62.5,
+     "errors": [],
+     "round": 1
+    },
+    {
+     "exit": 0,
+     "forced": false,
+     "seconds": 63.5,
+     "cpuPercent": 19.9,
+     "kind": "single-player",
+     "engine": "rtx-raster",
+     "frames": 3000,
+     "wallSeconds": 48.0,
+     "fps": 62.5,
+     "errors": [],
+     "round": 1
+    },
+    {
+     "exit": 0,
+     "forced": false,
+     "seconds": 83.3,
+     "cpuPercent": 43.6,
+     "kind": "single-player",
+     "engine": "rtx-traced",
+     "frames": 3000,
+     "wallSeconds": 59.141,
+     "fps": 50.7,
+     "errors": [],
+     "round": 1
+    },
+    {
+     "exit": 0,
+     "forced": false,
+     "seconds": 6.3,
+     "cpuPercent": 59.3,
+     "kind": "single-player",
+     "engine": "retail",
+     "frames": 3000,
+     "wallSeconds": 3.36,
+     "fps": 892.9,
+     "errors": [],
+     "round": 2
+    },
+    {
+     "exit": 0,
+     "forced": false,
+     "seconds": 63.9,
+     "cpuPercent": 34.2,
+     "kind": "single-player",
+     "engine": "glx",
+     "frames": 3000,
+     "wallSeconds": 47.984,
+     "fps": 62.5,
+     "errors": [],
+     "round": 2
+    },
+    {
+     "exit": 0,
+     "forced": false,
+     "seconds": 63.7,
+     "cpuPercent": 37.2,
+     "kind": "single-player",
+     "engine": "vulkan",
+     "frames": 3000,
+     "wallSeconds": 48.015,
+     "fps": 62.5,
+     "errors": [],
+     "round": 2
+    },
+    {
+     "exit": 0,
+     "forced": false,
+     "seconds": 63.7,
+     "cpuPercent": 31.0,
+     "kind": "single-player",
+     "engine": "rtx-raster",
+     "frames": 3000,
+     "wallSeconds": 47.984,
+     "fps": 62.5,
+     "errors": [],
+     "round": 2
+    },
+    {
+     "exit": 0,
+     "forced": false,
+     "seconds": 82.2,
+     "cpuPercent": 33.7,
+     "kind": "single-player",
+     "engine": "rtx-traced",
+     "frames": 3000,
+     "wallSeconds": 58.547,
+     "fps": 51.2,
+     "errors": [],
+     "round": 2
+    }
+   ]
+  }
+ },
+ "masters": {
+  "stvefMpDefault": "master.stef1.ravensoft.com:27953 (stvoyHM.exe 0x434091)",
+  "resolves": "12.206.251.141 on 2026-10-24",
+  "query": {
+   "utc": "2026-10-24T08:14:26Z",
+   "request": "\\xff\\xff\\xff\\xffgetservers 24 full empty",
+   "attempts": 3,
+   "waitSecondsEach": 3,
+   "replies": 0
+  },
+  "control": {
+   "utc": "2026-10-24T08:14:40Z",
+   "master": "master.quake3arena.com:27950 (q3 default)",
+   "request": "getservers 68 full empty",
+   "replies": 10,
+   "addressesApprox": 988
+  },
+  "community": {
+   "master": "efmaster.tjps.eu:27953 (Lilium Voyager 1.40 sv_master2)",
+   "approval": "the maintainer approved making it Holomatch's default sv_master2 (2026-10-24)",
+   "beforeParserFix": {
+    "explicitSetting": {
+     "client": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\stvef-compat-after\\fntech3.exe",
+     "exit": 0,
+     "forced": false,
+     "seconds": 17.2,
+     "setMaster2": true,
+     "lines": [
+      "execing masterquery.cfg",
+      "MASTERS",
+      "\"sv_master1\" is:\"master.stef1.ravensoft.com:27953^7\" default:\"master.stef1.ravensoft.com:27953^7\"",
+      "\"sv_master2\" is:\"efmaster.tjps.eu^7\" default:\"^7\"",
+      "ASK_1",
+      "Requesting servers from master.stef1.ravensoft.com:27953 (12.206.251.141:27953)...",
+      "ASK_2",
+      "Requesting servers from efmaster.tjps.eu (159.69.72.60:27953)...",
+      "getserversResponse:  0 servers parsed (total 0)",
+      "DONE"
+     ],
+     "master1": [],
+     "master2": [
+      [
+       0,
+       0
+      ]
+     ]
+    },
+    "protocol26": {
+     "client": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\stvef-compat-after\\fntech3.exe",
+     "exit": 0,
+     "forced": false,
+     "seconds": 15.0,
+     "setMaster2": true,
+     "protocol": "26",
+     "lines": [
+      "execing masterquery.cfg",
+      "MASTERS",
+      "\"sv_master1\" is:\"master.stef1.ravensoft.com:27953^7\" default:\"master.stef1.ravensoft.com:27953^7\"",
+      "\"sv_master2\" is:\"efmaster.tjps.eu^7\" default:\"^7\"",
+      "ASK_1",
+      "Requesting servers from master.stef1.ravensoft.com:27953 (12.206.251.141:27953)...",
+      "ASK_2",
+      "Requesting servers from efmaster.tjps.eu (159.69.72.60:27953)...",
+      "getserversResponse:  0 servers parsed (total 0)",
+      "DONE"
+     ],
+     "master1": [],
+     "master2": [
+      [
+       0,
+       0
+      ]
+     ]
+    }
+   },
+   "rawQueries": {
+    "master": "efmaster.tjps.eu:27953",
+    "address": "159.69.72.60",
+    "rows": [
+     {
+      "utc": "2026-10-24T16:53:36.337331+00:00",
+      "query": "getservers STEF1 24 full empty",
+      "packets": 1,
+      "addresses": 0
+     },
+     {
+      "utc": "2026-10-24T16:53:39.427280+00:00",
+      "query": "getservers STEF1 26 full empty",
+      "packets": 1,
+      "addresses": 0
+     },
+     {
+      "utc": "2026-10-24T16:53:42.498796+00:00",
+      "query": "getservers 24 full empty",
+      "packets": 1,
+      "addresses": 3
+     }
+    ]
+   },
+   "replyForm": "getserversResponse followed by \\XXXXXXXXYYYY entries: eight hex digits of address, four of port, ending \\EOT",
+   "afterFix": {
+    "client": "E:\\Repositories\\fnTech3\\.tmp\\runtime\\stvef-compat-after\\fntech3.exe",
+    "exit": 0,
+    "forced": false,
+    "seconds": 16.7,
+    "setMaster2": false,
+    "protocol": "24",
+    "lines": [
+     "execing masterquery.cfg",
+     "MASTERS",
+     "\"sv_master1\" is:\"master.stef1.ravensoft.com:27953^7\" default:\"master.stef1.ravensoft.com:27953^7\"",
+     "\"sv_master2\" is:\"efmaster.tjps.eu^7\" default:\"efmaster.tjps.eu^7\"",
+     "ASK_1",
+     "Requesting servers from master.stef1.ravensoft.com:27953 (12.206.251.141:27953)...",
+     "ASK_2",
+     "Requesting servers from efmaster.tjps.eu (159.69.72.60:27953)...",
+     "getserversResponse: 19 servers parsed (total 19)",
+     "DONE"
+    ],
+    "master1": [],
+    "master2": [
+     [
+      19,
+      19
+     ]
+    ]
+   },
+   "afterFixClient": {
+    "sha256": "40ff7f307925f0b331e148399f279b9c104cc722243fb78cbd99daa7dd2a21ec"
+   },
+   "notVerified": [
+    "listing of a public fnTech3 server from its heartbeat",
+    "pinging or joining the listed servers"
+   ]
+  },
+  "retailParser": {
+   "CL_ServersResponsePacket": "0x40e6e0 (stvoyHM.exe 1.20)",
+   "hex digits 0-9 a-f A-F, else 0": "0x40e741..0x40eb4c",
+   "entry kept only before another backslash": "0x40eb4e",
+   "256 a packet, stops at EOT": "0x40eb95..0x40ebb8",
+   "up to 2048 kept": "0x40ebe7"
+  },
+  "menu": {
+   "source N asks sv_masterN, skipping empty ones": "vm/ui.qvm (pak2.pk3) from instruction 61875",
+   "globalservers %d %d%s built": "instruction 61748",
+   "source names": "INTERNET1..INTERNET5 (ext_data/mp_normaltext.dat)"
+  },
+  "change": "Com_GameCommunityMasterServer (sv_master2 default for stvef-mp); code/client/client_stvef_masters.hpp reads Holomatch lists as text"
+ },
+ "accepted": [
+  "flare appearance (retail intensity rule; fnTech3 draws flares at the same lights)",
+  "Vulkan and RTX default bloom and uncompressed textures",
+  "pixel identity beyond the measured bounds",
+  "rate, snaps, presentation defaults, vm_* defaults, cheat flags, unread cvars and client commands, serverinfo key order (registrations record, Left as they are)"
+ ],
+ "notReproduced": [
+  "the disc check (\"Game CD not in drive\", NEED CD: stvoy.exe and stvoyHM.exe strings)",
+  "CD-key authorization through Raven's authorize server (\"Awaiting CD key authorization\", \"authorize server timed out\": stvoyHM.exe strings)",
+  "MIDI input and IPX (registrations record)"
+ ],
+ "notRun": [
+  "hands-on keyboard, mouse and joystick, and listening checks (the user chose to skip them, 2026-10-08)",
+  "force-feedback output (no device)",
+  "joystick on Windows (fnTech3 has no Windows joystick input in any profile)"
+ ]
+}

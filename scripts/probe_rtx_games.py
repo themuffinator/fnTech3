@@ -67,11 +67,25 @@ PROFILES = {
     'wolfet': dict(game='etmain', map=['oasis'], join='wait 120; ', rejoin='',
                    limbo=('oasis', 'radar'),
                    startup=dict(cl_autoupdate='0', cl_motd='0', com_hunkMegs='256')),
+    # Both Elite Force engines run a zero timescale at normal speed, as
+    # retail does, so these freeze with fixedtime 1 instead: a frame then
+    # advances the clock 1 ms. They must not lower timescale either: below 1
+    # the single-player cgame runs its own Pmove with no entity, whose water
+    # check (ladders count as water) reads that entity, and the October 9
+    # view below stands in voy2's ladder brush. Single player waits out
+    # voy2's opening at 50 ms a frame, freezes its NPCs and effects and takes
+    # that synchronized view (docs/fntech3/2026-10-09-stvef-sp-retail-views.md).
+    'stvef-sp': dict(game='baseEF', map=['voy2'],
+                     join='fixedtime 50; wait 600; d_npcfreeze 1; fx_freeze 1; cg_draw2D 0; cg_drawGun 0; '
+                          'setviewpos -2048 3846 -181 0; wait 60; fixedtime 1; ',
+                     rejoin='', freeze='', startup=dict(com_hunkMegs='256')),
+    'stvef-mp': dict(game='baseEF', map=['hm_borg1'], join='wait 120; fixedtime 1; ', rejoin='', freeze='',
+                     startup=dict(cl_motd='0', com_hunkMegs='256')),
 }
 
 
 CONFIGS = {'q3': 'q3config.cfg', 'ql': 'qzconfig.cfg', 'rtcw-sp': 'wolfconfig.cfg', 'rtcw-mp': 'wolfconfig_mp.cfg',
-           'wolfet': 'etconfig.cfg'}
+           'wolfet': 'etconfig.cfg', 'stvef-sp': 'efconfig.cfg', 'stvef-mp': 'hmconfig.cfg'}
 
 
 def sha(path):
@@ -115,7 +129,7 @@ def probe(client, profile, installation, output, args):
         rejoin = spec['rejoin']
         if (args.map.get(profile) or spec['map'])[0] in spec.get('limbo', ()):
             rejoin += 'openlimbomenu; wait 30; '
-        action = (spec['join'] + 'timescale 0; vid_restart; wait 30; ' + rejoin +
+        action = (spec['join'] + spec.get('freeze', 'timescale 0; ') + 'vid_restart; wait 30; ' + rejoin +
                   f'{extra}wait {args.accumulate}; screenshotPNG rt; wait 3; '
                   'rtx_rt_mode 0; vid_restart; wait 30; ' + rejoin +
                   f'wait {args.settle}; screenshotPNG raster; wait 5; quit')
