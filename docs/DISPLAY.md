@@ -472,7 +472,11 @@ The file is JSON, `{"version": 1, "lights": [ ... ]}`, where each light has a
 `type` of `point` or `spot`, an `origin`, a `color`, an `intensity` and a
 `radius`, plus a `direction` and cone angles for spots, and may have
 `castsShadows`, `priority` and `style`. Unknown keys are ignored, and a map
-holds at most 128 lights. Spotlights cast shadows only with `r_spotShadows 1`.
+holds at most 128 lights. A spot lights only inside its cone: `outerAngle`
+is how many degrees its light reaches either side of its `direction`
+(default `45`), and it is at full strength within `innerAngle` (default `0`)
+and fades out between the two. Spotlights cast shadows only with
+`r_spotShadows 1`.
 `r_staticLightDebug` (a cheat) prints what was loaded and used.
 
 Glowing surfaces can also become lights: `r_surfaceLightProxies 1` turns a

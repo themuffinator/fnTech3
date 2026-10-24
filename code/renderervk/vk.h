@@ -263,7 +263,11 @@ typedef struct vkUniform_s {
 	vec4_t depthFadeScale;		// fragment
 	vec4_t depthFadeBias;		// fragment
 	vec4_t dlightFactors;		// fragment: dynamic light falloff controls
-	vec4_t csmModelX;			// vertex: local-to-world rows
+	union {
+		vec4_t csmModelX;		// vertex: local-to-world rows
+		vec4_t spotCone;		// fragment, light pass: a static map spot's cone
+								// scale and bias, w 1 for a spot (tr_spot_cone.h)
+	};
 	vec4_t csmModelY;
 	vec4_t csmModelZ;
 	vec4_t csmAxisX;			// fragment: light-space axes + min bounds

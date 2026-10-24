@@ -273,6 +273,12 @@ historical upstream records, not fnTech3 release history. See the
   original draws them, in all three renderers; the damaged-demo probe now
   runs under both games
   ([record](docs/fntech3/2026-10-23-fakk2-gap-round.md)).
+- Light a map's spot lights only inside their cones, in every renderer, for
+  Return to Castle Wolfenstein, Alice, F.A.K.K.2 and Medal of Honor. A spot
+  lit everything round it, so a lamp brightened the walls behind and beside
+  it and a dark passage on F.A.K.K.2's `cemetery`; it now lights what it
+  points at
+  ([record](docs/fntech3/2026-10-24-static-spot-cones.md)).
 
 ## [0.1.0] - 2026-10-11
 

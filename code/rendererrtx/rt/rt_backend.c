@@ -2465,6 +2465,32 @@ static qboolean RT_MaterialLightPasses( const shader_t *shader, uint32_t *bright
 	return ( *brighten || *darken ) ? qtrue : qfalse;
 }
 
+/*
+A static map spot (renderercommon/tr_spot_cone.h) is lit from its origin,
+not its segment's midpoint, and only inside its cone: its position is the
+origin, its reach the segment's length plus the radius raster lights round
+the segment, dir its axis and that length, and extra its cone's scale and
+bias and that radius. rt_lighting.glsl measures raster's falloff from the
+segment.
+*/
+static void RT_SpotDlight( const dlight_t *dl, rtGpuLight_t *light )
+{
+	vec3_t axis;
+	float length;
+
+	VectorSubtract( dl->origin2, dl->origin, axis );
+	length = VectorNormalize( axis );
+	if ( !( length > 0.0f ) ) {
+		return;
+	}
+	VectorCopy( dl->origin, light->position );
+	light->position[3] = dl->radius + length;
+	VectorCopy( axis, light->dir );
+	light->dir[3] = length;
+	R_SpotConeScaleBias( dl->spotCosInner, dl->spotCosOuter, &light->extra[0], &light->extra[1] );
+	light->extra[2] = dl->radius;
+}
+
 // Static lights (copied once per world into each frame's buffer), this
 // frame's dynamic lights, then RTCW's light materials, which multiply what
 // they reach instead of lighting it (rt_lighting.glsl
@@ -2516,6 +2542,9 @@ static qboolean RT_UploadLights( rtFrame_t *frame )
 			VectorCopy( dl->origin, light->position );
 		}
 		light->position[3] = dl->radius;
+		if ( dl->spot ) {
+			RT_SpotDlight( dl, light );
+		}
 		VectorScale( dl->color, dlightScale, light->color );
 		light->color[3] = (float)( RT_LIGHT_DLIGHT | RT_LIGHT_DYNAMIC );
 		// not its radius: several games draw one a random size each frame

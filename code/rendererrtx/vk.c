@@ -9,6 +9,7 @@
 #include "../renderercommon/tr_mesh_material.h"
 #include "../renderercommon/tr_rtcw_fog_gpu.h"
 #include "../renderercommon/tr_entity_refraction.h"
+#include "../renderercommon/tr_spot_cone.h"
 #include "vk.h"
 #include "rtx_mdr_geometry.h"
 #include "rt/rt_gpu.h"

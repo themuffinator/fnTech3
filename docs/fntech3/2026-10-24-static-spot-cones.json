@@ -1,0 +1,6575 @@
+{
+ "title": "Static spot lights light only inside their cones",
+ "date": "2026-10-24",
+ "baseCommit": "1b11e9e84f11d9ac29e21d2e9587585fb9a535fb",
+ "tree": "worktree claude/charming-bhabha-3d3667: the base commit plus this change only",
+ "build": {
+  "export": "git archive of the base commit at E:/b/sc0, subprojects junctioned from the main checkout",
+  "options": "win32-dev's: debugoptimized, b_vscrt static_from_buildtype, strict-warnings, renderer-dlopen, renderers glx,vk,rtx, MSVC x86",
+  "after": "the same export with the change overlaid and rebuilt in place; only the three renderer libraries changed"
+ },
+ "runtimes": {
+  "before": {
+   "path": ".tmp/runtime/spot-cone-before",
+   "sha256": {
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "fnql_glx_x86.dll": "654fc1c55fc9fbbfff27441474c64644c60d93aa0d8a9860e03c212f006596fe",
+    "fnql_rtx_x86.dll": "6652b050a2e3373dc7d0e6f47af2344bb479588b2f7b6c36fc0449720d050034",
+    "fnql_vk_x86.dll": "e6a981dcc2dcd7e8bf64cab13b0dc696dc99714daba5dd0a807ca8f141ee1b74",
+    "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769",
+    "fntech3.ded.exe": "cbfbab43f12d0a774f000948024023ba9c6ae400e74dc51245ce5b1a678330a7",
+    "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46"
+   }
+  },
+  "after": {
+   "path": ".tmp/runtime/spot-cone-after",
+   "sha256": {
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "fnql_glx_x86.dll": "076c5d7187c570732ac61d6207726bb08f7121edbe23a2e2febad7e31a8d5f73",
+    "fnql_rtx_x86.dll": "4b042957038e1903fa5b44e2c1ddb40e45f9827116ad9326abff31a413ed7734",
+    "fnql_vk_x86.dll": "3fa75e80366b02e1f4a70e4f077fb4431b7fef62a05cdf88c1f060cb5bcfedc4",
+    "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769",
+    "fntech3.ded.exe": "cbfbab43f12d0a774f000948024023ba9c6ae400e74dc51245ce5b1a678330a7",
+    "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46"
+   }
+  }
+ },
+ "spirv": {
+  "glslangValidator": "15.2.0 (Vulkan SDK 1.4.313.1), which reproduced every committed light-pass array of both renderers byte for byte before the change",
+  "renderervk": {
+   "frag_light": "unchanged 23812",
+   "frag_light_fog": "unchanged 24312",
+   "frag_light_line": "24248 -> 25132",
+   "frag_light_line_fog": "24748 -> 25632"
+  },
+  "rendererrtx": {
+   "frag_light_line": "24248 -> 25132",
+   "frag_light_line_fog": "25824 -> 26708",
+   "rt_trace_comp_spv": "266520 -> 267856",
+   "rt_main_rgen_spv": "232384 -> 233720",
+   "other": "93 other variants unchanged (build_shaders.py --check)"
+  }
+ },
+ "fakk2": {
+  "harness": ".tmp/spot-cone/tools/fakk2_spot.py, fakk2_measure.py (reusing .tmp/fakk2-round/tools/common.py and .tmp/fakk2-light-law/measure_law.py)",
+  "server": "the after runtime's fntech3.ded.exe, byte-identical to the before runtime's",
+  "installation": ".tmp/fakk2-install/game",
+  "views": {
+   "cemetery-passage": {
+    "after-glx": {
+     "level": "cemetery",
+     "renderer": "glx",
+     "runtime": "after",
+     "place": [
+      3264,
+      128,
+      300
+     ],
+     "started": "2026-10-24 18:39:18",
+     "steps": "set rconpassword spotprobe\nwait 3000\nconnect 127.0.0.1:27991\nwait 22000\nskipcinematic\nwait 4000\nrcon place\nwait 1500\nrcon place\nwait 1500\nrcon place\nwait 1500\nrcon place\nwait 1500\nrcon place\nwait 1500\nrcon place\nwait 1500\nscreenshotPNG on\nwait 1500\nr_staticLights 0\nwait 2500\nscreenshotPNG off\nwait 1500\n",
+     "binariesUnchanged": true,
+     "installationUnchanged": true,
+     "retail": ".tmp/fakk2-round/foginside/cem0/retail/fakk/screenshots/shot0000.tga",
+     "captures": {
+      "on": {
+       "path": ".tmp/spot-cone/fakk2/cemetery-passage/after-glx/home/fakk/screenshots/on.png",
+       "sha256": "32b2616b1597672d492f868c8a3dcadba27493436db5e35a548175c06066b863"
+      },
+      "off": {
+       "path": ".tmp/spot-cone/fakk2/cemetery-passage/after-glx/home/fakk/screenshots/off.png",
+       "sha256": "89f6d5654327698a602780ff2a834981d1baea63569997f87313fc0083b8ef79"
+      }
+     },
+     "measured": {
+      "on": [
+       4.06,
+       2.37,
+       1.69
+      ],
+      "off": [
+       4.06,
+       2.37,
+       1.7
+      ],
+      "staticShare": {
+       "changedPixels": 2451,
+       "meanAbsDiff": 0.017
+      },
+      "binariesUnchanged": true,
+      "client": {
+       "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+       "fnql_glx_x86.dll": "076c5d7187c570732ac61d6207726bb08f7121edbe23a2e2febad7e31a8d5f73",
+       "fnql_rtx_x86.dll": "4b042957038e1903fa5b44e2c1ddb40e45f9827116ad9326abff31a413ed7734",
+       "fnql_vk_x86.dll": "3fa75e80366b02e1f4a70e4f077fb4431b7fef62a05cdf88c1f060cb5bcfedc4",
+       "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769",
+       "fntech3.ded.exe": "cbfbab43f12d0a774f000948024023ba9c6ae400e74dc51245ce5b1a678330a7",
+       "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46"
+      },
+      "retail": [
+       2.9,
+       2.08,
+       1.44
+      ],
+      "onFromRetail": 0.8,
+      "offFromRetail": 0.81,
+      "onRegionsOverRetail": {},
+      "offRegionsOverRetail": {}
+     }
+    },
+    "after-glx-arb": {
+     "level": "cemetery",
+     "renderer": "glx-arb",
+     "runtime": "after",
+     "place": [
+      3264,
+      128,
+      300
+     ],
+     "started": "2026-10-24 19:33:04",
+     "steps": "set rconpassword spotprobe\nwait 3000\nconnect 127.0.0.1:27991\nwait 22000\nskipcinematic\nwait 4000\nrcon place\nwait 1500\nrcon place\nwait 1500\nrcon place\nwait 1500\nrcon place\nwait 1500\nrcon place\nwait 1500\nrcon place\nwait 1500\nscreenshotPNG on\nwait 1500\nr_staticLights 0\nwait 2500\nscreenshotPNG off\nwait 1500\n",
+     "binariesUnchanged": true,
+     "installationUnchanged": true,
+     "retail": ".tmp/fakk2-round/foginside/cem0/retail/fakk/screenshots/shot0000.tga",
+     "captures": {
+      "on": {
+       "path": ".tmp/spot-cone/fakk2/cemetery-passage/after-glx-arb/home/fakk/screenshots/on.png",
+       "sha256": "29b31ef19f84e56ee3afd51dd6881d5fc2ba042f0fbda556c46f4f4525b8ecca"
+      },
+      "off": {
+       "path": ".tmp/spot-cone/fakk2/cemetery-passage/after-glx-arb/home/fakk/screenshots/off.png",
+       "sha256": "e78118605ea15269dd570e735c566d9082b08ab219a4e6bdff6a279c23061f10"
+      }
+     },
+     "measured": {
+      "on": [
+       4.1,
+       2.38,
+       1.7
+      ],
+      "off": [
+       4.09,
+       2.38,
+       1.7
+      ],
+      "staticShare": {
+       "changedPixels": 2370,
+       "meanAbsDiff": 0.016
+      },
+      "binariesUnchanged": true,
+      "client": {
+       "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+       "fnql_glx_x86.dll": "076c5d7187c570732ac61d6207726bb08f7121edbe23a2e2febad7e31a8d5f73",
+       "fnql_rtx_x86.dll": "4b042957038e1903fa5b44e2c1ddb40e45f9827116ad9326abff31a413ed7734",
+       "fnql_vk_x86.dll": "3fa75e80366b02e1f4a70e4f077fb4431b7fef62a05cdf88c1f060cb5bcfedc4",
+       "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769",
+       "fntech3.ded.exe": "cbfbab43f12d0a774f000948024023ba9c6ae400e74dc51245ce5b1a678330a7",
+       "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46"
+      },
+      "retail": [
+       2.9,
+       2.08,
+       1.44
+      ],
+      "onFromRetail": 0.8,
+      "offFromRetail": 0.8,
+      "onRegionsOverRetail": {},
+      "offRegionsOverRetail": {}
+     }
+    },
+    "after-rtx": {
+     "level": "cemetery",
+     "renderer": "rtx",
+     "runtime": "after",
+     "place": [
+      3264,
+      128,
+      300
+     ],
+     "started": "2026-10-24 18:43:21",
+     "steps": "set rconpassword spotprobe\nwait 3000\nconnect 127.0.0.1:27991\nwait 22000\nskipcinematic\nwait 4000\nrcon place\nwait 1500\nrcon place\nwait 1500\nrcon place\nwait 1500\nrcon place\nwait 1500\nrcon place\nwait 1500\nrcon place\nwait 1500\nscreenshotPNG on\nwait 1500\nr_staticLights 0\nwait 2500\nscreenshotPNG off\nwait 1500\n",
+     "binariesUnchanged": true,
+     "installationUnchanged": true,
+     "retail": ".tmp/fakk2-round/foginside/cem0/retail/fakk/screenshots/shot0000.tga",
+     "captures": {
+      "on": {
+       "path": ".tmp/spot-cone/fakk2/cemetery-passage/after-rtx/home/fakk/screenshots/on.png",
+       "sha256": "827b5bc212fe1269d4a992528232ab0cbcc5c41d7e6e60931b54f1f43e18e57e"
+      },
+      "off": {
+       "path": ".tmp/spot-cone/fakk2/cemetery-passage/after-rtx/home/fakk/screenshots/off.png",
+       "sha256": "24980426ed658553f3bc34a2b74337ae2048ce72ca806017e4fa8e051ad5224b"
+      }
+     },
+     "measured": {
+      "on": [
+       1.66,
+       1.16,
+       0.6
+      ],
+      "off": [
+       1.69,
+       1.18,
+       0.6
+      ],
+      "staticShare": {
+       "changedPixels": 2749,
+       "meanAbsDiff": 0.076
+      },
+      "binariesUnchanged": true,
+      "client": {
+       "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+       "fnql_glx_x86.dll": "076c5d7187c570732ac61d6207726bb08f7121edbe23a2e2febad7e31a8d5f73",
+       "fnql_rtx_x86.dll": "4b042957038e1903fa5b44e2c1ddb40e45f9827116ad9326abff31a413ed7734",
+       "fnql_vk_x86.dll": "3fa75e80366b02e1f4a70e4f077fb4431b7fef62a05cdf88c1f060cb5bcfedc4",
+       "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769",
+       "fntech3.ded.exe": "cbfbab43f12d0a774f000948024023ba9c6ae400e74dc51245ce5b1a678330a7",
+       "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46"
+      },
+      "retail": [
+       2.9,
+       2.08,
+       1.44
+      ],
+      "onFromRetail": 1.75,
+      "offFromRetail": 1.74,
+      "onRegionsOverRetail": {},
+      "offRegionsOverRetail": {}
+     }
+    },
+    "after-vk": {
+     "level": "cemetery",
+     "renderer": "vk",
+     "runtime": "after",
+     "place": [
+      3264,
+      128,
+      300
+     ],
+     "started": "2026-10-24 18:41:29",
+     "steps": "set rconpassword spotprobe\nwait 3000\nconnect 127.0.0.1:27991\nwait 22000\nskipcinematic\nwait 4000\nrcon place\nwait 1500\nrcon place\nwait 1500\nrcon place\nwait 1500\nrcon place\nwait 1500\nrcon place\nwait 1500\nrcon place\nwait 1500\nscreenshotPNG on\nwait 1500\nr_staticLights 0\nwait 2500\nscreenshotPNG off\nwait 1500\n",
+     "binariesUnchanged": true,
+     "installationUnchanged": true,
+     "retail": ".tmp/fakk2-round/foginside/cem0/retail/fakk/screenshots/shot0000.tga",
+     "captures": {
+      "on": {
+       "path": ".tmp/spot-cone/fakk2/cemetery-passage/after-vk/home/fakk/screenshots/on.png",
+       "sha256": "f9b328b9f8bcfb69397cc2bcc9cfeb3a18526ae735a1bd7dd7054201f08b2fda"
+      },
+      "off": {
+       "path": ".tmp/spot-cone/fakk2/cemetery-passage/after-vk/home/fakk/screenshots/off.png",
+       "sha256": "e4c3e72e4eb38ffc28c0e790ceec4bc8e0f18bb9c373a1993d08cdc0f220ab04"
+      }
+     },
+     "measured": {
+      "on": [
+       4.01,
+       2.4,
+       1.66
+      ],
+      "off": [
+       4.01,
+       2.4,
+       1.67
+      ],
+      "staticShare": {
+       "changedPixels": 2350,
+       "meanAbsDiff": 0.015
+      },
+      "binariesUnchanged": true,
+      "client": {
+       "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+       "fnql_glx_x86.dll": "076c5d7187c570732ac61d6207726bb08f7121edbe23a2e2febad7e31a8d5f73",
+       "fnql_rtx_x86.dll": "4b042957038e1903fa5b44e2c1ddb40e45f9827116ad9326abff31a413ed7734",
+       "fnql_vk_x86.dll": "3fa75e80366b02e1f4a70e4f077fb4431b7fef62a05cdf88c1f060cb5bcfedc4",
+       "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769",
+       "fntech3.ded.exe": "cbfbab43f12d0a774f000948024023ba9c6ae400e74dc51245ce5b1a678330a7",
+       "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46"
+      },
+      "retail": [
+       2.9,
+       2.08,
+       1.44
+      ],
+      "onFromRetail": 0.84,
+      "offFromRetail": 0.85,
+      "onRegionsOverRetail": {},
+      "offRegionsOverRetail": {}
+     }
+    },
+    "before-glx": {
+     "level": "cemetery",
+     "renderer": "glx",
+     "runtime": "before",
+     "place": [
+      3264,
+      128,
+      300
+     ],
+     "started": "2026-10-24 18:38:29",
+     "steps": "set rconpassword spotprobe\nwait 3000\nconnect 127.0.0.1:27991\nwait 22000\nskipcinematic\nwait 4000\nrcon place\nwait 1500\nrcon place\nwait 1500\nrcon place\nwait 1500\nrcon place\nwait 1500\nrcon place\nwait 1500\nrcon place\nwait 1500\nscreenshotPNG on\nwait 1500\nr_staticLights 0\nwait 2500\nscreenshotPNG off\nwait 1500\n",
+     "binariesUnchanged": true,
+     "installationUnchanged": true,
+     "retail": ".tmp/fakk2-round/foginside/cem0/retail/fakk/screenshots/shot0000.tga",
+     "captures": {
+      "on": {
+       "path": ".tmp/spot-cone/fakk2/cemetery-passage/before-glx/home/fakk/screenshots/on.png",
+       "sha256": "558346dea1d19ab2e1cc1b639a77d9e3f76d9d80322ea11f0eb61f70e6c81c55"
+      },
+      "off": {
+       "path": ".tmp/spot-cone/fakk2/cemetery-passage/before-glx/home/fakk/screenshots/off.png",
+       "sha256": "ee56f473932e8b75c293260d156acc65893d894aba16e0be22d8eee97c24171e"
+      }
+     },
+     "measured": {
+      "on": [
+       7.57,
+       4.37,
+       2.97
+      ],
+      "off": [
+       4.03,
+       2.37,
+       1.69
+      ],
+      "staticShare": {
+       "changedPixels": 148522,
+       "meanAbsDiff": 2.279
+      },
+      "binariesUnchanged": true,
+      "client": {
+       "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+       "fnql_glx_x86.dll": "654fc1c55fc9fbbfff27441474c64644c60d93aa0d8a9860e03c212f006596fe",
+       "fnql_rtx_x86.dll": "6652b050a2e3373dc7d0e6f47af2344bb479588b2f7b6c36fc0449720d050034",
+       "fnql_vk_x86.dll": "e6a981dcc2dcd7e8bf64cab13b0dc696dc99714daba5dd0a807ca8f141ee1b74",
+       "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769",
+       "fntech3.ded.exe": "cbfbab43f12d0a774f000948024023ba9c6ae400e74dc51245ce5b1a678330a7",
+       "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46"
+      },
+      "retail": [
+       2.9,
+       2.08,
+       1.44
+      ],
+      "onFromRetail": 2.94,
+      "offFromRetail": 0.82,
+      "onRegionsOverRetail": {},
+      "offRegionsOverRetail": {}
+     }
+    },
+    "before-glx-arb": {
+     "level": "cemetery",
+     "renderer": "glx-arb",
+     "runtime": "before",
+     "place": [
+      3264,
+      128,
+      300
+     ],
+     "started": "2026-10-24 19:32:17",
+     "steps": "set rconpassword spotprobe\nwait 3000\nconnect 127.0.0.1:27991\nwait 22000\nskipcinematic\nwait 4000\nrcon place\nwait 1500\nrcon place\nwait 1500\nrcon place\nwait 1500\nrcon place\nwait 1500\nrcon place\nwait 1500\nrcon place\nwait 1500\nscreenshotPNG on\nwait 1500\nr_staticLights 0\nwait 2500\nscreenshotPNG off\nwait 1500\n",
+     "binariesUnchanged": true,
+     "installationUnchanged": true,
+     "retail": ".tmp/fakk2-round/foginside/cem0/retail/fakk/screenshots/shot0000.tga",
+     "captures": {
+      "on": {
+       "path": ".tmp/spot-cone/fakk2/cemetery-passage/before-glx-arb/home/fakk/screenshots/on.png",
+       "sha256": "20ffb147422e7a10c4eca930635f4c5d9ea5d8e73b6147bccb316659f7e9d7f3"
+      },
+      "off": {
+       "path": ".tmp/spot-cone/fakk2/cemetery-passage/before-glx-arb/home/fakk/screenshots/off.png",
+       "sha256": "3701a5ff0fad68f30b3960c3cc114cf5eceb47ca3ce1112637f355c043ec16b8"
+      }
+     },
+     "measured": {
+      "on": [
+       7.63,
+       4.38,
+       2.98
+      ],
+      "off": [
+       4.09,
+       2.38,
+       1.7
+      ],
+      "staticShare": {
+       "changedPixels": 148536,
+       "meanAbsDiff": 2.281
+      },
+      "binariesUnchanged": true,
+      "client": {
+       "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+       "fnql_glx_x86.dll": "654fc1c55fc9fbbfff27441474c64644c60d93aa0d8a9860e03c212f006596fe",
+       "fnql_rtx_x86.dll": "6652b050a2e3373dc7d0e6f47af2344bb479588b2f7b6c36fc0449720d050034",
+       "fnql_vk_x86.dll": "e6a981dcc2dcd7e8bf64cab13b0dc696dc99714daba5dd0a807ca8f141ee1b74",
+       "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769",
+       "fntech3.ded.exe": "cbfbab43f12d0a774f000948024023ba9c6ae400e74dc51245ce5b1a678330a7",
+       "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46"
+      },
+      "retail": [
+       2.9,
+       2.08,
+       1.44
+      ],
+      "onFromRetail": 2.94,
+      "offFromRetail": 0.8,
+      "onRegionsOverRetail": {},
+      "offRegionsOverRetail": {}
+     }
+    },
+    "before-rtx": {
+     "level": "cemetery",
+     "renderer": "rtx",
+     "runtime": "before",
+     "place": [
+      3264,
+      128,
+      300
+     ],
+     "started": "2026-10-24 18:42:21",
+     "steps": "set rconpassword spotprobe\nwait 3000\nconnect 127.0.0.1:27991\nwait 22000\nskipcinematic\nwait 4000\nrcon place\nwait 1500\nrcon place\nwait 1500\nrcon place\nwait 1500\nrcon place\nwait 1500\nrcon place\nwait 1500\nrcon place\nwait 1500\nscreenshotPNG on\nwait 1500\nr_staticLights 0\nwait 2500\nscreenshotPNG off\nwait 1500\n",
+     "binariesUnchanged": true,
+     "installationUnchanged": true,
+     "retail": ".tmp/fakk2-round/foginside/cem0/retail/fakk/screenshots/shot0000.tga",
+     "captures": {
+      "on": {
+       "path": ".tmp/spot-cone/fakk2/cemetery-passage/before-rtx/home/fakk/screenshots/on.png",
+       "sha256": "793b5188d0be221f28ef3af63e5053f6bded6a07786026fad378d6c01d22a9bb"
+      },
+      "off": {
+       "path": ".tmp/spot-cone/fakk2/cemetery-passage/before-rtx/home/fakk/screenshots/off.png",
+       "sha256": "2f06d6ddb38f828405f72950a0a2d4d733f07cd6b7af30b5c2f0ff09b1d2d6b8"
+      }
+     },
+     "measured": {
+      "on": [
+       1.97,
+       1.23,
+       0.68
+      ],
+      "off": [
+       1.64,
+       1.14,
+       0.59
+      ],
+      "staticShare": {
+       "changedPixels": 13699,
+       "meanAbsDiff": 0.441
+      },
+      "binariesUnchanged": true,
+      "client": {
+       "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+       "fnql_glx_x86.dll": "654fc1c55fc9fbbfff27441474c64644c60d93aa0d8a9860e03c212f006596fe",
+       "fnql_rtx_x86.dll": "6652b050a2e3373dc7d0e6f47af2344bb479588b2f7b6c36fc0449720d050034",
+       "fnql_vk_x86.dll": "e6a981dcc2dcd7e8bf64cab13b0dc696dc99714daba5dd0a807ca8f141ee1b74",
+       "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769",
+       "fntech3.ded.exe": "cbfbab43f12d0a774f000948024023ba9c6ae400e74dc51245ce5b1a678330a7",
+       "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46"
+      },
+      "retail": [
+       2.9,
+       2.08,
+       1.44
+      ],
+      "onFromRetail": 2.13,
+      "offFromRetail": 1.77,
+      "onRegionsOverRetail": {},
+      "offRegionsOverRetail": {}
+     }
+    },
+    "before-vk": {
+     "level": "cemetery",
+     "renderer": "vk",
+     "runtime": "before",
+     "place": [
+      3264,
+      128,
+      300
+     ],
+     "started": "2026-10-24 18:40:39",
+     "steps": "set rconpassword spotprobe\nwait 3000\nconnect 127.0.0.1:27991\nwait 22000\nskipcinematic\nwait 4000\nrcon place\nwait 1500\nrcon place\nwait 1500\nrcon place\nwait 1500\nrcon place\nwait 1500\nrcon place\nwait 1500\nrcon place\nwait 1500\nscreenshotPNG on\nwait 1500\nr_staticLights 0\nwait 2500\nscreenshotPNG off\nwait 1500\n",
+     "binariesUnchanged": true,
+     "installationUnchanged": true,
+     "retail": ".tmp/fakk2-round/foginside/cem0/retail/fakk/screenshots/shot0000.tga",
+     "captures": {
+      "on": {
+       "path": ".tmp/spot-cone/fakk2/cemetery-passage/before-vk/home/fakk/screenshots/on.png",
+       "sha256": "47f7ae9efc38cb741242b6a24a7f375715cbfe951eeb833028a863a0ba97db3b"
+      },
+      "off": {
+       "path": ".tmp/spot-cone/fakk2/cemetery-passage/before-vk/home/fakk/screenshots/off.png",
+       "sha256": "288b0013d686086792ed7888444d84296e0860a81d966ff658f7a01455b1d6a7"
+      }
+     },
+     "measured": {
+      "on": [
+       7.59,
+       4.4,
+       3.03
+      ],
+      "off": [
+       4.02,
+       2.4,
+       1.67
+      ],
+      "staticShare": {
+       "changedPixels": 148838,
+       "meanAbsDiff": 2.319
+      },
+      "binariesUnchanged": true,
+      "client": {
+       "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+       "fnql_glx_x86.dll": "654fc1c55fc9fbbfff27441474c64644c60d93aa0d8a9860e03c212f006596fe",
+       "fnql_rtx_x86.dll": "6652b050a2e3373dc7d0e6f47af2344bb479588b2f7b6c36fc0449720d050034",
+       "fnql_vk_x86.dll": "e6a981dcc2dcd7e8bf64cab13b0dc696dc99714daba5dd0a807ca8f141ee1b74",
+       "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769",
+       "fntech3.ded.exe": "cbfbab43f12d0a774f000948024023ba9c6ae400e74dc51245ce5b1a678330a7",
+       "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46"
+      },
+      "retail": [
+       2.9,
+       2.08,
+       1.44
+      ],
+      "onFromRetail": 2.96,
+      "offFromRetail": 0.84,
+      "onRegionsOverRetail": {},
+      "offRegionsOverRetail": {}
+     }
+    }
+   },
+   "over": {
+    "after-glx": {
+     "level": "over",
+     "renderer": "glx",
+     "runtime": "after",
+     "place": null,
+     "started": "2026-10-24 18:44:50",
+     "steps": "set rconpassword spotprobe\nwait 3000\nconnect 127.0.0.1:27991\nwait 22000\nskipcinematic\nwait 4000\nscreenshotPNG on\nwait 1500\nr_staticLights 0\nwait 2500\nscreenshotPNG off\nwait 1500\n",
+     "binariesUnchanged": true,
+     "installationUnchanged": true,
+     "retail": ".tmp/fakk2-light-law/over/retail/fakk/screenshots/shot0000.tga",
+     "captures": {
+      "on": {
+       "path": ".tmp/spot-cone/fakk2/over/after-glx/home/fakk/screenshots/on.png",
+       "sha256": "674cc3be20ac4aecea800bf0e65550170e614bc75b2d2d6ba1a0e542d1e5daa7"
+      },
+      "off": {
+       "path": ".tmp/spot-cone/fakk2/over/after-glx/home/fakk/screenshots/off.png",
+       "sha256": "37064fdf5b653513d7af309816f41af136d4561d6ed3c4350bc916a2734bdfe7"
+      }
+     },
+     "measured": {
+      "on": [
+       46.59,
+       47.88,
+       27.5
+      ],
+      "off": [
+       36.27,
+       38.17,
+       21.06
+      ],
+      "staticShare": {
+       "changedPixels": 386443,
+       "meanAbsDiff": 9.204
+      },
+      "binariesUnchanged": true,
+      "client": {
+       "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+       "fnql_glx_x86.dll": "076c5d7187c570732ac61d6207726bb08f7121edbe23a2e2febad7e31a8d5f73",
+       "fnql_rtx_x86.dll": "4b042957038e1903fa5b44e2c1ddb40e45f9827116ad9326abff31a413ed7734",
+       "fnql_vk_x86.dll": "3fa75e80366b02e1f4a70e4f077fb4431b7fef62a05cdf88c1f060cb5bcfedc4",
+       "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769",
+       "fntech3.ded.exe": "cbfbab43f12d0a774f000948024023ba9c6ae400e74dc51245ce5b1a678330a7",
+       "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46"
+      },
+      "retail": [
+       34.4,
+       37.17,
+       22.21
+      ],
+      "onFromRetail": 11.17,
+      "offFromRetail": 4.94,
+      "onRegionsOverRetail": {
+       "water": 1.35,
+       "left wall": 1.2,
+       "right wall": 1.41,
+       "walkway": 1.4
+      },
+      "offRegionsOverRetail": {
+       "water": 1.01,
+       "left wall": 0.94,
+       "right wall": 1.12,
+       "walkway": 0.97
+      }
+     }
+    },
+    "after-rtx": {
+     "level": "over",
+     "renderer": "rtx",
+     "runtime": "after",
+     "place": null,
+     "started": "2026-10-24 18:47:50",
+     "steps": "set rconpassword spotprobe\nwait 3000\nconnect 127.0.0.1:27991\nwait 22000\nskipcinematic\nwait 4000\nscreenshotPNG on\nwait 1500\nr_staticLights 0\nwait 2500\nscreenshotPNG off\nwait 1500\n",
+     "binariesUnchanged": true,
+     "installationUnchanged": true,
+     "retail": ".tmp/fakk2-light-law/over/retail/fakk/screenshots/shot0000.tga",
+     "captures": {
+      "on": {
+       "path": ".tmp/spot-cone/fakk2/over/after-rtx/home/fakk/screenshots/on.png",
+       "sha256": "d4c66d6c61261390b8297d3e30953daeab07aa987714e82e2c0657d31fc1ce37"
+      },
+      "off": {
+       "path": ".tmp/spot-cone/fakk2/over/after-rtx/home/fakk/screenshots/off.png",
+       "sha256": "e415ed9c158556c7bd99d3b5f65add0e322265861b9edf6c838ebf8b144dfd1d"
+      }
+     },
+     "measured": {
+      "on": [
+       66.95,
+       64.47,
+       39.94
+      ],
+      "off": [
+       59.77,
+       57.29,
+       34.1
+      ],
+      "staticShare": {
+       "changedPixels": 302317,
+       "meanAbsDiff": 9.465
+      },
+      "binariesUnchanged": true,
+      "client": {
+       "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+       "fnql_glx_x86.dll": "076c5d7187c570732ac61d6207726bb08f7121edbe23a2e2febad7e31a8d5f73",
+       "fnql_rtx_x86.dll": "4b042957038e1903fa5b44e2c1ddb40e45f9827116ad9326abff31a413ed7734",
+       "fnql_vk_x86.dll": "3fa75e80366b02e1f4a70e4f077fb4431b7fef62a05cdf88c1f060cb5bcfedc4",
+       "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769",
+       "fntech3.ded.exe": "cbfbab43f12d0a774f000948024023ba9c6ae400e74dc51245ce5b1a678330a7",
+       "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46"
+      },
+      "retail": [
+       34.4,
+       37.17,
+       22.21
+      ],
+      "onFromRetail": 26.71,
+      "offFromRetail": 21.11,
+      "onRegionsOverRetail": {
+       "water": 2.42,
+       "left wall": 1.51,
+       "right wall": 1.63,
+       "walkway": 1.87
+      },
+      "offRegionsOverRetail": {
+       "water": 1.87,
+       "left wall": 1.3,
+       "right wall": 1.6,
+       "walkway": 1.44
+      }
+     }
+    },
+    "after-vk": {
+     "level": "over",
+     "renderer": "vk",
+     "runtime": "after",
+     "place": null,
+     "started": "2026-10-24 18:46:15",
+     "steps": "set rconpassword spotprobe\nwait 3000\nconnect 127.0.0.1:27991\nwait 22000\nskipcinematic\nwait 4000\nscreenshotPNG on\nwait 1500\nr_staticLights 0\nwait 2500\nscreenshotPNG off\nwait 1500\n",
+     "binariesUnchanged": true,
+     "installationUnchanged": true,
+     "retail": ".tmp/fakk2-light-law/over/retail/fakk/screenshots/shot0000.tga",
+     "captures": {
+      "on": {
+       "path": ".tmp/spot-cone/fakk2/over/after-vk/home/fakk/screenshots/on.png",
+       "sha256": "0d37ab074694ade5814f4dee4846f1acbc416c617da6bc363c81ff94b98914c1"
+      },
+      "off": {
+       "path": ".tmp/spot-cone/fakk2/over/after-vk/home/fakk/screenshots/off.png",
+       "sha256": "039d2ea8f5227a05eb953b9b2a867e03557832605c1d549be669ce1061eb12d3"
+      }
+     },
+     "measured": {
+      "on": [
+       47.46,
+       49.29,
+       28.01
+      ],
+      "off": [
+       36.48,
+       38.27,
+       21.41
+      ],
+      "staticShare": {
+       "changedPixels": 391805,
+       "meanAbsDiff": 9.755
+      },
+      "binariesUnchanged": true,
+      "client": {
+       "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+       "fnql_glx_x86.dll": "076c5d7187c570732ac61d6207726bb08f7121edbe23a2e2febad7e31a8d5f73",
+       "fnql_rtx_x86.dll": "4b042957038e1903fa5b44e2c1ddb40e45f9827116ad9326abff31a413ed7734",
+       "fnql_vk_x86.dll": "3fa75e80366b02e1f4a70e4f077fb4431b7fef62a05cdf88c1f060cb5bcfedc4",
+       "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769",
+       "fntech3.ded.exe": "cbfbab43f12d0a774f000948024023ba9c6ae400e74dc51245ce5b1a678330a7",
+       "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46"
+      },
+      "retail": [
+       34.4,
+       37.17,
+       22.21
+      ],
+      "onFromRetail": 11.69,
+      "offFromRetail": 5.05,
+      "onRegionsOverRetail": {
+       "water": 1.37,
+       "left wall": 1.2,
+       "right wall": 1.41,
+       "walkway": 1.4
+      },
+      "offRegionsOverRetail": {
+       "water": 1.01,
+       "left wall": 0.94,
+       "right wall": 1.12,
+       "walkway": 0.97
+      }
+     }
+    },
+    "before-glx": {
+     "level": "over",
+     "renderer": "glx",
+     "runtime": "before",
+     "place": null,
+     "started": "2026-10-24 18:44:06",
+     "steps": "set rconpassword spotprobe\nwait 3000\nconnect 127.0.0.1:27991\nwait 22000\nskipcinematic\nwait 4000\nscreenshotPNG on\nwait 1500\nr_staticLights 0\nwait 2500\nscreenshotPNG off\nwait 1500\n",
+     "binariesUnchanged": true,
+     "installationUnchanged": true,
+     "retail": ".tmp/fakk2-light-law/over/retail/fakk/screenshots/shot0000.tga",
+     "captures": {
+      "on": {
+       "path": ".tmp/spot-cone/fakk2/over/before-glx/home/fakk/screenshots/on.png",
+       "sha256": "2cb0b16718fd1d379bba8e4c02ef22557ae3657aec116673047082d6ebdbe2cb"
+      },
+      "off": {
+       "path": ".tmp/spot-cone/fakk2/over/before-glx/home/fakk/screenshots/off.png",
+       "sha256": "f511cd8957662dd1e5f07215d48453766937aaec39b08602a7291148bf44be4b"
+      }
+     },
+     "measured": {
+      "on": [
+       46.88,
+       48.04,
+       27.54
+      ],
+      "off": [
+       36.25,
+       38.35,
+       21.06
+      ],
+      "staticShare": {
+       "changedPixels": 387962,
+       "meanAbsDiff": 9.452
+      },
+      "binariesUnchanged": true,
+      "client": {
+       "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+       "fnql_glx_x86.dll": "654fc1c55fc9fbbfff27441474c64644c60d93aa0d8a9860e03c212f006596fe",
+       "fnql_rtx_x86.dll": "6652b050a2e3373dc7d0e6f47af2344bb479588b2f7b6c36fc0449720d050034",
+       "fnql_vk_x86.dll": "e6a981dcc2dcd7e8bf64cab13b0dc696dc99714daba5dd0a807ca8f141ee1b74",
+       "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769",
+       "fntech3.ded.exe": "cbfbab43f12d0a774f000948024023ba9c6ae400e74dc51245ce5b1a678330a7",
+       "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46"
+      },
+      "retail": [
+       34.4,
+       37.17,
+       22.21
+      ],
+      "onFromRetail": 11.37,
+      "offFromRetail": 4.82,
+      "onRegionsOverRetail": {
+       "water": 1.38,
+       "left wall": 1.2,
+       "right wall": 1.41,
+       "walkway": 1.4
+      },
+      "offRegionsOverRetail": {
+       "water": 1.02,
+       "left wall": 0.94,
+       "right wall": 1.12,
+       "walkway": 0.97
+      }
+     }
+    },
+    "before-rtx": {
+     "level": "over",
+     "renderer": "rtx",
+     "runtime": "before",
+     "place": null,
+     "started": "2026-10-24 18:46:58",
+     "steps": "set rconpassword spotprobe\nwait 3000\nconnect 127.0.0.1:27991\nwait 22000\nskipcinematic\nwait 4000\nscreenshotPNG on\nwait 1500\nr_staticLights 0\nwait 2500\nscreenshotPNG off\nwait 1500\n",
+     "binariesUnchanged": true,
+     "installationUnchanged": true,
+     "retail": ".tmp/fakk2-light-law/over/retail/fakk/screenshots/shot0000.tga",
+     "captures": {
+      "on": {
+       "path": ".tmp/spot-cone/fakk2/over/before-rtx/home/fakk/screenshots/on.png",
+       "sha256": "0756804579ae9f6c29e3639a05da6fcd20e7d79a7e92421914e3e197d6cf6749"
+      },
+      "off": {
+       "path": ".tmp/spot-cone/fakk2/over/before-rtx/home/fakk/screenshots/off.png",
+       "sha256": "67bc0b6894cd6ac7b5863b598b090df2af70532f049403f98d85796df4a93b1a"
+      }
+     },
+     "measured": {
+      "on": [
+       66.92,
+       64.34,
+       39.81
+      ],
+      "off": [
+       60.36,
+       57.74,
+       34.44
+      ],
+      "staticShare": {
+       "changedPixels": 308189,
+       "meanAbsDiff": 7.638
+      },
+      "binariesUnchanged": true,
+      "client": {
+       "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+       "fnql_glx_x86.dll": "654fc1c55fc9fbbfff27441474c64644c60d93aa0d8a9860e03c212f006596fe",
+       "fnql_rtx_x86.dll": "6652b050a2e3373dc7d0e6f47af2344bb479588b2f7b6c36fc0449720d050034",
+       "fnql_vk_x86.dll": "e6a981dcc2dcd7e8bf64cab13b0dc696dc99714daba5dd0a807ca8f141ee1b74",
+       "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769",
+       "fntech3.ded.exe": "cbfbab43f12d0a774f000948024023ba9c6ae400e74dc51245ce5b1a678330a7",
+       "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46"
+      },
+      "retail": [
+       34.4,
+       37.17,
+       22.21
+      ],
+      "onFromRetail": 26.41,
+      "offFromRetail": 21.43,
+      "onRegionsOverRetail": {
+       "water": 2.22,
+       "left wall": 1.53,
+       "right wall": 1.63,
+       "walkway": 1.88
+      },
+      "offRegionsOverRetail": {
+       "water": 2.08,
+       "left wall": 1.3,
+       "right wall": 1.6,
+       "walkway": 1.44
+      }
+     }
+    },
+    "before-vk": {
+     "level": "over",
+     "renderer": "vk",
+     "runtime": "before",
+     "place": null,
+     "started": "2026-10-24 18:45:33",
+     "steps": "set rconpassword spotprobe\nwait 3000\nconnect 127.0.0.1:27991\nwait 22000\nskipcinematic\nwait 4000\nscreenshotPNG on\nwait 1500\nr_staticLights 0\nwait 2500\nscreenshotPNG off\nwait 1500\n",
+     "binariesUnchanged": true,
+     "installationUnchanged": true,
+     "retail": ".tmp/fakk2-light-law/over/retail/fakk/screenshots/shot0000.tga",
+     "captures": {
+      "on": {
+       "path": ".tmp/spot-cone/fakk2/over/before-vk/home/fakk/screenshots/on.png",
+       "sha256": "7fb81961a1fac0188b3d84fb65d2330ecea8860e9f434eaa4dcb2e28452aac37"
+      },
+      "off": {
+       "path": ".tmp/spot-cone/fakk2/over/before-vk/home/fakk/screenshots/off.png",
+       "sha256": "2ad718e5e1840cd8c480ab6085c21ae383427addd489f7ce34cca43fd6f6237a"
+      }
+     },
+     "measured": {
+      "on": [
+       47.46,
+       49.14,
+       28.03
+      ],
+      "off": [
+       36.51,
+       38.32,
+       21.44
+      ],
+      "staticShare": {
+       "changedPixels": 389203,
+       "meanAbsDiff": 9.681
+      },
+      "binariesUnchanged": true,
+      "client": {
+       "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+       "fnql_glx_x86.dll": "654fc1c55fc9fbbfff27441474c64644c60d93aa0d8a9860e03c212f006596fe",
+       "fnql_rtx_x86.dll": "6652b050a2e3373dc7d0e6f47af2344bb479588b2f7b6c36fc0449720d050034",
+       "fnql_vk_x86.dll": "e6a981dcc2dcd7e8bf64cab13b0dc696dc99714daba5dd0a807ca8f141ee1b74",
+       "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769",
+       "fntech3.ded.exe": "cbfbab43f12d0a774f000948024023ba9c6ae400e74dc51245ce5b1a678330a7",
+       "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46"
+      },
+      "retail": [
+       34.4,
+       37.17,
+       22.21
+      ],
+      "onFromRetail": 11.66,
+      "offFromRetail": 5.03,
+      "onRegionsOverRetail": {
+       "water": 1.38,
+       "left wall": 1.2,
+       "right wall": 1.41,
+       "walkway": 1.4
+      },
+      "offRegionsOverRetail": {
+       "water": 1.01,
+       "left wall": 0.94,
+       "right wall": 1.12,
+       "walkway": 0.97
+      }
+     }
+    }
+   },
+   "towncenter_evil": {
+    "after-glx": {
+     "level": "towncenter_evil",
+     "renderer": "glx",
+     "runtime": "after",
+     "place": null,
+     "started": "2026-10-24 18:49:22",
+     "steps": "set rconpassword spotprobe\nwait 3000\nconnect 127.0.0.1:27991\nwait 22000\nskipcinematic\nwait 4000\nscreenshotPNG on\nwait 1500\nr_staticLights 0\nwait 2500\nscreenshotPNG off\nwait 1500\n",
+     "binariesUnchanged": true,
+     "installationUnchanged": true,
+     "retail": ".tmp/fakk2-light-law/towncenter_evil/retail/fakk/screenshots/shot0000.tga",
+     "captures": {
+      "on": {
+       "path": ".tmp/spot-cone/fakk2/towncenter_evil/after-glx/home/fakk/screenshots/on.png",
+       "sha256": "23c9d77719f282fbb6453d214c363325085c27110e795e9be133074868c7a107"
+      },
+      "off": {
+       "path": ".tmp/spot-cone/fakk2/towncenter_evil/after-glx/home/fakk/screenshots/off.png",
+       "sha256": "af458bf8cc9c67040a1ea96e1683804f09df4696bd97a9e40ccaa6c7a8f8c1e2"
+      }
+     },
+     "measured": {
+      "on": [
+       53.07,
+       49.02,
+       33.4
+      ],
+      "off": [
+       49.63,
+       46.63,
+       33.22
+      ],
+      "staticShare": {
+       "changedPixels": 89433,
+       "meanAbsDiff": 3.873
+      },
+      "binariesUnchanged": true,
+      "client": {
+       "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+       "fnql_glx_x86.dll": "076c5d7187c570732ac61d6207726bb08f7121edbe23a2e2febad7e31a8d5f73",
+       "fnql_rtx_x86.dll": "4b042957038e1903fa5b44e2c1ddb40e45f9827116ad9326abff31a413ed7734",
+       "fnql_vk_x86.dll": "3fa75e80366b02e1f4a70e4f077fb4431b7fef62a05cdf88c1f060cb5bcfedc4",
+       "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769",
+       "fntech3.ded.exe": "cbfbab43f12d0a774f000948024023ba9c6ae400e74dc51245ce5b1a678330a7",
+       "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46"
+      },
+      "retail": [
+       49.3,
+       46.87,
+       33.59
+      ],
+      "onFromRetail": 6.32,
+      "offFromRetail": 4.03,
+      "onRegionsOverRetail": {
+       "upper wall": 1.0,
+       "back wall": 1.0,
+       "arch": 0.9,
+       "door": 1.01,
+       "console": 0.99,
+       "floor left": 1.12,
+       "floor right": 1.23
+      },
+      "offRegionsOverRetail": {
+       "upper wall": 1.0,
+       "back wall": 1.0,
+       "arch": 0.97,
+       "door": 1.01,
+       "console": 0.99,
+       "floor left": 1.01,
+       "floor right": 1.0
+      }
+     }
+    },
+    "after-glx-arb": {
+     "level": "towncenter_evil",
+     "renderer": "glx-arb",
+     "runtime": "after",
+     "place": null,
+     "started": "2026-10-24 19:34:23",
+     "steps": "set rconpassword spotprobe\nwait 3000\nconnect 127.0.0.1:27991\nwait 22000\nskipcinematic\nwait 4000\nscreenshotPNG on\nwait 1500\nr_staticLights 0\nwait 2500\nscreenshotPNG off\nwait 1500\n",
+     "binariesUnchanged": true,
+     "installationUnchanged": true,
+     "retail": ".tmp/fakk2-light-law/towncenter_evil/retail/fakk/screenshots/shot0000.tga",
+     "captures": {
+      "on": {
+       "path": ".tmp/spot-cone/fakk2/towncenter_evil/after-glx-arb/home/fakk/screenshots/on.png",
+       "sha256": "d95de30438be637b2752befae8fd9f7fbf89c44710115391f327df34e76f297d"
+      },
+      "off": {
+       "path": ".tmp/spot-cone/fakk2/towncenter_evil/after-glx-arb/home/fakk/screenshots/off.png",
+       "sha256": "283eb53e7bb5dbeac64be14240be869d71599a9a1b97ae090fcedbf8a583a0a8"
+      }
+     },
+     "measured": {
+      "on": [
+       51.75,
+       47.1,
+       31.38
+      ],
+      "off": [
+       43.32,
+       40.04,
+       27.29
+      ],
+      "staticShare": {
+       "changedPixels": 365462,
+       "meanAbsDiff": 7.169
+      },
+      "binariesUnchanged": true,
+      "client": {
+       "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+       "fnql_glx_x86.dll": "076c5d7187c570732ac61d6207726bb08f7121edbe23a2e2febad7e31a8d5f73",
+       "fnql_rtx_x86.dll": "4b042957038e1903fa5b44e2c1ddb40e45f9827116ad9326abff31a413ed7734",
+       "fnql_vk_x86.dll": "3fa75e80366b02e1f4a70e4f077fb4431b7fef62a05cdf88c1f060cb5bcfedc4",
+       "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769",
+       "fntech3.ded.exe": "cbfbab43f12d0a774f000948024023ba9c6ae400e74dc51245ce5b1a678330a7",
+       "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46"
+      },
+      "retail": [
+       49.3,
+       46.87,
+       33.59
+      ],
+      "onFromRetail": 8.24,
+      "offFromRetail": 8.28,
+      "onRegionsOverRetail": {
+       "upper wall": 1.0,
+       "back wall": 1.0,
+       "arch": 1.07,
+       "door": 1.01,
+       "console": 0.99,
+       "floor left": 1.12,
+       "floor right": 1.22
+      },
+      "offRegionsOverRetail": {
+       "upper wall": 0.9,
+       "back wall": 0.9,
+       "arch": 0.93,
+       "door": 0.91,
+       "console": 0.89,
+       "floor left": 0.91,
+       "floor right": 0.9
+      }
+     }
+    },
+    "after-rtx": {
+     "level": "towncenter_evil",
+     "renderer": "rtx",
+     "runtime": "after",
+     "place": null,
+     "started": "2026-10-24 18:52:25",
+     "steps": "set rconpassword spotprobe\nwait 3000\nconnect 127.0.0.1:27991\nwait 22000\nskipcinematic\nwait 4000\nscreenshotPNG on\nwait 1500\nr_staticLights 0\nwait 2500\nscreenshotPNG off\nwait 1500\n",
+     "binariesUnchanged": true,
+     "installationUnchanged": true,
+     "retail": ".tmp/fakk2-light-law/towncenter_evil/retail/fakk/screenshots/shot0000.tga",
+     "captures": {
+      "on": {
+       "path": ".tmp/spot-cone/fakk2/towncenter_evil/after-rtx/home/fakk/screenshots/on.png",
+       "sha256": "a3ada4e2abe243d3f5269b830ac05e4efe1fce6f4f676ccd8a095dcc77edf8b9"
+      },
+      "off": {
+       "path": ".tmp/spot-cone/fakk2/towncenter_evil/after-rtx/home/fakk/screenshots/off.png",
+       "sha256": "62c646dd2fce0f5a21eb7c2ab4047f2b50a76a1309fd348b606f8689a74e1618"
+      }
+     },
+     "measured": {
+      "on": [
+       102.53,
+       92.38,
+       53.1
+      ],
+      "off": [
+       101.9,
+       92.18,
+       53.37
+      ],
+      "staticShare": {
+       "changedPixels": 106748,
+       "meanAbsDiff": 2.823
+      },
+      "binariesUnchanged": true,
+      "client": {
+       "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+       "fnql_glx_x86.dll": "076c5d7187c570732ac61d6207726bb08f7121edbe23a2e2febad7e31a8d5f73",
+       "fnql_rtx_x86.dll": "4b042957038e1903fa5b44e2c1ddb40e45f9827116ad9326abff31a413ed7734",
+       "fnql_vk_x86.dll": "3fa75e80366b02e1f4a70e4f077fb4431b7fef62a05cdf88c1f060cb5bcfedc4",
+       "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769",
+       "fntech3.ded.exe": "cbfbab43f12d0a774f000948024023ba9c6ae400e74dc51245ce5b1a678330a7",
+       "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46"
+      },
+      "retail": [
+       49.3,
+       46.87,
+       33.59
+      ],
+      "onFromRetail": 41.54,
+      "offFromRetail": 41.44,
+      "onRegionsOverRetail": {
+       "upper wall": 2.06,
+       "back wall": 2.09,
+       "arch": 2.13,
+       "door": 1.36,
+       "console": 2.11,
+       "floor left": 1.74,
+       "floor right": 1.64
+      },
+      "offRegionsOverRetail": {
+       "upper wall": 2.06,
+       "back wall": 2.1,
+       "arch": 2.25,
+       "door": 1.36,
+       "console": 2.11,
+       "floor left": 1.72,
+       "floor right": 1.6
+      }
+     }
+    },
+    "after-vk": {
+     "level": "towncenter_evil",
+     "renderer": "vk",
+     "runtime": "after",
+     "place": null,
+     "started": "2026-10-24 18:50:51",
+     "steps": "set rconpassword spotprobe\nwait 3000\nconnect 127.0.0.1:27991\nwait 22000\nskipcinematic\nwait 4000\nscreenshotPNG on\nwait 1500\nr_staticLights 0\nwait 2500\nscreenshotPNG off\nwait 1500\n",
+     "binariesUnchanged": true,
+     "installationUnchanged": true,
+     "retail": ".tmp/fakk2-light-law/towncenter_evil/retail/fakk/screenshots/shot0000.tga",
+     "captures": {
+      "on": {
+       "path": ".tmp/spot-cone/fakk2/towncenter_evil/after-vk/home/fakk/screenshots/on.png",
+       "sha256": "3e7ee9eeeda3b9cf8c505ee20d99e5687d1e57db13a299410c6457274b971d92"
+      },
+      "off": {
+       "path": ".tmp/spot-cone/fakk2/towncenter_evil/after-vk/home/fakk/screenshots/off.png",
+       "sha256": "1a1f6600823287d4d8d71defa8b00222bdc6be6eab5575e02c26a3282c8af8e9"
+      }
+     },
+     "measured": {
+      "on": [
+       61.11,
+       56.43,
+       42.36
+      ],
+      "off": [
+       56.13,
+       52.53,
+       39.99
+      ],
+      "staticShare": {
+       "changedPixels": 90320,
+       "meanAbsDiff": 5.422
+      },
+      "binariesUnchanged": true,
+      "client": {
+       "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+       "fnql_glx_x86.dll": "076c5d7187c570732ac61d6207726bb08f7121edbe23a2e2febad7e31a8d5f73",
+       "fnql_rtx_x86.dll": "4b042957038e1903fa5b44e2c1ddb40e45f9827116ad9326abff31a413ed7734",
+       "fnql_vk_x86.dll": "3fa75e80366b02e1f4a70e4f077fb4431b7fef62a05cdf88c1f060cb5bcfedc4",
+       "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769",
+       "fntech3.ded.exe": "cbfbab43f12d0a774f000948024023ba9c6ae400e74dc51245ce5b1a678330a7",
+       "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46"
+      },
+      "retail": [
+       49.3,
+       46.87,
+       33.59
+      ],
+      "onFromRetail": 13.54,
+      "offFromRetail": 9.81,
+      "onRegionsOverRetail": {
+       "upper wall": 1.02,
+       "back wall": 1.0,
+       "arch": 1.05,
+       "door": 1.01,
+       "console": 1.0,
+       "floor left": 1.16,
+       "floor right": 1.32
+      },
+      "offRegionsOverRetail": {
+       "upper wall": 1.02,
+       "back wall": 1.0,
+       "arch": 1.06,
+       "door": 1.01,
+       "console": 1.0,
+       "floor left": 1.01,
+       "floor right": 1.02
+      }
+     }
+    },
+    "before-glx": {
+     "level": "towncenter_evil",
+     "renderer": "glx",
+     "runtime": "before",
+     "place": null,
+     "started": "2026-10-24 18:48:40",
+     "steps": "set rconpassword spotprobe\nwait 3000\nconnect 127.0.0.1:27991\nwait 22000\nskipcinematic\nwait 4000\nscreenshotPNG on\nwait 1500\nr_staticLights 0\nwait 2500\nscreenshotPNG off\nwait 1500\n",
+     "binariesUnchanged": true,
+     "installationUnchanged": true,
+     "retail": ".tmp/fakk2-light-law/towncenter_evil/retail/fakk/screenshots/shot0000.tga",
+     "captures": {
+      "on": {
+       "path": ".tmp/spot-cone/fakk2/towncenter_evil/before-glx/home/fakk/screenshots/on.png",
+       "sha256": "18ca5b7686413ffd9c3087db4bdbe36394ee99b667327baa8858181cfcfc6832"
+      },
+      "off": {
+       "path": ".tmp/spot-cone/fakk2/towncenter_evil/before-glx/home/fakk/screenshots/off.png",
+       "sha256": "b8ccd67c4216e3700f57d80662956a938a5dc93d6461c3e730d7bcd0c9018b57"
+      }
+     },
+     "measured": {
+      "on": [
+       62.1,
+       57.85,
+       40.49
+      ],
+      "off": [
+       48.74,
+       45.59,
+       32.45
+      ],
+      "staticShare": {
+       "changedPixels": 367895,
+       "meanAbsDiff": 13.356
+      },
+      "binariesUnchanged": true,
+      "client": {
+       "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+       "fnql_glx_x86.dll": "654fc1c55fc9fbbfff27441474c64644c60d93aa0d8a9860e03c212f006596fe",
+       "fnql_rtx_x86.dll": "6652b050a2e3373dc7d0e6f47af2344bb479588b2f7b6c36fc0449720d050034",
+       "fnql_vk_x86.dll": "e6a981dcc2dcd7e8bf64cab13b0dc696dc99714daba5dd0a807ca8f141ee1b74",
+       "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769",
+       "fntech3.ded.exe": "cbfbab43f12d0a774f000948024023ba9c6ae400e74dc51245ce5b1a678330a7",
+       "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46"
+      },
+      "retail": [
+       49.3,
+       46.87,
+       33.59
+      ],
+      "onFromRetail": 14.11,
+      "offFromRetail": 3.47,
+      "onRegionsOverRetail": {
+       "upper wall": 1.28,
+       "back wall": 1.55,
+       "arch": 1.27,
+       "door": 1.27,
+       "console": 1.59,
+       "floor left": 1.05,
+       "floor right": 1.09
+      },
+      "offRegionsOverRetail": {
+       "upper wall": 1.0,
+       "back wall": 1.0,
+       "arch": 0.97,
+       "door": 1.01,
+       "console": 0.99,
+       "floor left": 1.01,
+       "floor right": 1.0
+      }
+     }
+    },
+    "before-glx-arb": {
+     "level": "towncenter_evil",
+     "renderer": "glx-arb",
+     "runtime": "before",
+     "place": null,
+     "started": "2026-10-24 19:33:44",
+     "steps": "set rconpassword spotprobe\nwait 3000\nconnect 127.0.0.1:27991\nwait 22000\nskipcinematic\nwait 4000\nscreenshotPNG on\nwait 1500\nr_staticLights 0\nwait 2500\nscreenshotPNG off\nwait 1500\n",
+     "binariesUnchanged": true,
+     "installationUnchanged": true,
+     "retail": ".tmp/fakk2-light-law/towncenter_evil/retail/fakk/screenshots/shot0000.tga",
+     "captures": {
+      "on": {
+       "path": ".tmp/spot-cone/fakk2/towncenter_evil/before-glx-arb/home/fakk/screenshots/on.png",
+       "sha256": "0958ef23e963cec73f60398d9ea032cef4b0746ca194d6b09e36d531a9a6a60d"
+      },
+      "off": {
+       "path": ".tmp/spot-cone/fakk2/towncenter_evil/before-glx-arb/home/fakk/screenshots/off.png",
+       "sha256": "af3ef6121b0226cb7bfd0b96ebe4cbc2f1cbe0245accdfc58cf138d84e99b3d1"
+      }
+     },
+     "measured": {
+      "on": [
+       62.58,
+       58.78,
+       39.79
+      ],
+      "off": [
+       49.8,
+       47.01,
+       33.2
+      ],
+      "staticShare": {
+       "changedPixels": 365078,
+       "meanAbsDiff": 11.66
+      },
+      "binariesUnchanged": true,
+      "client": {
+       "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+       "fnql_glx_x86.dll": "654fc1c55fc9fbbfff27441474c64644c60d93aa0d8a9860e03c212f006596fe",
+       "fnql_rtx_x86.dll": "6652b050a2e3373dc7d0e6f47af2344bb479588b2f7b6c36fc0449720d050034",
+       "fnql_vk_x86.dll": "e6a981dcc2dcd7e8bf64cab13b0dc696dc99714daba5dd0a807ca8f141ee1b74",
+       "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769",
+       "fntech3.ded.exe": "cbfbab43f12d0a774f000948024023ba9c6ae400e74dc51245ce5b1a678330a7",
+       "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46"
+      },
+      "retail": [
+       49.3,
+       46.87,
+       33.59
+      ],
+      "onFromRetail": 13.45,
+      "offFromRetail": 4.1,
+      "onRegionsOverRetail": {
+       "upper wall": 1.28,
+       "back wall": 1.55,
+       "arch": 1.17,
+       "door": 1.27,
+       "console": 1.59,
+       "floor left": 1.05,
+       "floor right": 1.08
+      },
+      "offRegionsOverRetail": {
+       "upper wall": 1.0,
+       "back wall": 1.0,
+       "arch": 1.07,
+       "door": 1.01,
+       "console": 0.99,
+       "floor left": 1.01,
+       "floor right": 1.0
+      }
+     }
+    },
+    "before-rtx": {
+     "level": "towncenter_evil",
+     "renderer": "rtx",
+     "runtime": "before",
+     "place": null,
+     "started": "2026-10-24 18:51:36",
+     "steps": "set rconpassword spotprobe\nwait 3000\nconnect 127.0.0.1:27991\nwait 22000\nskipcinematic\nwait 4000\nscreenshotPNG on\nwait 1500\nr_staticLights 0\nwait 2500\nscreenshotPNG off\nwait 1500\n",
+     "binariesUnchanged": true,
+     "installationUnchanged": true,
+     "retail": ".tmp/fakk2-light-law/towncenter_evil/retail/fakk/screenshots/shot0000.tga",
+     "captures": {
+      "on": {
+       "path": ".tmp/spot-cone/fakk2/towncenter_evil/before-rtx/home/fakk/screenshots/on.png",
+       "sha256": "8df7403f97815381c200447a0f4f06433ab04d67c60c82cbcb3ed03dcd478331"
+      },
+      "off": {
+       "path": ".tmp/spot-cone/fakk2/towncenter_evil/before-rtx/home/fakk/screenshots/off.png",
+       "sha256": "828e8d0ed245163febade196f855a776ad99bd22709ff9487a906ab295f5ad1d"
+      }
+     },
+     "measured": {
+      "on": [
+       105.4,
+       95.09,
+       57.8
+      ],
+      "off": [
+       106.32,
+       96.22,
+       59.32
+      ],
+      "staticShare": {
+       "changedPixels": 108112,
+       "meanAbsDiff": 4.788
+      },
+      "binariesUnchanged": true,
+      "client": {
+       "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+       "fnql_glx_x86.dll": "654fc1c55fc9fbbfff27441474c64644c60d93aa0d8a9860e03c212f006596fe",
+       "fnql_rtx_x86.dll": "6652b050a2e3373dc7d0e6f47af2344bb479588b2f7b6c36fc0449720d050034",
+       "fnql_vk_x86.dll": "e6a981dcc2dcd7e8bf64cab13b0dc696dc99714daba5dd0a807ca8f141ee1b74",
+       "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769",
+       "fntech3.ded.exe": "cbfbab43f12d0a774f000948024023ba9c6ae400e74dc51245ce5b1a678330a7",
+       "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46"
+      },
+      "retail": [
+       49.3,
+       46.87,
+       33.59
+      ],
+      "onFromRetail": 44.77,
+      "offFromRetail": 46.21,
+      "onRegionsOverRetail": {
+       "upper wall": 2.06,
+       "back wall": 2.09,
+       "arch": 2.28,
+       "door": 1.34,
+       "console": 2.11,
+       "floor left": 1.72,
+       "floor right": 1.61
+      },
+      "offRegionsOverRetail": {
+       "upper wall": 2.05,
+       "back wall": 2.09,
+       "arch": 2.27,
+       "door": 1.36,
+       "console": 2.13,
+       "floor left": 1.75,
+       "floor right": 1.68
+      }
+     }
+    },
+    "before-vk": {
+     "level": "towncenter_evil",
+     "renderer": "vk",
+     "runtime": "before",
+     "place": null,
+     "started": "2026-10-24 18:50:05",
+     "steps": "set rconpassword spotprobe\nwait 3000\nconnect 127.0.0.1:27991\nwait 22000\nskipcinematic\nwait 4000\nscreenshotPNG on\nwait 1500\nr_staticLights 0\nwait 2500\nscreenshotPNG off\nwait 1500\n",
+     "binariesUnchanged": true,
+     "installationUnchanged": true,
+     "retail": ".tmp/fakk2-light-law/towncenter_evil/retail/fakk/screenshots/shot0000.tga",
+     "captures": {
+      "on": {
+       "path": ".tmp/spot-cone/fakk2/towncenter_evil/before-vk/home/fakk/screenshots/on.png",
+       "sha256": "462479ed215053c5a2859c933e05f875fdcf0a6e3fd2033733ddba7e9678dbc5"
+      },
+      "off": {
+       "path": ".tmp/spot-cone/fakk2/towncenter_evil/before-vk/home/fakk/screenshots/off.png",
+       "sha256": "ec033feca2a2026aa659316fa6b40be2501faa6cc34becc3a920375e876e633c"
+      }
+     },
+     "measured": {
+      "on": [
+       62.38,
+       57.76,
+       39.86
+      ],
+      "off": [
+       48.77,
+       44.73,
+       30.27
+      ],
+      "staticShare": {
+       "changedPixels": 374089,
+       "meanAbsDiff": 13.851
+      },
+      "binariesUnchanged": true,
+      "client": {
+       "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+       "fnql_glx_x86.dll": "654fc1c55fc9fbbfff27441474c64644c60d93aa0d8a9860e03c212f006596fe",
+       "fnql_rtx_x86.dll": "6652b050a2e3373dc7d0e6f47af2344bb479588b2f7b6c36fc0449720d050034",
+       "fnql_vk_x86.dll": "e6a981dcc2dcd7e8bf64cab13b0dc696dc99714daba5dd0a807ca8f141ee1b74",
+       "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769",
+       "fntech3.ded.exe": "cbfbab43f12d0a774f000948024023ba9c6ae400e74dc51245ce5b1a678330a7",
+       "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46"
+      },
+      "retail": [
+       49.3,
+       46.87,
+       33.59
+      ],
+      "onFromRetail": 15.19,
+      "offFromRetail": 7.0,
+      "onRegionsOverRetail": {
+       "upper wall": 1.31,
+       "back wall": 1.56,
+       "arch": 1.21,
+       "door": 1.27,
+       "console": 1.59,
+       "floor left": 1.05,
+       "floor right": 1.08
+      },
+      "offRegionsOverRetail": {
+       "upper wall": 1.02,
+       "back wall": 1.0,
+       "arch": 0.9,
+       "door": 1.01,
+       "console": 0.99,
+       "floor left": 1.01,
+       "floor right": 1.0
+      }
+     }
+    }
+   }
+  }
+ },
+ "rtcw": {
+  "harness": "scripts/probe_rtcw_map_lights.py through .tmp/spot-cone/tools/rtcw_batch.sh",
+  "installation": "E:/SteamLibrary/steamapps/common/Return to Castle Wolfenstein",
+  "runs": {
+   "mp-before": {
+    "profile": "rtcw-mp",
+    "map": "mp_castle",
+    "runtime": ".tmp/runtime/spot-cone-before",
+    "passed": true,
+    "installationUnchanged": true,
+    "loadedFromPackage": true,
+    "package": {
+     "member": "games/rtcw-mp/main/maps/mp_castle.lights.json",
+     "sha256": "8604a229c3a3c34c68576581b1fe25ed9ac8f60bcb66713d8bd7aaec57990d00",
+     "lights": 128,
+     "spots": 53
+    },
+    "demo": {
+     "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\mp-before\\maplights.dm_60",
+     "sha256": "a368047be4370879cf0334a2416364c13a202cd8c4ef9f43778fb6ebdbf523b3",
+     "bytes": 10213
+    },
+    "staticVersusOff": [
+     {
+      "renderer": "glx",
+      "case": "static",
+      "frame": 40,
+      "identical": false,
+      "changedPixels": 74735,
+      "meanAbsDiff": 2.3468
+     },
+     {
+      "renderer": "glx",
+      "case": "static",
+      "frame": 80,
+      "identical": false,
+      "changedPixels": 78038,
+      "meanAbsDiff": 2.4599
+     },
+     {
+      "renderer": "rtx",
+      "case": "static",
+      "frame": 40,
+      "identical": false,
+      "changedPixels": 76282,
+      "meanAbsDiff": 2.4066
+     },
+     {
+      "renderer": "rtx",
+      "case": "static",
+      "frame": 80,
+      "identical": false,
+      "changedPixels": 79819,
+      "meanAbsDiff": 2.5217
+     },
+     {
+      "renderer": "vk",
+      "case": "static",
+      "frame": 40,
+      "identical": false,
+      "changedPixels": 76267,
+      "meanAbsDiff": 2.4065
+     },
+     {
+      "renderer": "vk",
+      "case": "static",
+      "frame": 80,
+      "identical": false,
+      "changedPixels": 79803,
+      "meanAbsDiff": 2.5216
+     }
+    ],
+    "counters": {
+     "glx-off": {
+      "count:128 promoted:0 shadow:0 skipDisabled:128 skipPVS:0 skipBudget:0": 90
+     },
+     "vk-off": {
+      "count:128 promoted:0 shadow:0 skipDisabled:128 skipPVS:0 skipBudget:0": 90
+     },
+     "rtx-off": {
+      "count:128 promoted:0 shadow:0 skipDisabled:128 skipPVS:0 skipBudget:0": 90
+     },
+     "glx-static": {
+      "count:128 promoted:8 shadow:0 skipDisabled:0 skipPVS:4 skipBudget:116": 90
+     },
+     "vk-static": {
+      "count:128 promoted:8 shadow:0 skipDisabled:0 skipPVS:4 skipBudget:116": 90
+     },
+     "rtx-static": {
+      "count:128 promoted:8 shadow:0 skipDisabled:0 skipPVS:4 skipBudget:116": 90
+     }
+    }
+   },
+   "mp-after": {
+    "profile": "rtcw-mp",
+    "map": "mp_castle",
+    "runtime": ".tmp/runtime/spot-cone-after",
+    "passed": true,
+    "installationUnchanged": true,
+    "loadedFromPackage": true,
+    "package": {
+     "member": "games/rtcw-mp/main/maps/mp_castle.lights.json",
+     "sha256": "8604a229c3a3c34c68576581b1fe25ed9ac8f60bcb66713d8bd7aaec57990d00",
+     "lights": 128,
+     "spots": 53
+    },
+    "demo": {
+     "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\mp-before\\maplights.dm_60",
+     "sha256": "a368047be4370879cf0334a2416364c13a202cd8c4ef9f43778fb6ebdbf523b3",
+     "bytes": 10213
+    },
+    "staticVersusOff": [
+     {
+      "renderer": "glx",
+      "case": "static",
+      "frame": 40,
+      "identical": false,
+      "changedPixels": 57322,
+      "meanAbsDiff": 0.7898
+     },
+     {
+      "renderer": "glx",
+      "case": "static",
+      "frame": 80,
+      "identical": false,
+      "changedPixels": 58895,
+      "meanAbsDiff": 0.8049
+     },
+     {
+      "renderer": "rtx",
+      "case": "static",
+      "frame": 40,
+      "identical": false,
+      "changedPixels": 57636,
+      "meanAbsDiff": 0.809
+     },
+     {
+      "renderer": "rtx",
+      "case": "static",
+      "frame": 80,
+      "identical": false,
+      "changedPixels": 59329,
+      "meanAbsDiff": 0.8252
+     },
+     {
+      "renderer": "vk",
+      "case": "static",
+      "frame": 40,
+      "identical": false,
+      "changedPixels": 57628,
+      "meanAbsDiff": 0.8089
+     },
+     {
+      "renderer": "vk",
+      "case": "static",
+      "frame": 80,
+      "identical": false,
+      "changedPixels": 59335,
+      "meanAbsDiff": 0.825
+     }
+    ],
+    "counters": {
+     "glx-off": {
+      "count:128 promoted:0 shadow:0 skipDisabled:128 skipPVS:0 skipBudget:0": 90
+     },
+     "vk-off": {
+      "count:128 promoted:0 shadow:0 skipDisabled:128 skipPVS:0 skipBudget:0": 90
+     },
+     "rtx-off": {
+      "count:128 promoted:0 shadow:0 skipDisabled:128 skipPVS:0 skipBudget:0": 90
+     },
+     "glx-static": {
+      "count:128 promoted:8 shadow:0 skipDisabled:0 skipPVS:4 skipBudget:116": 90
+     },
+     "vk-static": {
+      "count:128 promoted:8 shadow:0 skipDisabled:0 skipPVS:4 skipBudget:116": 90
+     },
+     "rtx-static": {
+      "count:128 promoted:8 shadow:0 skipDisabled:0 skipPVS:4 skipBudget:116": 90
+     }
+    },
+    "againstBefore": [
+     {
+      "renderer": "glx",
+      "case": "off",
+      "frame": 40,
+      "identical": true,
+      "changedPixels": 0,
+      "meanAbsDiff": 0.0
+     },
+     {
+      "renderer": "glx",
+      "case": "off",
+      "frame": 80,
+      "identical": true,
+      "changedPixels": 0,
+      "meanAbsDiff": 0.0
+     },
+     {
+      "renderer": "glx",
+      "case": "static",
+      "frame": 40,
+      "identical": false,
+      "changedPixels": 62356,
+      "meanAbsDiff": 1.5986
+     },
+     {
+      "renderer": "glx",
+      "case": "static",
+      "frame": 80,
+      "identical": false,
+      "changedPixels": 65947,
+      "meanAbsDiff": 1.7056
+     },
+     {
+      "renderer": "rtx",
+      "case": "off",
+      "frame": 40,
+      "identical": true,
+      "changedPixels": 0,
+      "meanAbsDiff": 0.0
+     },
+     {
+      "renderer": "rtx",
+      "case": "off",
+      "frame": 80,
+      "identical": true,
+      "changedPixels": 0,
+      "meanAbsDiff": 0.0
+     },
+     {
+      "renderer": "rtx",
+      "case": "static",
+      "frame": 40,
+      "identical": false,
+      "changedPixels": 62391,
+      "meanAbsDiff": 1.6386
+     },
+     {
+      "renderer": "rtx",
+      "case": "static",
+      "frame": 80,
+      "identical": false,
+      "changedPixels": 65632,
+      "meanAbsDiff": 1.7461
+     },
+     {
+      "renderer": "vk",
+      "case": "off",
+      "frame": 40,
+      "identical": true,
+      "changedPixels": 0,
+      "meanAbsDiff": 0.0
+     },
+     {
+      "renderer": "vk",
+      "case": "off",
+      "frame": 80,
+      "identical": true,
+      "changedPixels": 0,
+      "meanAbsDiff": 0.0
+     },
+     {
+      "renderer": "vk",
+      "case": "static",
+      "frame": 40,
+      "identical": false,
+      "changedPixels": 62376,
+      "meanAbsDiff": 1.6385
+     },
+     {
+      "renderer": "vk",
+      "case": "static",
+      "frame": 80,
+      "identical": false,
+      "changedPixels": 65637,
+      "meanAbsDiff": 1.7462
+     }
+    ]
+   },
+   "sp-before-away": {
+    "profile": "rtcw-sp",
+    "map": "escape1",
+    "runtime": ".tmp/runtime/spot-cone-before",
+    "passed": true,
+    "installationUnchanged": true,
+    "loadedFromPackage": true,
+    "package": {
+     "member": "games/rtcw-sp/main/maps/escape1.lights.json",
+     "sha256": "9e5e70367f1e217a3832944e891209420fe3b0640b6c6bf2675cc3bd835f5bbd",
+     "lights": 128,
+     "spots": 19
+    },
+    "runs": [
+     {
+      "renderer": "glx",
+      "views": [
+       [
+        -3150,
+        250,
+        241,
+        90
+       ]
+      ],
+      "counters": {
+       "count:128 promoted:8 shadow:2 skipDisabled:0 skipPVS:16 skipBudget:104": 44,
+       "count:128 promoted:0 shadow:0 skipDisabled:128 skipPVS:0 skipBudget:0": 22,
+       "count:128 promoted:8 shadow:0 skipDisabled:0 skipPVS:16 skipBudget:104": 30
+      },
+      "offVersusOn": {
+       "identical": false,
+       "meanAbsDiff": 1.2394,
+       "changedPixels": 138770,
+       "meanRGB": [
+        24.14,
+        23.57,
+        21.69
+       ],
+       "meanDeltaInChanged": [
+        3.82,
+        4.38,
+        4.27
+       ]
+      },
+      "onVersusAgain": {
+       "identical": false,
+       "meanAbsDiff": 0.0022,
+       "changedPixels": 145,
+       "meanRGB": [
+        24.15,
+        23.57,
+        21.69
+       ],
+       "meanDeltaInChanged": [
+        10.48,
+        5.78,
+        5.97
+       ]
+      },
+      "screenshots": {
+       "on": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-before-away\\glx-live\\on.png",
+        "sha256": "fcbb64d30bfb6f5572557aa17a582a50d36d74c868e4dffd264df64b85b4f5d4"
+       },
+       "off": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-before-away\\glx-live\\off.png",
+        "sha256": "25f2fffc6729059624d3551e6601633e731b6166706d35d5d9fb5526c2ce8823"
+       },
+       "again": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-before-away\\glx-live\\again.png",
+        "sha256": "46884c8b2f3e732fa7b62e1c7ce572becd1cc31448d97a1986d0ad3ec29038b6"
+       },
+       "noshadow": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-before-away\\glx-live\\noshadow.png",
+        "sha256": "54bb4aa272c9954b336f2d4c64b5ff3d884655e40780f780de64bd6862006855"
+       }
+      },
+      "command": [
+       "+set",
+       "com_gameProfile",
+       "rtcw-sp",
+       "+set",
+       "fs_basepath",
+       "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+       "+set",
+       "fs_homepath",
+       "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-before-away\\glx-live\\home",
+       "+set",
+       "fs_game",
+       "",
+       "+set",
+       "fs_cdpath",
+       "",
+       "+set",
+       "r_fullscreen",
+       "0",
+       "+set",
+       "r_mode",
+       "-1",
+       "+set",
+       "r_customWidth",
+       "800",
+       "+set",
+       "r_customHeight",
+       "600",
+       "+set",
+       "in_mouse",
+       "0",
+       "+set",
+       "in_joystick",
+       "0",
+       "+set",
+       "in_nograb",
+       "1",
+       "+set",
+       "s_initsound",
+       "0",
+       "+set",
+       "com_steamIntegration",
+       "0",
+       "+set",
+       "fs_skipWorkshop",
+       "1",
+       "+set",
+       "cl_webuiEnable",
+       "0",
+       "+set",
+       "cl_renderer",
+       "glx",
+       "+set",
+       "logfile",
+       "2",
+       "+set",
+       "net_enabled",
+       "0",
+       "+set",
+       "rtx_rt_mode",
+       "0",
+       "+set",
+       "rtx_rt_require",
+       "0",
+       "+set",
+       "com_maxfps",
+       "60",
+       "+set",
+       "com_recommendedSet",
+       "1",
+       "+set",
+       "cl_motd",
+       "0",
+       "+exec",
+       "probe.cfg",
+       "+devmap",
+       "escape1"
+      ]
+     },
+     {
+      "renderer": "vk",
+      "views": [
+       [
+        -3150,
+        250,
+        241,
+        90
+       ]
+      ],
+      "counters": {
+       "count:128 promoted:8 shadow:2 skipDisabled:0 skipPVS:16 skipBudget:104": 44,
+       "count:128 promoted:0 shadow:0 skipDisabled:128 skipPVS:0 skipBudget:0": 22,
+       "count:128 promoted:8 shadow:0 skipDisabled:0 skipPVS:16 skipBudget:104": 30
+      },
+      "offVersusOn": {
+       "identical": false,
+       "meanAbsDiff": 1.3296,
+       "changedPixels": 118160,
+       "meanRGB": [
+        24.26,
+        23.67,
+        21.79
+       ],
+       "meanDeltaInChanged": [
+        4.29,
+        4.93,
+        4.8
+       ]
+      },
+      "onVersusAgain": {
+       "identical": false,
+       "meanAbsDiff": 0.0023,
+       "changedPixels": 145,
+       "meanRGB": [
+        24.26,
+        23.68,
+        21.8
+       ],
+       "meanDeltaInChanged": [
+        10.81,
+        5.99,
+        6.33
+       ]
+      },
+      "screenshots": {
+       "on": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-before-away\\vk-live\\on.png",
+        "sha256": "810d57c7030513f77724c0b23c74f2dfcc8da83541d5d9a017184dc65a714980"
+       },
+       "off": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-before-away\\vk-live\\off.png",
+        "sha256": "844ed505608a43d443d2bc1bbc21e1b602e0974496abf1a4323d1325f78551f9"
+       },
+       "again": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-before-away\\vk-live\\again.png",
+        "sha256": "4b21b5c2b46cc9e8c76c715840d150cd103323768594a4df10c9911933c30c95"
+       },
+       "noshadow": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-before-away\\vk-live\\noshadow.png",
+        "sha256": "1649e48b7008690a33d828334d41bce2f2ce03d29c516953dc038d26fbbd726e"
+       }
+      },
+      "command": [
+       "+set",
+       "com_gameProfile",
+       "rtcw-sp",
+       "+set",
+       "fs_basepath",
+       "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+       "+set",
+       "fs_homepath",
+       "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-before-away\\vk-live\\home",
+       "+set",
+       "fs_game",
+       "",
+       "+set",
+       "fs_cdpath",
+       "",
+       "+set",
+       "r_fullscreen",
+       "0",
+       "+set",
+       "r_mode",
+       "-1",
+       "+set",
+       "r_customWidth",
+       "800",
+       "+set",
+       "r_customHeight",
+       "600",
+       "+set",
+       "in_mouse",
+       "0",
+       "+set",
+       "in_joystick",
+       "0",
+       "+set",
+       "in_nograb",
+       "1",
+       "+set",
+       "s_initsound",
+       "0",
+       "+set",
+       "com_steamIntegration",
+       "0",
+       "+set",
+       "fs_skipWorkshop",
+       "1",
+       "+set",
+       "cl_webuiEnable",
+       "0",
+       "+set",
+       "cl_renderer",
+       "vk",
+       "+set",
+       "logfile",
+       "2",
+       "+set",
+       "net_enabled",
+       "0",
+       "+set",
+       "rtx_rt_mode",
+       "0",
+       "+set",
+       "rtx_rt_require",
+       "0",
+       "+set",
+       "com_maxfps",
+       "60",
+       "+set",
+       "com_recommendedSet",
+       "1",
+       "+set",
+       "cl_motd",
+       "0",
+       "+exec",
+       "probe.cfg",
+       "+devmap",
+       "escape1"
+      ]
+     },
+     {
+      "renderer": "rtx",
+      "views": [
+       [
+        -3150,
+        250,
+        241,
+        90
+       ]
+      ],
+      "counters": {
+       "count:128 promoted:8 shadow:2 skipDisabled:0 skipPVS:16 skipBudget:104": 44,
+       "count:128 promoted:0 shadow:0 skipDisabled:128 skipPVS:0 skipBudget:0": 22,
+       "count:128 promoted:8 shadow:0 skipDisabled:0 skipPVS:16 skipBudget:104": 30
+      },
+      "offVersusOn": {
+       "identical": false,
+       "meanAbsDiff": 1.3309,
+       "changedPixels": 118173,
+       "meanRGB": [
+        24.25,
+        23.67,
+        21.79
+       ],
+       "meanDeltaInChanged": [
+        4.29,
+        4.94,
+        4.8
+       ]
+      },
+      "onVersusAgain": {
+       "identical": false,
+       "meanAbsDiff": 0.0023,
+       "changedPixels": 145,
+       "meanRGB": [
+        24.26,
+        23.67,
+        21.79
+       ],
+       "meanDeltaInChanged": [
+        10.82,
+        5.99,
+        6.35
+       ]
+      },
+      "screenshots": {
+       "on": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-before-away\\rtx-live\\on.png",
+        "sha256": "0b8376efd65c2f61757fb8a270946d7e11aa0134a03aa12d32e21f8af03b13ce"
+       },
+       "off": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-before-away\\rtx-live\\off.png",
+        "sha256": "a4e4f90de0d1f7d97d82243446d050adee4025627941281b7cd89735bf2ab332"
+       },
+       "again": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-before-away\\rtx-live\\again.png",
+        "sha256": "6973c3abc264cf5f72cc63776b45627d8c2cb96e9983fcef8cfcddde7e63d780"
+       },
+       "noshadow": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-before-away\\rtx-live\\noshadow.png",
+        "sha256": "8882b6e19c3a9170ac50ae2c44ab89e4723dadd7e1562abec36f4fe1b2101c07"
+       }
+      },
+      "command": [
+       "+set",
+       "com_gameProfile",
+       "rtcw-sp",
+       "+set",
+       "fs_basepath",
+       "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+       "+set",
+       "fs_homepath",
+       "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-before-away\\rtx-live\\home",
+       "+set",
+       "fs_game",
+       "",
+       "+set",
+       "fs_cdpath",
+       "",
+       "+set",
+       "r_fullscreen",
+       "0",
+       "+set",
+       "r_mode",
+       "-1",
+       "+set",
+       "r_customWidth",
+       "800",
+       "+set",
+       "r_customHeight",
+       "600",
+       "+set",
+       "in_mouse",
+       "0",
+       "+set",
+       "in_joystick",
+       "0",
+       "+set",
+       "in_nograb",
+       "1",
+       "+set",
+       "s_initsound",
+       "0",
+       "+set",
+       "com_steamIntegration",
+       "0",
+       "+set",
+       "fs_skipWorkshop",
+       "1",
+       "+set",
+       "cl_webuiEnable",
+       "0",
+       "+set",
+       "cl_renderer",
+       "rtx",
+       "+set",
+       "logfile",
+       "2",
+       "+set",
+       "net_enabled",
+       "0",
+       "+set",
+       "rtx_rt_mode",
+       "0",
+       "+set",
+       "rtx_rt_require",
+       "0",
+       "+set",
+       "com_maxfps",
+       "60",
+       "+set",
+       "com_recommendedSet",
+       "1",
+       "+set",
+       "cl_motd",
+       "0",
+       "+exec",
+       "probe.cfg",
+       "+devmap",
+       "escape1"
+      ]
+     }
+    ]
+   },
+   "sp-after-away": {
+    "profile": "rtcw-sp",
+    "map": "escape1",
+    "runtime": ".tmp/runtime/spot-cone-after",
+    "passed": true,
+    "installationUnchanged": true,
+    "loadedFromPackage": true,
+    "package": {
+     "member": "games/rtcw-sp/main/maps/escape1.lights.json",
+     "sha256": "9e5e70367f1e217a3832944e891209420fe3b0640b6c6bf2675cc3bd835f5bbd",
+     "lights": 128,
+     "spots": 19
+    },
+    "runs": [
+     {
+      "renderer": "glx",
+      "views": [
+       [
+        -3150,
+        250,
+        241,
+        90
+       ]
+      ],
+      "counters": {
+       "count:128 promoted:8 shadow:2 skipDisabled:0 skipPVS:16 skipBudget:104": 44,
+       "count:128 promoted:0 shadow:0 skipDisabled:128 skipPVS:0 skipBudget:0": 22,
+       "count:128 promoted:8 shadow:0 skipDisabled:0 skipPVS:16 skipBudget:104": 30
+      },
+      "offVersusOn": {
+       "identical": false,
+       "meanAbsDiff": 1.2367,
+       "changedPixels": 138231,
+       "meanRGB": [
+        24.14,
+        23.57,
+        21.68
+       ],
+       "meanDeltaInChanged": [
+        3.82,
+        4.39,
+        4.28
+       ]
+      },
+      "onVersusAgain": {
+       "identical": false,
+       "meanAbsDiff": 0.0022,
+       "changedPixels": 145,
+       "meanRGB": [
+        24.14,
+        23.57,
+        21.69
+       ],
+       "meanDeltaInChanged": [
+        10.48,
+        5.78,
+        5.97
+       ]
+      },
+      "screenshots": {
+       "on": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-after-away\\glx-live\\on.png",
+        "sha256": "0616e69b5fc118eb208f28966bd157198fe92a8fc886ca7ccbacdefab0caa9a8"
+       },
+       "off": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-after-away\\glx-live\\off.png",
+        "sha256": "25f2fffc6729059624d3551e6601633e731b6166706d35d5d9fb5526c2ce8823"
+       },
+       "again": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-after-away\\glx-live\\again.png",
+        "sha256": "849162cd1da9f3be4fc8ee7db4db40bfbbb5783e9f0034a84ffadfa1f8fd1c34"
+       },
+       "noshadow": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-after-away\\glx-live\\noshadow.png",
+        "sha256": "c5ecc02af034c4ed6a8bdfbf6c2607995f3ce01d28283e752df2bed3b78e900c"
+       }
+      },
+      "command": [
+       "+set",
+       "com_gameProfile",
+       "rtcw-sp",
+       "+set",
+       "fs_basepath",
+       "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+       "+set",
+       "fs_homepath",
+       "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-after-away\\glx-live\\home",
+       "+set",
+       "fs_game",
+       "",
+       "+set",
+       "fs_cdpath",
+       "",
+       "+set",
+       "r_fullscreen",
+       "0",
+       "+set",
+       "r_mode",
+       "-1",
+       "+set",
+       "r_customWidth",
+       "800",
+       "+set",
+       "r_customHeight",
+       "600",
+       "+set",
+       "in_mouse",
+       "0",
+       "+set",
+       "in_joystick",
+       "0",
+       "+set",
+       "in_nograb",
+       "1",
+       "+set",
+       "s_initsound",
+       "0",
+       "+set",
+       "com_steamIntegration",
+       "0",
+       "+set",
+       "fs_skipWorkshop",
+       "1",
+       "+set",
+       "cl_webuiEnable",
+       "0",
+       "+set",
+       "cl_renderer",
+       "glx",
+       "+set",
+       "logfile",
+       "2",
+       "+set",
+       "net_enabled",
+       "0",
+       "+set",
+       "rtx_rt_mode",
+       "0",
+       "+set",
+       "rtx_rt_require",
+       "0",
+       "+set",
+       "com_maxfps",
+       "60",
+       "+set",
+       "com_recommendedSet",
+       "1",
+       "+set",
+       "cl_motd",
+       "0",
+       "+exec",
+       "probe.cfg",
+       "+devmap",
+       "escape1"
+      ]
+     },
+     {
+      "renderer": "vk",
+      "views": [
+       [
+        -3150,
+        250,
+        241,
+        90
+       ]
+      ],
+      "counters": {
+       "count:128 promoted:8 shadow:2 skipDisabled:0 skipPVS:16 skipBudget:104": 44,
+       "count:128 promoted:0 shadow:0 skipDisabled:128 skipPVS:0 skipBudget:0": 22,
+       "count:128 promoted:8 shadow:0 skipDisabled:0 skipPVS:16 skipBudget:104": 30
+      },
+      "offVersusOn": {
+       "identical": false,
+       "meanAbsDiff": 1.3272,
+       "changedPixels": 117678,
+       "meanRGB": [
+        24.25,
+        23.67,
+        21.79
+       ],
+       "meanDeltaInChanged": [
+        4.29,
+        4.94,
+        4.81
+       ]
+      },
+      "onVersusAgain": {
+       "identical": false,
+       "meanAbsDiff": 0.0023,
+       "changedPixels": 145,
+       "meanRGB": [
+        24.26,
+        23.67,
+        21.79
+       ],
+       "meanDeltaInChanged": [
+        10.81,
+        5.99,
+        6.33
+       ]
+      },
+      "screenshots": {
+       "on": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-after-away\\vk-live\\on.png",
+        "sha256": "55df472f8a0c35eea6a50d39857e41279b56ffed72b969bcf4c3a12bacd9ce05"
+       },
+       "off": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-after-away\\vk-live\\off.png",
+        "sha256": "844ed505608a43d443d2bc1bbc21e1b602e0974496abf1a4323d1325f78551f9"
+       },
+       "again": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-after-away\\vk-live\\again.png",
+        "sha256": "4c40c4aeaa119cc3d17703609625f17b7b2fca7330110f604a57650177d1fa6d"
+       },
+       "noshadow": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-after-away\\vk-live\\noshadow.png",
+        "sha256": "ea84acda6396fffe6b871fc5a713266a9603f8a9c4735632adc8f687395ce149"
+       }
+      },
+      "command": [
+       "+set",
+       "com_gameProfile",
+       "rtcw-sp",
+       "+set",
+       "fs_basepath",
+       "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+       "+set",
+       "fs_homepath",
+       "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-after-away\\vk-live\\home",
+       "+set",
+       "fs_game",
+       "",
+       "+set",
+       "fs_cdpath",
+       "",
+       "+set",
+       "r_fullscreen",
+       "0",
+       "+set",
+       "r_mode",
+       "-1",
+       "+set",
+       "r_customWidth",
+       "800",
+       "+set",
+       "r_customHeight",
+       "600",
+       "+set",
+       "in_mouse",
+       "0",
+       "+set",
+       "in_joystick",
+       "0",
+       "+set",
+       "in_nograb",
+       "1",
+       "+set",
+       "s_initsound",
+       "0",
+       "+set",
+       "com_steamIntegration",
+       "0",
+       "+set",
+       "fs_skipWorkshop",
+       "1",
+       "+set",
+       "cl_webuiEnable",
+       "0",
+       "+set",
+       "cl_renderer",
+       "vk",
+       "+set",
+       "logfile",
+       "2",
+       "+set",
+       "net_enabled",
+       "0",
+       "+set",
+       "rtx_rt_mode",
+       "0",
+       "+set",
+       "rtx_rt_require",
+       "0",
+       "+set",
+       "com_maxfps",
+       "60",
+       "+set",
+       "com_recommendedSet",
+       "1",
+       "+set",
+       "cl_motd",
+       "0",
+       "+exec",
+       "probe.cfg",
+       "+devmap",
+       "escape1"
+      ]
+     },
+     {
+      "renderer": "rtx",
+      "views": [
+       [
+        -3150,
+        250,
+        241,
+        90
+       ]
+      ],
+      "counters": {
+       "count:128 promoted:8 shadow:2 skipDisabled:0 skipPVS:16 skipBudget:104": 44,
+       "count:128 promoted:0 shadow:0 skipDisabled:128 skipPVS:0 skipBudget:0": 22,
+       "count:128 promoted:8 shadow:0 skipDisabled:0 skipPVS:16 skipBudget:104": 30
+      },
+      "offVersusOn": {
+       "identical": false,
+       "meanAbsDiff": 1.3285,
+       "changedPixels": 117699,
+       "meanRGB": [
+        24.25,
+        23.67,
+        21.79
+       ],
+       "meanDeltaInChanged": [
+        4.29,
+        4.95,
+        4.81
+       ]
+      },
+      "onVersusAgain": {
+       "identical": false,
+       "meanAbsDiff": 0.0023,
+       "changedPixels": 145,
+       "meanRGB": [
+        24.25,
+        23.67,
+        21.79
+       ],
+       "meanDeltaInChanged": [
+        10.82,
+        5.99,
+        6.35
+       ]
+      },
+      "screenshots": {
+       "on": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-after-away\\rtx-live\\on.png",
+        "sha256": "98e330a7719b58ea7e3ab963cf8b2968075efecc50075af1be2ca11326adbbd4"
+       },
+       "off": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-after-away\\rtx-live\\off.png",
+        "sha256": "a4e4f90de0d1f7d97d82243446d050adee4025627941281b7cd89735bf2ab332"
+       },
+       "again": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-after-away\\rtx-live\\again.png",
+        "sha256": "7049f0774421f71f825274ff9e6ce6789033e014104fa7ac6ca137fe3e1755bf"
+       },
+       "noshadow": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-after-away\\rtx-live\\noshadow.png",
+        "sha256": "c779f2465813c8e41b5024398e4af59b6ff41b92e4da84de69eaf4fb0032ab65"
+       }
+      },
+      "command": [
+       "+set",
+       "com_gameProfile",
+       "rtcw-sp",
+       "+set",
+       "fs_basepath",
+       "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+       "+set",
+       "fs_homepath",
+       "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-after-away\\rtx-live\\home",
+       "+set",
+       "fs_game",
+       "",
+       "+set",
+       "fs_cdpath",
+       "",
+       "+set",
+       "r_fullscreen",
+       "0",
+       "+set",
+       "r_mode",
+       "-1",
+       "+set",
+       "r_customWidth",
+       "800",
+       "+set",
+       "r_customHeight",
+       "600",
+       "+set",
+       "in_mouse",
+       "0",
+       "+set",
+       "in_joystick",
+       "0",
+       "+set",
+       "in_nograb",
+       "1",
+       "+set",
+       "s_initsound",
+       "0",
+       "+set",
+       "com_steamIntegration",
+       "0",
+       "+set",
+       "fs_skipWorkshop",
+       "1",
+       "+set",
+       "cl_webuiEnable",
+       "0",
+       "+set",
+       "cl_renderer",
+       "rtx",
+       "+set",
+       "logfile",
+       "2",
+       "+set",
+       "net_enabled",
+       "0",
+       "+set",
+       "rtx_rt_mode",
+       "0",
+       "+set",
+       "rtx_rt_require",
+       "0",
+       "+set",
+       "com_maxfps",
+       "60",
+       "+set",
+       "com_recommendedSet",
+       "1",
+       "+set",
+       "cl_motd",
+       "0",
+       "+exec",
+       "probe.cfg",
+       "+devmap",
+       "escape1"
+      ]
+     }
+    ]
+   },
+   "sp-before-toward": {
+    "profile": "rtcw-sp",
+    "map": "escape1",
+    "runtime": ".tmp/runtime/spot-cone-before",
+    "passed": true,
+    "installationUnchanged": true,
+    "loadedFromPackage": true,
+    "package": {
+     "member": "games/rtcw-sp/main/maps/escape1.lights.json",
+     "sha256": "9e5e70367f1e217a3832944e891209420fe3b0640b6c6bf2675cc3bd835f5bbd",
+     "lights": 128,
+     "spots": 19
+    },
+    "runs": [
+     {
+      "renderer": "glx",
+      "views": [
+       [
+        -3150,
+        250,
+        241,
+        -90
+       ]
+      ],
+      "counters": {
+       "count:128 promoted:8 shadow:2 skipDisabled:0 skipPVS:16 skipBudget:104": 44,
+       "count:128 promoted:0 shadow:0 skipDisabled:128 skipPVS:0 skipBudget:0": 22,
+       "count:128 promoted:8 shadow:0 skipDisabled:0 skipPVS:16 skipBudget:104": 30
+      },
+      "offVersusOn": {
+       "identical": false,
+       "meanAbsDiff": 2.1248,
+       "changedPixels": 317443,
+       "meanRGB": [
+        27.09,
+        25.35,
+        22.32
+       ],
+       "meanDeltaInChanged": [
+        3.0,
+        3.28,
+        3.2
+       ]
+      },
+      "onVersusAgain": {
+       "identical": false,
+       "meanAbsDiff": 0.0525,
+       "changedPixels": 9598,
+       "meanRGB": [
+        27.1,
+        25.36,
+        22.34
+       ],
+       "meanDeltaInChanged": [
+        0.44,
+        0.37,
+        0.37
+       ]
+      },
+      "screenshots": {
+       "on": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-before-toward\\glx-live\\on.png",
+        "sha256": "4705334e21d89c5e97f384a1a60ff77fe93de38e6d9550aeb69f8a5770d40e79"
+       },
+       "off": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-before-toward\\glx-live\\off.png",
+        "sha256": "3c4ce992a8f782dac32570421e774b2c924ddfa0e17c8d90821f6b310108eb1d"
+       },
+       "again": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-before-toward\\glx-live\\again.png",
+        "sha256": "0f2507ab360d20da81a94b80695d705a6d773d6be828e113dcbac269c1b09ca1"
+       },
+       "noshadow": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-before-toward\\glx-live\\noshadow.png",
+        "sha256": "8326651990b4ca8a100148c32a60e426efb54dca4921809ad0e9613ce3689d89"
+       }
+      },
+      "command": [
+       "+set",
+       "com_gameProfile",
+       "rtcw-sp",
+       "+set",
+       "fs_basepath",
+       "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+       "+set",
+       "fs_homepath",
+       "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-before-toward\\glx-live\\home",
+       "+set",
+       "fs_game",
+       "",
+       "+set",
+       "fs_cdpath",
+       "",
+       "+set",
+       "r_fullscreen",
+       "0",
+       "+set",
+       "r_mode",
+       "-1",
+       "+set",
+       "r_customWidth",
+       "800",
+       "+set",
+       "r_customHeight",
+       "600",
+       "+set",
+       "in_mouse",
+       "0",
+       "+set",
+       "in_joystick",
+       "0",
+       "+set",
+       "in_nograb",
+       "1",
+       "+set",
+       "s_initsound",
+       "0",
+       "+set",
+       "com_steamIntegration",
+       "0",
+       "+set",
+       "fs_skipWorkshop",
+       "1",
+       "+set",
+       "cl_webuiEnable",
+       "0",
+       "+set",
+       "cl_renderer",
+       "glx",
+       "+set",
+       "logfile",
+       "2",
+       "+set",
+       "net_enabled",
+       "0",
+       "+set",
+       "rtx_rt_mode",
+       "0",
+       "+set",
+       "rtx_rt_require",
+       "0",
+       "+set",
+       "com_maxfps",
+       "60",
+       "+set",
+       "com_recommendedSet",
+       "1",
+       "+set",
+       "cl_motd",
+       "0",
+       "+exec",
+       "probe.cfg",
+       "+devmap",
+       "escape1"
+      ]
+     },
+     {
+      "renderer": "vk",
+      "views": [
+       [
+        -3150,
+        250,
+        241,
+        -90
+       ]
+      ],
+      "counters": {
+       "count:128 promoted:8 shadow:2 skipDisabled:0 skipPVS:16 skipBudget:104": 44,
+       "count:128 promoted:0 shadow:0 skipDisabled:128 skipPVS:0 skipBudget:0": 22,
+       "count:128 promoted:8 shadow:0 skipDisabled:0 skipPVS:16 skipBudget:104": 30
+      },
+      "offVersusOn": {
+       "identical": false,
+       "meanAbsDiff": 2.2778,
+       "changedPixels": 273089,
+       "meanRGB": [
+        27.26,
+        25.51,
+        22.49
+       ],
+       "meanDeltaInChanged": [
+        3.31,
+        3.63,
+        3.56
+       ]
+      },
+      "onVersusAgain": {
+       "identical": false,
+       "meanAbsDiff": 0.0472,
+       "changedPixels": 192,
+       "meanRGB": [
+        27.27,
+        25.53,
+        22.5
+       ],
+       "meanDeltaInChanged": [
+        9.22,
+        5.39,
+        5.47
+       ]
+      },
+      "screenshots": {
+       "on": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-before-toward\\vk-live\\on.png",
+        "sha256": "609086955a8d398da045c50bb20b2f65b8b9e9c2c3d0245e6133a274fa735b27"
+       },
+       "off": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-before-toward\\vk-live\\off.png",
+        "sha256": "64bc431bebf277a00a42abe3ca597cc99aa330e1655bbd5777f157c7382decd8"
+       },
+       "again": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-before-toward\\vk-live\\again.png",
+        "sha256": "7d93f6ab0d69957363df4fd6650fc939a99ade67069b039455f6feecd47ad56e"
+       },
+       "noshadow": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-before-toward\\vk-live\\noshadow.png",
+        "sha256": "aea4879436e3ecdd78d7979ddae69e613d578cbe84facb3c4607dbec23460820"
+       }
+      },
+      "command": [
+       "+set",
+       "com_gameProfile",
+       "rtcw-sp",
+       "+set",
+       "fs_basepath",
+       "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+       "+set",
+       "fs_homepath",
+       "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-before-toward\\vk-live\\home",
+       "+set",
+       "fs_game",
+       "",
+       "+set",
+       "fs_cdpath",
+       "",
+       "+set",
+       "r_fullscreen",
+       "0",
+       "+set",
+       "r_mode",
+       "-1",
+       "+set",
+       "r_customWidth",
+       "800",
+       "+set",
+       "r_customHeight",
+       "600",
+       "+set",
+       "in_mouse",
+       "0",
+       "+set",
+       "in_joystick",
+       "0",
+       "+set",
+       "in_nograb",
+       "1",
+       "+set",
+       "s_initsound",
+       "0",
+       "+set",
+       "com_steamIntegration",
+       "0",
+       "+set",
+       "fs_skipWorkshop",
+       "1",
+       "+set",
+       "cl_webuiEnable",
+       "0",
+       "+set",
+       "cl_renderer",
+       "vk",
+       "+set",
+       "logfile",
+       "2",
+       "+set",
+       "net_enabled",
+       "0",
+       "+set",
+       "rtx_rt_mode",
+       "0",
+       "+set",
+       "rtx_rt_require",
+       "0",
+       "+set",
+       "com_maxfps",
+       "60",
+       "+set",
+       "com_recommendedSet",
+       "1",
+       "+set",
+       "cl_motd",
+       "0",
+       "+exec",
+       "probe.cfg",
+       "+devmap",
+       "escape1"
+      ]
+     },
+     {
+      "renderer": "rtx",
+      "views": [
+       [
+        -3150,
+        250,
+        241,
+        -90
+       ]
+      ],
+      "counters": {
+       "count:128 promoted:8 shadow:2 skipDisabled:0 skipPVS:16 skipBudget:104": 44,
+       "count:128 promoted:0 shadow:0 skipDisabled:128 skipPVS:0 skipBudget:0": 22,
+       "count:128 promoted:8 shadow:0 skipDisabled:0 skipPVS:16 skipBudget:104": 30
+      },
+      "offVersusOn": {
+       "identical": false,
+       "meanAbsDiff": 2.9672,
+       "changedPixels": 390893,
+       "meanRGB": [
+        27.9,
+        26.23,
+        23.18
+       ],
+       "meanDeltaInChanged": [
+        3.19,
+        3.49,
+        3.39
+       ]
+      },
+      "onVersusAgain": {
+       "identical": false,
+       "meanAbsDiff": 0.0024,
+       "changedPixels": 145,
+       "meanRGB": [
+        27.91,
+        26.23,
+        23.19
+       ],
+       "meanDeltaInChanged": [
+        11.43,
+        6.3,
+        6.4
+       ]
+      },
+      "screenshots": {
+       "on": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-before-toward\\rtx-live\\on.png",
+        "sha256": "c2f73944019dc5fa57e429e264fec679a6e499d08737bf539d5f3c0352143815"
+       },
+       "off": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-before-toward\\rtx-live\\off.png",
+        "sha256": "a0c1b9675bc3887d661671ea23ccc0cdab538a2cc403284de852d0f935017e57"
+       },
+       "again": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-before-toward\\rtx-live\\again.png",
+        "sha256": "0013cc54370df17ef3e9c021026fc59a955faa173286d76fefeb779085176e88"
+       },
+       "noshadow": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-before-toward\\rtx-live\\noshadow.png",
+        "sha256": "58058fcda17f8b593191f9113049342974d97c1d953bbfe3d06b1f8e995e3a92"
+       }
+      },
+      "command": [
+       "+set",
+       "com_gameProfile",
+       "rtcw-sp",
+       "+set",
+       "fs_basepath",
+       "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+       "+set",
+       "fs_homepath",
+       "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-before-toward\\rtx-live\\home",
+       "+set",
+       "fs_game",
+       "",
+       "+set",
+       "fs_cdpath",
+       "",
+       "+set",
+       "r_fullscreen",
+       "0",
+       "+set",
+       "r_mode",
+       "-1",
+       "+set",
+       "r_customWidth",
+       "800",
+       "+set",
+       "r_customHeight",
+       "600",
+       "+set",
+       "in_mouse",
+       "0",
+       "+set",
+       "in_joystick",
+       "0",
+       "+set",
+       "in_nograb",
+       "1",
+       "+set",
+       "s_initsound",
+       "0",
+       "+set",
+       "com_steamIntegration",
+       "0",
+       "+set",
+       "fs_skipWorkshop",
+       "1",
+       "+set",
+       "cl_webuiEnable",
+       "0",
+       "+set",
+       "cl_renderer",
+       "rtx",
+       "+set",
+       "logfile",
+       "2",
+       "+set",
+       "net_enabled",
+       "0",
+       "+set",
+       "rtx_rt_mode",
+       "0",
+       "+set",
+       "rtx_rt_require",
+       "0",
+       "+set",
+       "com_maxfps",
+       "60",
+       "+set",
+       "com_recommendedSet",
+       "1",
+       "+set",
+       "cl_motd",
+       "0",
+       "+exec",
+       "probe.cfg",
+       "+devmap",
+       "escape1"
+      ]
+     }
+    ]
+   },
+   "sp-after-toward": {
+    "profile": "rtcw-sp",
+    "map": "escape1",
+    "runtime": ".tmp/runtime/spot-cone-after",
+    "passed": true,
+    "installationUnchanged": true,
+    "loadedFromPackage": true,
+    "package": {
+     "member": "games/rtcw-sp/main/maps/escape1.lights.json",
+     "sha256": "9e5e70367f1e217a3832944e891209420fe3b0640b6c6bf2675cc3bd835f5bbd",
+     "lights": 128,
+     "spots": 19
+    },
+    "runs": [
+     {
+      "renderer": "glx",
+      "views": [
+       [
+        -3150,
+        250,
+        241,
+        -90
+       ]
+      ],
+      "counters": {
+       "count:128 promoted:8 shadow:2 skipDisabled:0 skipPVS:16 skipBudget:104": 44,
+       "count:128 promoted:0 shadow:0 skipDisabled:128 skipPVS:0 skipBudget:0": 22,
+       "count:128 promoted:8 shadow:0 skipDisabled:0 skipPVS:16 skipBudget:104": 30
+      },
+      "offVersusOn": {
+       "identical": false,
+       "meanAbsDiff": 2.0443,
+       "changedPixels": 317560,
+       "meanRGB": [
+        26.97,
+        25.28,
+        22.28
+       ],
+       "meanDeltaInChanged": [
+        2.86,
+        3.17,
+        3.14
+       ]
+      },
+      "onVersusAgain": {
+       "identical": false,
+       "meanAbsDiff": 0.1067,
+       "changedPixels": 20574,
+       "meanRGB": [
+        26.98,
+        25.29,
+        22.3
+       ],
+       "meanDeltaInChanged": [
+        0.26,
+        0.26,
+        0.26
+       ]
+      },
+      "screenshots": {
+       "on": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-after-toward\\glx-live\\on.png",
+        "sha256": "17cb8903d1ab9ebc0cc3ee544b44bc6c63b39cb904a0cfa7ac0c36d019aba0a5"
+       },
+       "off": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-after-toward\\glx-live\\off.png",
+        "sha256": "8aa9c4262ce5039fc49b8bca9b8c782d697f44cfced779f5cbf55ccfd5f3e707"
+       },
+       "again": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-after-toward\\glx-live\\again.png",
+        "sha256": "7c3bc533c100aff16c53130eb64f50fd3c99331863a0724d359bfa26b2bb470c"
+       },
+       "noshadow": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-after-toward\\glx-live\\noshadow.png",
+        "sha256": "6cacb9a2f78ca90ad5a2cae9609b8d5604f1736e7c1f7d5cc609e39ffa948cdc"
+       }
+      },
+      "command": [
+       "+set",
+       "com_gameProfile",
+       "rtcw-sp",
+       "+set",
+       "fs_basepath",
+       "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+       "+set",
+       "fs_homepath",
+       "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-after-toward\\glx-live\\home",
+       "+set",
+       "fs_game",
+       "",
+       "+set",
+       "fs_cdpath",
+       "",
+       "+set",
+       "r_fullscreen",
+       "0",
+       "+set",
+       "r_mode",
+       "-1",
+       "+set",
+       "r_customWidth",
+       "800",
+       "+set",
+       "r_customHeight",
+       "600",
+       "+set",
+       "in_mouse",
+       "0",
+       "+set",
+       "in_joystick",
+       "0",
+       "+set",
+       "in_nograb",
+       "1",
+       "+set",
+       "s_initsound",
+       "0",
+       "+set",
+       "com_steamIntegration",
+       "0",
+       "+set",
+       "fs_skipWorkshop",
+       "1",
+       "+set",
+       "cl_webuiEnable",
+       "0",
+       "+set",
+       "cl_renderer",
+       "glx",
+       "+set",
+       "logfile",
+       "2",
+       "+set",
+       "net_enabled",
+       "0",
+       "+set",
+       "rtx_rt_mode",
+       "0",
+       "+set",
+       "rtx_rt_require",
+       "0",
+       "+set",
+       "com_maxfps",
+       "60",
+       "+set",
+       "com_recommendedSet",
+       "1",
+       "+set",
+       "cl_motd",
+       "0",
+       "+exec",
+       "probe.cfg",
+       "+devmap",
+       "escape1"
+      ]
+     },
+     {
+      "renderer": "vk",
+      "views": [
+       [
+        -3150,
+        250,
+        241,
+        -90
+       ]
+      ],
+      "counters": {
+       "count:128 promoted:8 shadow:2 skipDisabled:0 skipPVS:16 skipBudget:104": 44,
+       "count:128 promoted:0 shadow:0 skipDisabled:128 skipPVS:0 skipBudget:0": 22,
+       "count:128 promoted:8 shadow:0 skipDisabled:0 skipPVS:16 skipBudget:104": 30
+      },
+      "offVersusOn": {
+       "identical": false,
+       "meanAbsDiff": 2.1274,
+       "changedPixels": 264263,
+       "meanRGB": [
+        27.06,
+        25.36,
+        22.38
+       ],
+       "meanDeltaInChanged": [
+        3.16,
+        3.53,
+        3.51
+       ]
+      },
+      "onVersusAgain": {
+       "identical": false,
+       "meanAbsDiff": 0.047,
+       "changedPixels": 200,
+       "meanRGB": [
+        27.08,
+        25.38,
+        22.4
+       ],
+       "meanDeltaInChanged": [
+        8.91,
+        5.24,
+        5.31
+       ]
+      },
+      "screenshots": {
+       "on": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-after-toward\\vk-live\\on.png",
+        "sha256": "04c358d42d9de7a0875f767aaee3e192c5fd4db6c047a302f620d398ceaaaa91"
+       },
+       "off": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-after-toward\\vk-live\\off.png",
+        "sha256": "64bc431bebf277a00a42abe3ca597cc99aa330e1655bbd5777f157c7382decd8"
+       },
+       "again": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-after-toward\\vk-live\\again.png",
+        "sha256": "4dd759e3d24d7482817aba690872aac03bfa84c9bca790d7be5f73895633a6e0"
+       },
+       "noshadow": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-after-toward\\vk-live\\noshadow.png",
+        "sha256": "c51dd9536978191c1e708e2cd4464f22e4f2d7578737c431b964f6b8fa9a704a"
+       }
+      },
+      "command": [
+       "+set",
+       "com_gameProfile",
+       "rtcw-sp",
+       "+set",
+       "fs_basepath",
+       "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+       "+set",
+       "fs_homepath",
+       "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-after-toward\\vk-live\\home",
+       "+set",
+       "fs_game",
+       "",
+       "+set",
+       "fs_cdpath",
+       "",
+       "+set",
+       "r_fullscreen",
+       "0",
+       "+set",
+       "r_mode",
+       "-1",
+       "+set",
+       "r_customWidth",
+       "800",
+       "+set",
+       "r_customHeight",
+       "600",
+       "+set",
+       "in_mouse",
+       "0",
+       "+set",
+       "in_joystick",
+       "0",
+       "+set",
+       "in_nograb",
+       "1",
+       "+set",
+       "s_initsound",
+       "0",
+       "+set",
+       "com_steamIntegration",
+       "0",
+       "+set",
+       "fs_skipWorkshop",
+       "1",
+       "+set",
+       "cl_webuiEnable",
+       "0",
+       "+set",
+       "cl_renderer",
+       "vk",
+       "+set",
+       "logfile",
+       "2",
+       "+set",
+       "net_enabled",
+       "0",
+       "+set",
+       "rtx_rt_mode",
+       "0",
+       "+set",
+       "rtx_rt_require",
+       "0",
+       "+set",
+       "com_maxfps",
+       "60",
+       "+set",
+       "com_recommendedSet",
+       "1",
+       "+set",
+       "cl_motd",
+       "0",
+       "+exec",
+       "probe.cfg",
+       "+devmap",
+       "escape1"
+      ]
+     },
+     {
+      "renderer": "rtx",
+      "views": [
+       [
+        -3150,
+        250,
+        241,
+        -90
+       ]
+      ],
+      "counters": {
+       "count:128 promoted:8 shadow:2 skipDisabled:0 skipPVS:16 skipBudget:104": 44,
+       "count:128 promoted:0 shadow:0 skipDisabled:128 skipPVS:0 skipBudget:0": 22,
+       "count:128 promoted:8 shadow:0 skipDisabled:0 skipPVS:16 skipBudget:104": 30
+      },
+      "offVersusOn": {
+       "identical": false,
+       "meanAbsDiff": 2.8167,
+       "changedPixels": 378629,
+       "meanRGB": [
+        27.71,
+        26.08,
+        23.08
+       ],
+       "meanDeltaInChanged": [
+        3.01,
+        3.36,
+        3.32
+       ]
+      },
+      "onVersusAgain": {
+       "identical": false,
+       "meanAbsDiff": 0.0024,
+       "changedPixels": 145,
+       "meanRGB": [
+        27.71,
+        26.08,
+        23.08
+       ],
+       "meanDeltaInChanged": [
+        11.43,
+        6.3,
+        6.4
+       ]
+      },
+      "screenshots": {
+       "on": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-after-toward\\rtx-live\\on.png",
+        "sha256": "017d809faaf5dc209f21bbec4d088603ab51ead0a6daa8892d75418de7664696"
+       },
+       "off": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-after-toward\\rtx-live\\off.png",
+        "sha256": "a0c1b9675bc3887d661671ea23ccc0cdab538a2cc403284de852d0f935017e57"
+       },
+       "again": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-after-toward\\rtx-live\\again.png",
+        "sha256": "933651c571c36bbff0c601192e3058ade93984a7b3952f82cbcf9f0a0d650267"
+       },
+       "noshadow": {
+        "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-after-toward\\rtx-live\\noshadow.png",
+        "sha256": "36b54f8c1d9d3460b1746c0503deb70421f99bb34644fc9f4960d351c3d38df5"
+       }
+      },
+      "command": [
+       "+set",
+       "com_gameProfile",
+       "rtcw-sp",
+       "+set",
+       "fs_basepath",
+       "E:\\SteamLibrary\\steamapps\\common\\Return to Castle Wolfenstein",
+       "+set",
+       "fs_homepath",
+       "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\rtcw\\sp-after-toward\\rtx-live\\home",
+       "+set",
+       "fs_game",
+       "",
+       "+set",
+       "fs_cdpath",
+       "",
+       "+set",
+       "r_fullscreen",
+       "0",
+       "+set",
+       "r_mode",
+       "-1",
+       "+set",
+       "r_customWidth",
+       "800",
+       "+set",
+       "r_customHeight",
+       "600",
+       "+set",
+       "in_mouse",
+       "0",
+       "+set",
+       "in_joystick",
+       "0",
+       "+set",
+       "in_nograb",
+       "1",
+       "+set",
+       "s_initsound",
+       "0",
+       "+set",
+       "com_steamIntegration",
+       "0",
+       "+set",
+       "fs_skipWorkshop",
+       "1",
+       "+set",
+       "cl_webuiEnable",
+       "0",
+       "+set",
+       "cl_renderer",
+       "rtx",
+       "+set",
+       "logfile",
+       "2",
+       "+set",
+       "net_enabled",
+       "0",
+       "+set",
+       "rtx_rt_mode",
+       "0",
+       "+set",
+       "rtx_rt_require",
+       "0",
+       "+set",
+       "com_maxfps",
+       "60",
+       "+set",
+       "com_recommendedSet",
+       "1",
+       "+set",
+       "cl_motd",
+       "0",
+       "+exec",
+       "probe.cfg",
+       "+devmap",
+       "escape1"
+      ]
+     }
+    ]
+   },
+   "spBeforeAgainstAfter": {
+    "away-glx": {
+     "off": {
+      "identical": true,
+      "changedPixels": 0,
+      "meanAbsDiff": 0.0
+     },
+     "on": {
+      "identical": false,
+      "changedPixels": 0,
+      "meanAbsDiff": 0.0027
+     }
+    },
+    "away-vk": {
+     "off": {
+      "identical": true,
+      "changedPixels": 0,
+      "meanAbsDiff": 0.0
+     },
+     "on": {
+      "identical": false,
+      "changedPixels": 0,
+      "meanAbsDiff": 0.0024
+     }
+    },
+    "away-rtx": {
+     "off": {
+      "identical": true,
+      "changedPixels": 0,
+      "meanAbsDiff": 0.0
+     },
+     "on": {
+      "identical": false,
+      "changedPixels": 0,
+      "meanAbsDiff": 0.0024
+     }
+    },
+    "toward-glx": {
+     "off": {
+      "identical": false,
+      "changedPixels": 0,
+      "meanAbsDiff": 0.0002
+     },
+     "on": {
+      "identical": false,
+      "changedPixels": 12508,
+      "meanAbsDiff": 0.0963
+     }
+    },
+    "toward-vk": {
+     "off": {
+      "identical": true,
+      "changedPixels": 0,
+      "meanAbsDiff": 0.0
+     },
+     "on": {
+      "identical": false,
+      "changedPixels": 6758,
+      "meanAbsDiff": 0.1504
+     }
+    },
+    "toward-rtx": {
+     "off": {
+      "identical": true,
+      "changedPixels": 0,
+      "meanAbsDiff": 0.0
+     },
+     "on": {
+      "identical": false,
+      "changedPixels": 6757,
+      "meanAbsDiff": 0.1506
+     }
+    }
+   }
+  }
+ },
+ "mohaa": {
+  "harness": ".tmp/spot-cone/tools/view_probe.py and views_measure.py",
+  "installation": "E:/Games/Medal of Honor Allied Assault",
+  "light": "mohdm7-light-0114 (55, 523, -84), down, 60 degrees",
+  "regions": {
+   "spillPixels": 48695,
+   "conePixels": 49970,
+   "means": {
+    "glx": {
+     "before-on": [
+      137.63,
+      154.68
+     ],
+     "before-off": [
+      99.51,
+      109.69
+     ],
+     "before-again": [
+      137.63,
+      154.68
+     ],
+     "after-on": [
+      99.53,
+      138.53
+     ],
+     "after-off": [
+      99.51,
+      109.69
+     ],
+     "after-again": [
+      99.53,
+      138.53
+     ]
+    },
+    "vk": {
+     "before-on": [
+      144.83,
+      158.07
+     ],
+     "before-off": [
+      101.05,
+      110.2
+     ],
+     "before-again": [
+      144.83,
+      158.07
+     ],
+     "after-on": [
+      101.67,
+      140.95
+     ],
+     "after-off": [
+      101.05,
+      110.2
+     ],
+     "after-again": [
+      101.67,
+      140.95
+     ]
+    },
+    "rtx": {
+     "before-on": [
+      158.9,
+      125.84
+     ],
+     "before-off": [
+      160.92,
+      88.74
+     ],
+     "before-again": [
+      159.74,
+      128.07
+     ],
+     "after-on": [
+      161.15,
+      117.18
+     ],
+     "after-off": [
+      161.05,
+      88.38
+     ],
+     "after-again": [
+      161.37,
+      117.11
+     ]
+    }
+   }
+  },
+  "pairs": {
+   "mohaa-dm7-before-glx/mohaa-dm7-after-glx": {
+    "before": "mohaa-dm7-before-glx",
+    "after": "mohaa-dm7-after-glx",
+    "beforeStaticShare": {
+     "identical": false,
+     "changedPixels": 102913,
+     "meanAbsDiff": 8.733,
+     "meanDeltaInChanged": [
+      42.75,
+      41.72,
+      37.63
+     ]
+    },
+    "beforeMeanOn": [
+     85.02,
+     77.41,
+     66.13
+    ],
+    "beforeMeanOff": [
+     75.84,
+     68.45,
+     58.06
+    ],
+    "beforeRepeat": {
+     "identical": true,
+     "changedPixels": 0,
+     "meanAbsDiff": 0.0
+    },
+    "afterStaticShare": {
+     "identical": false,
+     "changedPixels": 49970,
+     "meanAbsDiff": 3.007,
+     "meanDeltaInChanged": [
+      33.16,
+      30.0,
+      23.38
+     ]
+    },
+    "afterMeanOn": [
+     79.3,
+     71.58,
+     60.5
+    ],
+    "afterMeanOff": [
+     75.84,
+     68.45,
+     58.06
+    ],
+    "afterRepeat": {
+     "identical": true,
+     "changedPixels": 0,
+     "meanAbsDiff": 0.0
+    },
+    "offBeforeAfter": {
+     "identical": true,
+     "changedPixels": 0,
+     "meanAbsDiff": 0.0
+    },
+    "onBeforeAfter": {
+     "identical": false,
+     "changedPixels": 115209,
+     "meanAbsDiff": 8.492,
+     "meanDeltaInChanged": [
+      -23.78,
+      -24.24,
+      -23.46
+     ]
+    }
+   },
+   "mohaa-dm7-before-vk/mohaa-dm7-after-vk": {
+    "before": "mohaa-dm7-before-vk",
+    "after": "mohaa-dm7-after-vk",
+    "beforeStaticShare": {
+     "identical": false,
+     "changedPixels": 100689,
+     "meanAbsDiff": 9.686,
+     "meanDeltaInChanged": [
+      47.53,
+      46.81,
+      43.92
+     ]
+    },
+    "beforeMeanOn": [
+     86.02,
+     78.48,
+     67.77
+    ],
+    "beforeMeanOff": [
+     76.03,
+     68.64,
+     58.54
+    ],
+    "beforeRepeat": {
+     "identical": true,
+     "changedPixels": 0,
+     "meanAbsDiff": 0.0
+    },
+    "afterStaticShare": {
+     "identical": false,
+     "changedPixels": 51829,
+     "meanAbsDiff": 3.271,
+     "meanDeltaInChanged": [
+      33.57,
+      30.65,
+      26.29
+     ]
+    },
+    "afterMeanOn": [
+     79.67,
+     71.97,
+     61.39
+    ],
+    "afterMeanOff": [
+     76.03,
+     68.64,
+     58.54
+    ],
+    "afterRepeat": {
+     "identical": true,
+     "changedPixels": 0,
+     "meanAbsDiff": 0.0
+    },
+    "offBeforeAfter": {
+     "identical": true,
+     "changedPixels": 0,
+     "meanAbsDiff": 0.0
+    },
+    "onBeforeAfter": {
+     "identical": false,
+     "changedPixels": 109488,
+     "meanAbsDiff": 9.185,
+     "meanDeltaInChanged": [
+      -27.76,
+      -28.49,
+      -27.89
+     ]
+    }
+   },
+   "mohaa-dm7-before-rtx/mohaa-dm7-after-rtx": {
+    "before": "mohaa-dm7-before-rtx",
+    "after": "mohaa-dm7-after-rtx",
+    "beforeStaticShare": {
+     "identical": false,
+     "changedPixels": 174908,
+     "meanAbsDiff": 5.543,
+     "meanDeltaInChanged": [
+      11.66,
+      9.97,
+      6.68
+     ]
+    },
+    "beforeMeanOn": [
+     75.84,
+     66.7,
+     50.49
+    ],
+    "beforeMeanOff": [
+     71.66,
+     63.13,
+     48.09
+    ],
+    "beforeRepeat": {
+     "identical": false,
+     "changedPixels": 172845,
+     "meanAbsDiff": 2.613,
+     "meanDeltaInChanged": [
+      1.5,
+      1.29,
+      1.02
+     ]
+    },
+    "afterStaticShare": {
+     "identical": false,
+     "changedPixels": 170179,
+     "meanAbsDiff": 4.47,
+     "meanDeltaInChanged": [
+      10.78,
+      9.3,
+      6.54
+     ]
+    },
+    "afterMeanOn": [
+     75.34,
+     66.32,
+     50.33
+    ],
+    "afterMeanOff": [
+     71.5,
+     63.0,
+     47.99
+    ],
+    "afterRepeat": {
+     "identical": false,
+     "changedPixels": 165953,
+     "meanAbsDiff": 2.268,
+     "meanDeltaInChanged": [
+      0.41,
+      0.32,
+      0.31
+     ]
+    },
+    "offBeforeAfter": {
+     "identical": false,
+     "changedPixels": 141373,
+     "meanAbsDiff": 1.515,
+     "meanDeltaInChanged": [
+      -0.46,
+      -0.36,
+      -0.29
+     ]
+    },
+    "onBeforeAfter": {
+     "identical": false,
+     "changedPixels": 178651,
+     "meanAbsDiff": 4.004,
+     "meanDeltaInChanged": [
+      -1.54,
+      -1.21,
+      -0.53
+     ]
+    }
+   }
+  },
+  "runs": {
+   "mohaa-dm7-after-glx": {
+    "run": "mohaa-dm7-after-glx",
+    "profile": "mohaa",
+    "map": "dm/mohdm7",
+    "gametype": "1",
+    "renderer": "glx",
+    "runtime": ".tmp/runtime/spot-cone-after",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_glx_x86.dll": "076c5d7187c570732ac61d6207726bb08f7121edbe23a2e2febad7e31a8d5f73",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [
+     "finishloadingscreen",
+     "wait 1000",
+     "cmd join_team allies",
+     "wait 1000",
+     "cmd primarydmweapon rifle",
+     "wait 500",
+     "popmenu 0",
+     "wait 3000",
+     "cmd tele 255 523 -84",
+     "wait 500",
+     "cmd face -5 180 0",
+     "wait 1500",
+     "viewpos"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 25.9,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [
+     "255 523 -117"
+    ],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "1263751f87aa689e36bb95c841c8dc21afce25a89a15c0affbf0ed7391d90da0"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "586002fa77e3681a70161df5f9637b9d762dbd0785db91cf578ccc4dabd6790c"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "1263751f87aa689e36bb95c841c8dc21afce25a89a15c0affbf0ed7391d90da0"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "mohaa-dm7-after-rtx": {
+    "run": "mohaa-dm7-after-rtx",
+    "profile": "mohaa",
+    "map": "dm/mohdm7",
+    "gametype": "1",
+    "renderer": "rtx",
+    "runtime": ".tmp/runtime/spot-cone-after",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_rtx_x86.dll": "4b042957038e1903fa5b44e2c1ddb40e45f9827116ad9326abff31a413ed7734",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [
+     "finishloadingscreen",
+     "wait 1000",
+     "cmd join_team allies",
+     "wait 1000",
+     "cmd primarydmweapon rifle",
+     "wait 500",
+     "popmenu 0",
+     "wait 3000",
+     "cmd tele 255 523 -84",
+     "wait 500",
+     "cmd face -5 180 0",
+     "wait 1500",
+     "viewpos"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 26.8,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [
+     "255 523 -117"
+    ],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "5da2f69b1fe4a0d32e5f82b50e92e2802385a0a07bb739190eeec116f2df295a"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "e64f7b18048e33e6df1975c0aa149ce9be619cc889b8de93d48f32165c1dd346"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "8e2b1ccf7dcf5556ae6c7c911fa916b95a0c3be8aaf23da7cee6c9d7ee441155"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "mohaa-dm7-after-vk": {
+    "run": "mohaa-dm7-after-vk",
+    "profile": "mohaa",
+    "map": "dm/mohdm7",
+    "gametype": "1",
+    "renderer": "vk",
+    "runtime": ".tmp/runtime/spot-cone-after",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_vk_x86.dll": "3fa75e80366b02e1f4a70e4f077fb4431b7fef62a05cdf88c1f060cb5bcfedc4",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [
+     "finishloadingscreen",
+     "wait 1000",
+     "cmd join_team allies",
+     "wait 1000",
+     "cmd primarydmweapon rifle",
+     "wait 500",
+     "popmenu 0",
+     "wait 3000",
+     "cmd tele 255 523 -84",
+     "wait 500",
+     "cmd face -5 180 0",
+     "wait 1500",
+     "viewpos"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 26.0,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [
+     "255 523 -117"
+    ],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "091fffc079b6d13731c1df6659f89feb79e236159f5ef05401a374a9e84df56f"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "8416e282ec374047ef6547255817a182f04b0f8edf0561f2ca98def5fd569314"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "091fffc079b6d13731c1df6659f89feb79e236159f5ef05401a374a9e84df56f"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "mohaa-dm7-before-glx": {
+    "run": "mohaa-dm7-before-glx",
+    "profile": "mohaa",
+    "map": "dm/mohdm7",
+    "gametype": "1",
+    "renderer": "glx",
+    "runtime": ".tmp/runtime/spot-cone-before",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_glx_x86.dll": "654fc1c55fc9fbbfff27441474c64644c60d93aa0d8a9860e03c212f006596fe",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [
+     "finishloadingscreen",
+     "wait 1000",
+     "cmd join_team allies",
+     "wait 1000",
+     "cmd primarydmweapon rifle",
+     "wait 500",
+     "popmenu 0",
+     "wait 3000",
+     "cmd tele 255 523 -84",
+     "wait 500",
+     "cmd face -5 180 0",
+     "wait 1500",
+     "viewpos"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 25.7,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [
+     "255 523 -117"
+    ],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "8125636a39864235b1cc3237166df217c8cbe551ff089c155e33af9efe6c520a"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "586002fa77e3681a70161df5f9637b9d762dbd0785db91cf578ccc4dabd6790c"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "8125636a39864235b1cc3237166df217c8cbe551ff089c155e33af9efe6c520a"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "mohaa-dm7-before-rtx": {
+    "run": "mohaa-dm7-before-rtx",
+    "profile": "mohaa",
+    "map": "dm/mohdm7",
+    "gametype": "1",
+    "renderer": "rtx",
+    "runtime": ".tmp/runtime/spot-cone-before",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_rtx_x86.dll": "6652b050a2e3373dc7d0e6f47af2344bb479588b2f7b6c36fc0449720d050034",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [
+     "finishloadingscreen",
+     "wait 1000",
+     "cmd join_team allies",
+     "wait 1000",
+     "cmd primarydmweapon rifle",
+     "wait 500",
+     "popmenu 0",
+     "wait 3000",
+     "cmd tele 255 523 -84",
+     "wait 500",
+     "cmd face -5 180 0",
+     "wait 1500",
+     "viewpos"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 26.2,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [
+     "255 523 -117"
+    ],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "b279f9ef70da8b5de9dd09ab34bea67d0808113bb0b89e20dd472bf182e20b1c"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "06530b2c4490ec6d7977e1b7a10f71edc399242cf28142d0ecffb14bc5e2cb56"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "79350132147adc9fb68bb463e2698ae693f5bf877cd813b40c38693c2ec4aee3"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "mohaa-dm7-before-vk": {
+    "run": "mohaa-dm7-before-vk",
+    "profile": "mohaa",
+    "map": "dm/mohdm7",
+    "gametype": "1",
+    "renderer": "vk",
+    "runtime": ".tmp/runtime/spot-cone-before",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_vk_x86.dll": "e6a981dcc2dcd7e8bf64cab13b0dc696dc99714daba5dd0a807ca8f141ee1b74",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [
+     "finishloadingscreen",
+     "wait 1000",
+     "cmd join_team allies",
+     "wait 1000",
+     "cmd primarydmweapon rifle",
+     "wait 500",
+     "popmenu 0",
+     "wait 3000",
+     "cmd tele 255 523 -84",
+     "wait 500",
+     "cmd face -5 180 0",
+     "wait 1500",
+     "viewpos"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 26.0,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [
+     "255 523 -117"
+    ],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "266fd724d9da5d8ed62ec067d04598167f0805836a3d7c6bc05ecf4e0a2edd9a"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "8416e282ec374047ef6547255817a182f04b0f8edf0561f2ca98def5fd569314"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "266fd724d9da5d8ed62ec067d04598167f0805836a3d7c6bc05ecf4e0a2edd9a"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   }
+  }
+ },
+ "alice": {
+  "harness": ".tmp/spot-cone/tools/view_probe.py and views_measure.py",
+  "installation": "E:/Games/Alice",
+  "stillMasks": {
+   "alice-utemple-glx": {
+    "still": 352029,
+    "litBefore": 6547,
+    "litAfter": 5516,
+    "litBeforeNotAfter": 1113,
+    "litAfterNotBefore": 82,
+    "onBeforeOnAfterOffOnLostPixels": [
+     44.7,
+     39.6,
+     39.3
+    ]
+   },
+   "alice-utemple-vk": {
+    "still": 333675,
+    "litBefore": 6762,
+    "litAfter": 5421,
+    "litBeforeNotAfter": 1391,
+    "litAfterNotBefore": 50,
+    "onBeforeOnAfterOffOnLostPixels": [
+     44.2,
+     39.2,
+     38.8
+    ]
+   },
+   "alice-utemple-rtx": {
+    "still": 399963,
+    "litBefore": 63,
+    "litAfter": 51,
+    "litBeforeNotAfter": 26,
+    "litAfterNotBefore": 14,
+    "onBeforeOnAfterOffOnLostPixels": [
+     60.7,
+     58.6,
+     56.3
+    ]
+   },
+   "alice-garden2c-glx": {
+    "still": 78146,
+    "litBefore": 3163,
+    "litAfter": 3177,
+    "litBeforeNotAfter": 71,
+    "litAfterNotBefore": 85,
+    "onBeforeOnAfterOffOnLostPixels": [
+     43.6,
+     43.6,
+     40.4
+    ]
+   },
+   "alice-garden2c-vk": {
+    "still": 81246,
+    "litBefore": 3081,
+    "litAfter": 3221,
+    "litBeforeNotAfter": 109,
+    "litAfterNotBefore": 249,
+    "onBeforeOnAfterOffOnLostPixels": [
+     45.1,
+     45.1,
+     41.9
+    ]
+   },
+   "alice-garden2c-rtx": {
+    "still": 176616,
+    "litBefore": 828,
+    "litAfter": 829,
+    "litBeforeNotAfter": 188,
+    "litAfterNotBefore": 189,
+    "onBeforeOnAfterOffOnLostPixels": [
+     35.9,
+     35.8,
+     32.4
+    ]
+   }
+  },
+  "pairs": {
+   "alice-utemple-before-glx/alice-utemple-after-glx": {
+    "before": "alice-utemple-before-glx",
+    "after": "alice-utemple-after-glx",
+    "beforeStaticShare": {
+     "identical": false,
+     "changedPixels": 76949,
+     "meanAbsDiff": 1.956,
+     "meanDeltaInChanged": [
+      -0.02,
+      2.78,
+      2.07
+     ]
+    },
+    "beforeMeanOn": [
+     17.6,
+     40.6,
+     34.8
+    ],
+    "beforeMeanOff": [
+     17.53,
+     40.08,
+     34.46
+    ],
+    "beforeRepeat": {
+     "identical": false,
+     "changedPixels": 121377,
+     "meanAbsDiff": 2.483,
+     "meanDeltaInChanged": [
+      0.29,
+      -1.04,
+      -0.89
+     ]
+    },
+    "afterStaticShare": {
+     "identical": false,
+     "changedPixels": 62857,
+     "meanAbsDiff": 1.751,
+     "meanDeltaInChanged": [
+      -0.5,
+      2.92,
+      2.37
+     ]
+    },
+    "afterMeanOn": [
+     17.44,
+     40.45,
+     34.74
+    ],
+    "afterMeanOff": [
+     17.49,
+     40.05,
+     34.43
+    ],
+    "afterRepeat": {
+     "identical": false,
+     "changedPixels": 113770,
+     "meanAbsDiff": 2.451,
+     "meanDeltaInChanged": [
+      0.82,
+      -0.7,
+      -0.57
+     ]
+    },
+    "offBeforeAfter": {
+     "identical": false,
+     "changedPixels": 3202,
+     "meanAbsDiff": 0.228,
+     "meanDeltaInChanged": [
+      -5.81,
+      -4.68,
+      -4.25
+     ]
+    },
+    "onBeforeAfter": {
+     "identical": false,
+     "changedPixels": 16995,
+     "meanAbsDiff": 0.695,
+     "meanDeltaInChanged": [
+      -2.49,
+      -2.21,
+      -1.12
+     ]
+    }
+   },
+   "alice-utemple-before-vk/alice-utemple-after-vk": {
+    "before": "alice-utemple-before-vk",
+    "after": "alice-utemple-after-vk",
+    "beforeStaticShare": {
+     "identical": false,
+     "changedPixels": 75460,
+     "meanAbsDiff": 2.048,
+     "meanDeltaInChanged": [
+      -0.25,
+      2.69,
+      2.09
+     ]
+    },
+    "beforeMeanOn": [
+     18.23,
+     41.1,
+     36.02
+    ],
+    "beforeMeanOff": [
+     18.15,
+     40.56,
+     35.65
+    ],
+    "beforeRepeat": {
+     "identical": false,
+     "changedPixels": 122085,
+     "meanAbsDiff": 2.47,
+     "meanDeltaInChanged": [
+      0.17,
+      -1.2,
+      -1.15
+     ]
+    },
+    "afterStaticShare": {
+     "identical": false,
+     "changedPixels": 78914,
+     "meanAbsDiff": 2.05,
+     "meanDeltaInChanged": [
+      -0.67,
+      2.12,
+      1.77
+     ]
+    },
+    "afterMeanOn": [
+     18.05,
+     40.93,
+     35.94
+    ],
+    "afterMeanOff": [
+     18.14,
+     40.55,
+     35.64
+    ],
+    "afterRepeat": {
+     "identical": false,
+     "changedPixels": 141178,
+     "meanAbsDiff": 2.647,
+     "meanDeltaInChanged": [
+      -0.07,
+      -1.24,
+      -1.18
+     ]
+    },
+    "offBeforeAfter": {
+     "identical": false,
+     "changedPixels": 4554,
+     "meanAbsDiff": 0.219,
+     "meanDeltaInChanged": [
+      -0.59,
+      -0.54,
+      -0.72
+     ]
+    },
+    "onBeforeAfter": {
+     "identical": false,
+     "changedPixels": 9627,
+     "meanAbsDiff": 0.319,
+     "meanDeltaInChanged": [
+      -2.44,
+      -2.47,
+      -1.17
+     ]
+    }
+   },
+   "alice-utemple-before-rtx/alice-utemple-after-rtx": {
+    "before": "alice-utemple-before-rtx",
+    "after": "alice-utemple-after-rtx",
+    "beforeStaticShare": {
+     "identical": false,
+     "changedPixels": 31707,
+     "meanAbsDiff": 1.416,
+     "meanDeltaInChanged": [
+      -3.62,
+      2.37,
+      1.37
+     ]
+    },
+    "beforeMeanOn": [
+     8.69,
+     25.03,
+     26.63
+    ],
+    "beforeMeanOff": [
+     8.94,
+     24.9,
+     26.55
+    ],
+    "beforeRepeat": {
+     "identical": false,
+     "changedPixels": 59961,
+     "meanAbsDiff": 2.153,
+     "meanDeltaInChanged": [
+      1.44,
+      -1.62,
+      -0.93
+     ]
+    },
+    "afterStaticShare": {
+     "identical": false,
+     "changedPixels": 23678,
+     "meanAbsDiff": 1.371,
+     "meanDeltaInChanged": [
+      -0.71,
+      6.73,
+      4.86
+     ]
+    },
+    "afterMeanOn": [
+     8.83,
+     25.14,
+     26.74
+    ],
+    "afterMeanOff": [
+     8.87,
+     24.84,
+     26.5
+    ],
+    "afterRepeat": {
+     "identical": false,
+     "changedPixels": 45652,
+     "meanAbsDiff": 2.06,
+     "meanDeltaInChanged": [
+      -0.22,
+      -3.99,
+      -2.93
+     ]
+    },
+    "offBeforeAfter": {
+     "identical": false,
+     "changedPixels": 34428,
+     "meanAbsDiff": 0.753,
+     "meanDeltaInChanged": [
+      -0.97,
+      -0.83,
+      -0.52
+     ]
+    },
+    "onBeforeAfter": {
+     "identical": false,
+     "changedPixels": 23472,
+     "meanAbsDiff": 0.794,
+     "meanDeltaInChanged": [
+      2.85,
+      2.42,
+      2.36
+     ]
+    }
+   },
+   "alice-garden2c-before-glx/alice-garden2c-after-glx": {
+    "before": "alice-garden2c-before-glx",
+    "after": "alice-garden2c-after-glx",
+    "beforeStaticShare": {
+     "identical": false,
+     "changedPixels": 336064,
+     "meanAbsDiff": 7.309,
+     "meanDeltaInChanged": [
+      2.97,
+      1.89,
+      1.27
+     ]
+    },
+    "beforeMeanOn": [
+     61.61,
+     42.43,
+     20.38
+    ],
+    "beforeMeanOff": [
+     59.52,
+     41.09,
+     19.48
+    ],
+    "beforeRepeat": {
+     "identical": false,
+     "changedPixels": 347434,
+     "meanAbsDiff": 8.08,
+     "meanDeltaInChanged": [
+      -2.43,
+      -1.61,
+      -0.8
+     ]
+    },
+    "afterStaticShare": {
+     "identical": false,
+     "changedPixels": 340231,
+     "meanAbsDiff": 7.581,
+     "meanDeltaInChanged": [
+      1.84,
+      1.03,
+      0.88
+     ]
+    },
+    "afterMeanOn": [
+     61.52,
+     42.28,
+     20.3
+    ],
+    "afterMeanOff": [
+     60.21,
+     41.54,
+     19.67
+    ],
+    "afterRepeat": {
+     "identical": false,
+     "changedPixels": 333718,
+     "meanAbsDiff": 7.507,
+     "meanDeltaInChanged": [
+      -1.02,
+      -0.55,
+      -0.27
+     ]
+    },
+    "offBeforeAfter": {
+     "identical": false,
+     "changedPixels": 247204,
+     "meanAbsDiff": 3.744,
+     "meanDeltaInChanged": [
+      1.34,
+      0.88,
+      0.37
+     ]
+    },
+    "onBeforeAfter": {
+     "identical": false,
+     "changedPixels": 8055,
+     "meanAbsDiff": 0.248,
+     "meanDeltaInChanged": [
+      -4.92,
+      -8.47,
+      -4.69
+     ]
+    }
+   },
+   "alice-garden2c-before-vk/alice-garden2c-after-vk": {
+    "before": "alice-garden2c-before-vk",
+    "after": "alice-garden2c-after-vk",
+    "beforeStaticShare": {
+     "identical": false,
+     "changedPixels": 340780,
+     "meanAbsDiff": 7.495,
+     "meanDeltaInChanged": [
+      4.04,
+      3.69,
+      1.88
+     ]
+    },
+    "beforeMeanOn": [
+     62.31,
+     42.59,
+     20.76
+    ],
+    "beforeMeanOff": [
+     59.44,
+     39.95,
+     19.42
+    ],
+    "beforeRepeat": {
+     "identical": false,
+     "changedPixels": 329888,
+     "meanAbsDiff": 7.069,
+     "meanDeltaInChanged": [
+      -2.64,
+      -2.86,
+      -1.13
+     ]
+    },
+    "afterStaticShare": {
+     "identical": false,
+     "changedPixels": 339893,
+     "meanAbsDiff": 7.479,
+     "meanDeltaInChanged": [
+      2.96,
+      3.06,
+      1.54
+     ]
+    },
+    "afterMeanOn": [
+     62.35,
+     42.67,
+     20.81
+    ],
+    "afterMeanOff": [
+     60.25,
+     40.48,
+     19.71
+    ],
+    "afterRepeat": {
+     "identical": false,
+     "changedPixels": 335407,
+     "meanAbsDiff": 7.533,
+     "meanDeltaInChanged": [
+      -2.13,
+      -1.9,
+      -0.87
+     ]
+    },
+    "offBeforeAfter": {
+     "identical": false,
+     "changedPixels": 264933,
+     "meanAbsDiff": 4.635,
+     "meanDeltaInChanged": [
+      1.45,
+      1.01,
+      0.53
+     ]
+    },
+    "onBeforeAfter": {
+     "identical": false,
+     "changedPixels": 7805,
+     "meanAbsDiff": 0.202,
+     "meanDeltaInChanged": [
+      2.2,
+      5.0,
+      3.12
+     ]
+    }
+   },
+   "alice-garden2c-before-rtx/alice-garden2c-after-rtx": {
+    "before": "alice-garden2c-before-rtx",
+    "after": "alice-garden2c-after-rtx",
+    "beforeStaticShare": {
+     "identical": false,
+     "changedPixels": 230425,
+     "meanAbsDiff": 3.254,
+     "meanDeltaInChanged": [
+      -1.37,
+      0.8,
+      0.87
+     ]
+    },
+    "beforeMeanOn": [
+     49.17,
+     34.11,
+     17.26
+    ],
+    "beforeMeanOff": [
+     49.96,
+     33.75,
+     16.85
+    ],
+    "beforeRepeat": {
+     "identical": false,
+     "changedPixels": 213147,
+     "meanAbsDiff": 3.064,
+     "meanDeltaInChanged": [
+      1.11,
+      0.44,
+      0.16
+     ]
+    },
+    "afterStaticShare": {
+     "identical": false,
+     "changedPixels": 209705,
+     "meanAbsDiff": 3.209,
+     "meanDeltaInChanged": [
+      0.49,
+      0.13,
+      0.67
+     ]
+    },
+    "afterMeanOn": [
+     49.12,
+     34.09,
+     17.25
+    ],
+    "afterMeanOff": [
+     49.02,
+     34.08,
+     16.97
+    ],
+    "afterRepeat": {
+     "identical": false,
+     "changedPixels": 233262,
+     "meanAbsDiff": 3.469,
+     "meanDeltaInChanged": [
+      1.1,
+      -0.39,
+      -0.21
+     ]
+    },
+    "offBeforeAfter": {
+     "identical": false,
+     "changedPixels": 73819,
+     "meanAbsDiff": 0.807,
+     "meanDeltaInChanged": [
+      -5.29,
+      1.87,
+      0.72
+     ]
+    },
+    "onBeforeAfter": {
+     "identical": false,
+     "changedPixels": 7419,
+     "meanAbsDiff": 0.221,
+     "meanDeltaInChanged": [
+      -2.7,
+      -0.9,
+      -0.2
+     ]
+    }
+   }
+  },
+  "runs": {
+   "alice-utemple-after-glx": {
+    "run": "alice-utemple-after-glx",
+    "profile": "alice",
+    "map": "utemple",
+    "gametype": "0",
+    "renderer": "glx",
+    "runtime": ".tmp/runtime/spot-cone-after",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_glx_x86.dll": "076c5d7187c570732ac61d6207726bb08f7121edbe23a2e2febad7e31a8d5f73",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [
+     "wait 9000",
+     "skipcinematic",
+     "wait 4000",
+     "viewpos"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 28.8,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [
+     "-64 -5464 1301"
+    ],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "5d5d6841eccca5a1a221f1136d193bbd49d789d584f33134460c05ce9cda9b7c"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "5b76a5b9d58056298e727d9edf0c78e4ae807e01474b343e147032dc0ea0967b"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "56e48457d4dbbddd6b57f91b6f28253ec2a65f07bdda4b3b36d2b81f5b37afac"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "alice-utemple-after-rtx": {
+    "run": "alice-utemple-after-rtx",
+    "profile": "alice",
+    "map": "utemple",
+    "gametype": "0",
+    "renderer": "rtx",
+    "runtime": ".tmp/runtime/spot-cone-after",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_rtx_x86.dll": "4b042957038e1903fa5b44e2c1ddb40e45f9827116ad9326abff31a413ed7734",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [
+     "wait 9000",
+     "skipcinematic",
+     "wait 4000",
+     "viewpos"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 30.1,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [
+     "-64 -5464 1301"
+    ],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "dd7db39966ae43f862450b2c03891cd6338f6419edfeac2e81c04e25e896c035"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "0bf1eeffd0d401e32c11bf892680e9ca0623711d551d04d8898f1267b025893a"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "586fce1d10f523ed4ccbc035fc96f704a9390085665187287451a7fc814077c3"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "alice-utemple-after-vk": {
+    "run": "alice-utemple-after-vk",
+    "profile": "alice",
+    "map": "utemple",
+    "gametype": "0",
+    "renderer": "vk",
+    "runtime": ".tmp/runtime/spot-cone-after",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_vk_x86.dll": "3fa75e80366b02e1f4a70e4f077fb4431b7fef62a05cdf88c1f060cb5bcfedc4",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [
+     "wait 9000",
+     "skipcinematic",
+     "wait 4000",
+     "viewpos"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 29.2,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [
+     "-64 -5464 1301"
+    ],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "35f3e055e5c9a1a3f9950c844f815c25876f96d046a77a199bd0a2b916c8a99b"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "a6a034b682738b9691339946a04892d511b96a3394a799fd72a0e4711d19d992"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "a891d32e46e07f0d4cf7459a4b8419d9d10520f5595fe97db437b80513b28245"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "alice-utemple-before-glx": {
+    "run": "alice-utemple-before-glx",
+    "profile": "alice",
+    "map": "utemple",
+    "gametype": "0",
+    "renderer": "glx",
+    "runtime": ".tmp/runtime/spot-cone-before",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_glx_x86.dll": "654fc1c55fc9fbbfff27441474c64644c60d93aa0d8a9860e03c212f006596fe",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [
+     "wait 9000",
+     "skipcinematic",
+     "wait 4000",
+     "viewpos"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 28.2,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [
+     "-64 -5464 1301"
+    ],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "a6724730b7bd0e66020cd003e41cf373e328dd944275183dee1dac0bbfd600cd"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "a338f801828ee77f979a502dbdcb9b080bdd33bf0b30a7770b8f274b85ae177b"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "971b37d387c9df3f9b810a1bde6e95072bdafc9bdfbc452d759fa2029287c6c6"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "alice-utemple-before-rtx": {
+    "run": "alice-utemple-before-rtx",
+    "profile": "alice",
+    "map": "utemple",
+    "gametype": "0",
+    "renderer": "rtx",
+    "runtime": ".tmp/runtime/spot-cone-before",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_rtx_x86.dll": "6652b050a2e3373dc7d0e6f47af2344bb479588b2f7b6c36fc0449720d050034",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [
+     "wait 9000",
+     "skipcinematic",
+     "wait 4000",
+     "viewpos"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 29.5,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [
+     "-64 -5464 1301"
+    ],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "57e14eadb058ea78dd033cfa69f9b284b8ab8a01dc798ffd67fe0d1a1db39b9e"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "ae4becad276bd064f5ca2111bc263423f27fe73184347b98e0fcab429be8ae6d"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "88bf7ca3cd34b83f2c2d15dd0b1a5058296fc6683fc8f336f2ec34377d7033f8"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "alice-utemple-before-vk": {
+    "run": "alice-utemple-before-vk",
+    "profile": "alice",
+    "map": "utemple",
+    "gametype": "0",
+    "renderer": "vk",
+    "runtime": ".tmp/runtime/spot-cone-before",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_vk_x86.dll": "e6a981dcc2dcd7e8bf64cab13b0dc696dc99714daba5dd0a807ca8f141ee1b74",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [
+     "wait 9000",
+     "skipcinematic",
+     "wait 4000",
+     "viewpos"
+    ],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 28.7,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [
+     "-64 -5464 1301"
+    ],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "9ca338d1d6d262e0cc4b3f2c55da048073c765234a14b1f94f5b9316a56081fb"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "1b47c3b9cbef314de865e1511aae9dfb7bf85c10e850b1a13e966a429e120275"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "ec74fc8d42843b567f100c92eb27d93a4fc81811e1c79fc7b1a0d43e6d60a4ca"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "alice-garden2c-after-glx": {
+    "run": "alice-garden2c-after-glx",
+    "profile": "alice",
+    "map": "garden2",
+    "gametype": "0",
+    "renderer": "glx",
+    "runtime": ".tmp/runtime/spot-cone-after",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_glx_x86.dll": "076c5d7187c570732ac61d6207726bb08f7121edbe23a2e2febad7e31a8d5f73",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [
+     "wait 9000",
+     "skipcinematic",
+     "wait 52000",
+     "viewpos"
+    ],
+    "cfgLines": [],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 91.2,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [
+     "993 -1367 -324"
+    ],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "f15f631f3c3581df8e9b2059cf10ebd0346f9af082905551b587d0da632ff608"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "46c55bf838d625641ea78648634fd8e900efdeb4ade0f897ddf6232769de2e30"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "c82c20ef77e40e335cd08eae8e5099ed21de224e5874a91b09f134b9e3394837"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "alice-garden2c-after-rtx": {
+    "run": "alice-garden2c-after-rtx",
+    "profile": "alice",
+    "map": "garden2",
+    "gametype": "0",
+    "renderer": "rtx",
+    "runtime": ".tmp/runtime/spot-cone-after",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_rtx_x86.dll": "4b042957038e1903fa5b44e2c1ddb40e45f9827116ad9326abff31a413ed7734",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [
+     "wait 9000",
+     "skipcinematic",
+     "wait 52000",
+     "viewpos"
+    ],
+    "cfgLines": [],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 87.2,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [
+     "993 -1367 -324"
+    ],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "1859fbcdee0e70ff7e18ea339ed262fa39288bcb50ada66366703042aff6987e"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "db3d5de3a2a9d39b1f96035cea7841990b9b6643c92aa0828ea6d4800f2dbf47"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "afddfb6abf682fb114205d6bd8ed51e99874627e433778da370cfed48f50d85b"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "alice-garden2c-after-vk": {
+    "run": "alice-garden2c-after-vk",
+    "profile": "alice",
+    "map": "garden2",
+    "gametype": "0",
+    "renderer": "vk",
+    "runtime": ".tmp/runtime/spot-cone-after",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_vk_x86.dll": "3fa75e80366b02e1f4a70e4f077fb4431b7fef62a05cdf88c1f060cb5bcfedc4",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [
+     "wait 9000",
+     "skipcinematic",
+     "wait 52000",
+     "viewpos"
+    ],
+    "cfgLines": [],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 88.2,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [
+     "993 -1367 -324"
+    ],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "b2c600c0e67067328adbb839c0e905e92125a70e75c2561a1fa201c693cae3ae"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "aa7af709839d8b24d42f8b2d5334190df235c3346467f4479a3d0b28a8e13dd4"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "6a09a827be255bf0807ea861fa5a3db11f44ec55bb4937a0e8b78f81ba883393"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "alice-garden2c-before-glx": {
+    "run": "alice-garden2c-before-glx",
+    "profile": "alice",
+    "map": "garden2",
+    "gametype": "0",
+    "renderer": "glx",
+    "runtime": ".tmp/runtime/spot-cone-before",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_glx_x86.dll": "654fc1c55fc9fbbfff27441474c64644c60d93aa0d8a9860e03c212f006596fe",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [
+     "wait 9000",
+     "skipcinematic",
+     "wait 52000",
+     "viewpos"
+    ],
+    "cfgLines": [],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 89.9,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [
+     "993 -1367 -324"
+    ],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "c8372501876991e9fed8e6d4a6a959e96410e430fbbc5fbeb62e6c6c8bb94c72"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "d152f63be15b3237892d357d7e7e0c322600dc77187bbd924ccc6bcf71ac665b"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "6e1f85e3a1f9ea4962e4c80c8a99652f87684143fdb4d23b98098376a7a3fd99"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "alice-garden2c-before-rtx": {
+    "run": "alice-garden2c-before-rtx",
+    "profile": "alice",
+    "map": "garden2",
+    "gametype": "0",
+    "renderer": "rtx",
+    "runtime": ".tmp/runtime/spot-cone-before",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_rtx_x86.dll": "6652b050a2e3373dc7d0e6f47af2344bb479588b2f7b6c36fc0449720d050034",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [
+     "wait 9000",
+     "skipcinematic",
+     "wait 52000",
+     "viewpos"
+    ],
+    "cfgLines": [],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 87.7,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [
+     "993 -1367 -324"
+    ],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "969b691e78871701333601369be0dc2cad94f2ac57e10b36a2f17f08211eb8c1"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "d6a8847b8610fc23388a721b70ea3b10ffda9e0e870263fd72ca4b87c24dc598"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "48d2ee4f442661161a0aadb8073541ba4aa4d29ce0136f898d2d5869d8760304"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "alice-garden2c-before-vk": {
+    "run": "alice-garden2c-before-vk",
+    "profile": "alice",
+    "map": "garden2",
+    "gametype": "0",
+    "renderer": "vk",
+    "runtime": ".tmp/runtime/spot-cone-before",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_vk_x86.dll": "e6a981dcc2dcd7e8bf64cab13b0dc696dc99714daba5dd0a807ca8f141ee1b74",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [
+     "wait 9000",
+     "skipcinematic",
+     "wait 52000",
+     "viewpos"
+    ],
+    "cfgLines": [],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 90.6,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [
+     "993 -1367 -324"
+    ],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "fd73572b5a5229077f04fec033af3195656caab019df226852978ce12ab1444d"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "216cc35cc1fa9a432fc176010843510c1f0df2145faf60c3eb4d44bc51a165bc"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "cc570ac2355d769becb540861b771520700f20a5729961b8c5be5cad86b664d7"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   }
+  }
+ },
+ "quake3": {
+  "shadowFinishReplay": {
+   "harness": "scripts/probe_shadow_finish.py --profile q3",
+   "demo": {
+    "path": "E:\\Repositories\\fnTech3\\.tmp\\spot-cone\\q3-replay\\shadowfinish.dm_68",
+    "sha256": "c3ad59bef8ff1bee43bd5ced6cf3f0a5830bc538abba523995b1b914afaa5bd2",
+    "bytes": 4733
+   },
+   "acrossRuntimes": [
+    {
+     "identical": true,
+     "meanAbsDiff": 0.0,
+     "label": "after",
+     "against": "before",
+     "renderer": "glx",
+     "shadows": 2,
+     "frame": 40
+    },
+    {
+     "identical": true,
+     "meanAbsDiff": 0.0,
+     "label": "after",
+     "against": "before",
+     "renderer": "glx",
+     "shadows": 2,
+     "frame": 80
+    },
+    {
+     "identical": true,
+     "meanAbsDiff": 0.0,
+     "label": "after",
+     "against": "before",
+     "renderer": "glx",
+     "shadows": 0,
+     "frame": 40
+    },
+    {
+     "identical": true,
+     "meanAbsDiff": 0.0,
+     "label": "after",
+     "against": "before",
+     "renderer": "glx",
+     "shadows": 0,
+     "frame": 80
+    },
+    {
+     "identical": true,
+     "meanAbsDiff": 0.0,
+     "label": "after",
+     "against": "before",
+     "renderer": "vk",
+     "shadows": 2,
+     "frame": 40
+    },
+    {
+     "identical": true,
+     "meanAbsDiff": 0.0,
+     "label": "after",
+     "against": "before",
+     "renderer": "vk",
+     "shadows": 2,
+     "frame": 80
+    },
+    {
+     "identical": true,
+     "meanAbsDiff": 0.0,
+     "label": "after",
+     "against": "before",
+     "renderer": "vk",
+     "shadows": 0,
+     "frame": 40
+    },
+    {
+     "identical": true,
+     "meanAbsDiff": 0.0,
+     "label": "after",
+     "against": "before",
+     "renderer": "vk",
+     "shadows": 0,
+     "frame": 80
+    },
+    {
+     "identical": true,
+     "meanAbsDiff": 0.0,
+     "label": "after",
+     "against": "before",
+     "renderer": "rtx",
+     "shadows": 2,
+     "frame": 40
+    },
+    {
+     "identical": true,
+     "meanAbsDiff": 0.0,
+     "label": "after",
+     "against": "before",
+     "renderer": "rtx",
+     "shadows": 2,
+     "frame": 80
+    },
+    {
+     "identical": true,
+     "meanAbsDiff": 0.0,
+     "label": "after",
+     "against": "before",
+     "renderer": "rtx",
+     "shadows": 0,
+     "frame": 40
+    },
+    {
+     "identical": true,
+     "meanAbsDiff": 0.0,
+     "label": "after",
+     "against": "before",
+     "renderer": "rtx",
+     "shadows": 0,
+     "frame": 80
+    }
+   ],
+   "installationUnchanged": true
+  },
+  "fourWithProxies": {
+   "demo": "four.dm_68 (baseq3/pak8.pk3)",
+   "settings": "timedemo 1, r_surfaceLightProxies 1, rtx_rt_mode 0, cg_lagometer 0, con_notifytime -1",
+   "captures": {
+    "glx": {
+     "on": {
+      "identical": true,
+      "changedPixels": 0,
+      "meanAbsDiff": 0.0
+     },
+     "off": {
+      "identical": true,
+      "changedPixels": 0,
+      "meanAbsDiff": 0.0
+     },
+     "again": {
+      "identical": true,
+      "changedPixels": 0,
+      "meanAbsDiff": 0.0
+     }
+    },
+    "vk": {
+     "on": {
+      "identical": true,
+      "changedPixels": 0,
+      "meanAbsDiff": 0.0
+     },
+     "off": {
+      "identical": true,
+      "changedPixels": 0,
+      "meanAbsDiff": 0.0
+     },
+     "again": {
+      "identical": true,
+      "changedPixels": 0,
+      "meanAbsDiff": 0.0
+     }
+    },
+    "rtx": {
+     "on": {
+      "identical": true,
+      "changedPixels": 0,
+      "meanAbsDiff": 0.0
+     },
+     "off": {
+      "identical": true,
+      "changedPixels": 0,
+      "meanAbsDiff": 0.0
+     },
+     "again": {
+      "identical": true,
+      "changedPixels": 0,
+      "meanAbsDiff": 0.0
+     }
+    }
+   },
+   "framesWithProxiesPromoted": 9,
+   "maxPromoted": 4
+  },
+  "testLightsReplay": {
+   "demo": "the shadow-finish demo",
+   "settings": "r_dlightTest 4 320 192 24 0, r_surfaceLightProxies 1, rtx_rt_mode 0",
+   "firstCapture": {
+    "glx": {
+     "identical": true,
+     "changedPixels": 0,
+     "meanAbsDiff": 0.0
+    },
+    "vk": {
+     "identical": true,
+     "changedPixels": 0,
+     "meanAbsDiff": 0.0
+    },
+    "rtx": {
+     "identical": true,
+     "changedPixels": 0,
+     "meanAbsDiff": 0.0
+    }
+   }
+  },
+  "pathTracedTestLights": {
+   "beforeAfter": {
+    "identical": false,
+    "changedPixels": 345,
+    "meanAbsDiff": 0.0448
+   },
+   "afterAfter": {
+    "identical": false,
+    "changedPixels": 178,
+    "meanAbsDiff": 0.039
+   }
+  },
+  "runs": {
+   "q3-dm17-after-glx": {
+    "run": "q3-dm17-after-glx",
+    "profile": "q3",
+    "map": "q3dm17",
+    "gametype": "0",
+    "renderer": "glx",
+    "runtime": ".tmp/runtime/spot-cone-after",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_glx_x86.dll": "076c5d7187c570732ac61d6207726bb08f7121edbe23a2e2febad7e31a8d5f73",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [
+     "wait 60",
+     "timescale 0",
+     "r_dlightTest 4 320 192 24 0",
+     "wait 30"
+    ],
+    "cfgLines": [],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 11.3,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "cb8ccd199bf1581f1a479f298ec340676dcef799f9d66b4aa68005622c607f93"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "61ed298177f3c017d07dc20a93f9f7c6c3c19c525ae2e49a95347dcd984adca0"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "66cad7da9a28d60ec7328ca221b90bf535b60da8e90a212ccd2a2589de628b99"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "q3-dm17-after-rtx": {
+    "run": "q3-dm17-after-rtx",
+    "profile": "q3",
+    "map": "q3dm17",
+    "gametype": "0",
+    "renderer": "rtx",
+    "runtime": ".tmp/runtime/spot-cone-after",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_rtx_x86.dll": "4b042957038e1903fa5b44e2c1ddb40e45f9827116ad9326abff31a413ed7734",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [
+     "wait 60",
+     "timescale 0",
+     "r_dlightTest 4 320 192 24 0",
+     "wait 30"
+    ],
+    "cfgLines": [],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 11.3,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "32234c993d92354e1983264d7ffc8cc2b6c6ba7fdcdaabfcc3da1aed52f8dbac"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "b0ac288e9a29c7673abe92ed8afd5461c2529c426b9adc3aaedfbf89d65c97b3"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "4539540742393bfbfc13333bbd1ee0fafac40e42222a38abcb2c293777893e3b"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "q3-dm17-after-vk": {
+    "run": "q3-dm17-after-vk",
+    "profile": "q3",
+    "map": "q3dm17",
+    "gametype": "0",
+    "renderer": "vk",
+    "runtime": ".tmp/runtime/spot-cone-after",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_vk_x86.dll": "3fa75e80366b02e1f4a70e4f077fb4431b7fef62a05cdf88c1f060cb5bcfedc4",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [
+     "wait 60",
+     "timescale 0",
+     "r_dlightTest 4 320 192 24 0",
+     "wait 30"
+    ],
+    "cfgLines": [],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 11.3,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "5a5864d5c382b8539bd08d26b13fa1cc46df897eb1a5d838690c6b06e0861e49"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "d2def65669d56190e1af7f019ea639c8d3bae074fd4d1054028067547c1822b9"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "e1cba2819b110fb6368f8b9ed1105e23312ba4ed39c8aea6dcff1974fef12dab"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "q3-dm17-before-glx": {
+    "run": "q3-dm17-before-glx",
+    "profile": "q3",
+    "map": "q3dm17",
+    "gametype": "0",
+    "renderer": "glx",
+    "runtime": ".tmp/runtime/spot-cone-before",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_glx_x86.dll": "654fc1c55fc9fbbfff27441474c64644c60d93aa0d8a9860e03c212f006596fe",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [
+     "wait 60",
+     "timescale 0",
+     "r_dlightTest 4 320 192 24 0",
+     "wait 30"
+    ],
+    "cfgLines": [],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 11.9,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "de88380836e5848515a0a789db40d2ffed3e1a7a856f92bc575bf45706643cd4"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "ec76eddeb9bfc503e9775bb195ff10bf28818c5867b8419e566e0ffab8de90fe"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "101710366d75e4e6ca483e9502120edd9352751bae26a4e9bbc6f5002602aafb"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "q3-dm17-before-rtx": {
+    "run": "q3-dm17-before-rtx",
+    "profile": "q3",
+    "map": "q3dm17",
+    "gametype": "0",
+    "renderer": "rtx",
+    "runtime": ".tmp/runtime/spot-cone-before",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_rtx_x86.dll": "6652b050a2e3373dc7d0e6f47af2344bb479588b2f7b6c36fc0449720d050034",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [
+     "wait 60",
+     "timescale 0",
+     "r_dlightTest 4 320 192 24 0",
+     "wait 30"
+    ],
+    "cfgLines": [],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 11.3,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "2589e5b1518dbc5080902d127fb1b6bdf61e89f60fd05218fd2b859c3a3cbcd3"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "f9dcaba9b6d09efb8819b519e6bb8bb8e99ee52970d09c9e64027860723d6cd9"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "7950e42b9ac35dc7023d55aa76c71811425ddb4a49fcdd418b013dade42f14a2"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "q3-dm17-before-vk": {
+    "run": "q3-dm17-before-vk",
+    "profile": "q3",
+    "map": "q3dm17",
+    "gametype": "0",
+    "renderer": "vk",
+    "runtime": ".tmp/runtime/spot-cone-before",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_vk_x86.dll": "e6a981dcc2dcd7e8bf64cab13b0dc696dc99714daba5dd0a807ca8f141ee1b74",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [
+     "wait 60",
+     "timescale 0",
+     "r_dlightTest 4 320 192 24 0",
+     "wait 30"
+    ],
+    "cfgLines": [],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 11.8,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "75ea84f09cd967c1fad9affb177538e34b8912dbf46e15c3807861f0fec23396"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "8c67061888fd323c185dcbd6b9fdb474f4631a16696f8d1dba1120f5ce2d79d4"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "6f82a828502d7844831f1b8302ea70a07a0bddc85226a78812343af9a9512e7f"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "q3-four-after-glx": {
+    "run": "q3-four-after-glx",
+    "profile": "q3",
+    "map": "four",
+    "gametype": "0",
+    "renderer": "glx",
+    "runtime": ".tmp/runtime/spot-cone-after",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_glx_x86.dll": "076c5d7187c570732ac61d6207726bb08f7121edbe23a2e2febad7e31a8d5f73",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [],
+    "cfgLines": [],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 5.7,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "259d015a2fb561f352f3b54750d14f82fe94fd25df77b4e6b7adae656db7c4ee"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "1a00aad15c89a3837bcbbb9693cc410c64513b6915307b9f17193c1c2dc34a6b"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "44557cf9ac1f1ab5c0d203d6675ec1e15d50b6ca26850a10f46fecb1e5963962"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "q3-four-after-rtx": {
+    "run": "q3-four-after-rtx",
+    "profile": "q3",
+    "map": "four",
+    "gametype": "0",
+    "renderer": "rtx",
+    "runtime": ".tmp/runtime/spot-cone-after",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_rtx_x86.dll": "4b042957038e1903fa5b44e2c1ddb40e45f9827116ad9326abff31a413ed7734",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [],
+    "cfgLines": [],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 4.7,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "043a44dd313dfa785d5f5205e1a0d54530c93e8cc1c75bde97e8627c1ca2f83d"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "7d23fa0d8d117152c6c8401cb836030dd4e3a5486a46beaaacafaa4db346d045"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "9aa49bca83eb86f2e850378492e427170105ac3ca37df1167fce8e391bf081fa"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "q3-four-after-vk": {
+    "run": "q3-four-after-vk",
+    "profile": "q3",
+    "map": "four",
+    "gametype": "0",
+    "renderer": "vk",
+    "runtime": ".tmp/runtime/spot-cone-after",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_vk_x86.dll": "3fa75e80366b02e1f4a70e4f077fb4431b7fef62a05cdf88c1f060cb5bcfedc4",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [],
+    "cfgLines": [],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 4.2,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "a37dc86072868380ba4872ad9ee7b6b480e8cc23473dc283d580443323e726c8"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "b0469ff2a7be95452722da65577585f41442831264c616e5cd8e65ad764d5cf2"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "a2d08f6fb04d2b0328188664e59851602db57885b3b6cc57bc8ee92c8bd5cdd9"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "q3-four-before-glx": {
+    "run": "q3-four-before-glx",
+    "profile": "q3",
+    "map": "four",
+    "gametype": "0",
+    "renderer": "glx",
+    "runtime": ".tmp/runtime/spot-cone-before",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_glx_x86.dll": "654fc1c55fc9fbbfff27441474c64644c60d93aa0d8a9860e03c212f006596fe",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [],
+    "cfgLines": [],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 5.7,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "259d015a2fb561f352f3b54750d14f82fe94fd25df77b4e6b7adae656db7c4ee"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "1a00aad15c89a3837bcbbb9693cc410c64513b6915307b9f17193c1c2dc34a6b"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "44557cf9ac1f1ab5c0d203d6675ec1e15d50b6ca26850a10f46fecb1e5963962"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "q3-four-before-rtx": {
+    "run": "q3-four-before-rtx",
+    "profile": "q3",
+    "map": "four",
+    "gametype": "0",
+    "renderer": "rtx",
+    "runtime": ".tmp/runtime/spot-cone-before",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_rtx_x86.dll": "6652b050a2e3373dc7d0e6f47af2344bb479588b2f7b6c36fc0449720d050034",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [],
+    "cfgLines": [],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 4.7,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "043a44dd313dfa785d5f5205e1a0d54530c93e8cc1c75bde97e8627c1ca2f83d"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "7d23fa0d8d117152c6c8401cb836030dd4e3a5486a46beaaacafaa4db346d045"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "9aa49bca83eb86f2e850378492e427170105ac3ca37df1167fce8e391bf081fa"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "q3-four-before-vk": {
+    "run": "q3-four-before-vk",
+    "profile": "q3",
+    "map": "four",
+    "gametype": "0",
+    "renderer": "vk",
+    "runtime": ".tmp/runtime/spot-cone-before",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_vk_x86.dll": "e6a981dcc2dcd7e8bf64cab13b0dc696dc99714daba5dd0a807ca8f141ee1b74",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [],
+    "cfgLines": [],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 4.2,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "a37dc86072868380ba4872ad9ee7b6b480e8cc23473dc283d580443323e726c8"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "b0469ff2a7be95452722da65577585f41442831264c616e5cd8e65ad764d5cf2"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "a2d08f6fb04d2b0328188664e59851602db57885b3b6cc57bc8ee92c8bd5cdd9"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "q3-four-debug-after-glx": {
+    "run": "q3-four-debug-after-glx",
+    "profile": "q3",
+    "map": "four",
+    "gametype": "0",
+    "renderer": "glx",
+    "runtime": ".tmp/runtime/spot-cone-after",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_glx_x86.dll": "076c5d7187c570732ac61d6207726bb08f7121edbe23a2e2febad7e31a8d5f73",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [],
+    "cfgLines": [],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 5.7,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "259d015a2fb561f352f3b54750d14f82fe94fd25df77b4e6b7adae656db7c4ee"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "1a00aad15c89a3837bcbbb9693cc410c64513b6915307b9f17193c1c2dc34a6b"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "44557cf9ac1f1ab5c0d203d6675ec1e15d50b6ca26850a10f46fecb1e5963962"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "q3-lights-after-glx": {
+    "run": "q3-lights-after-glx",
+    "profile": "q3",
+    "map": "q3dm17",
+    "gametype": "0",
+    "renderer": "glx",
+    "runtime": ".tmp/runtime/spot-cone-after",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_glx_x86.dll": "076c5d7187c570732ac61d6207726bb08f7121edbe23a2e2febad7e31a8d5f73",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [
+     "r_dlightTest 4 320 192 24 0"
+    ],
+    "cfgLines": [],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 7.1,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "3a4f8bebe9fa5319972ac8f7bfa1ec2c382777b755f41372903bd66458bf69b2"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "20d7e463c3d5789a826733efc657b6c1ba928c2cd75cc65b30153b687e23ecd7"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "7f10eb01d56ac11207520bb1ce8e938d9e1e182a58a3a6b781ece3e149ef451d"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "q3-lights-after-rtx": {
+    "run": "q3-lights-after-rtx",
+    "profile": "q3",
+    "map": "q3dm17",
+    "gametype": "0",
+    "renderer": "rtx",
+    "runtime": ".tmp/runtime/spot-cone-after",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_rtx_x86.dll": "4b042957038e1903fa5b44e2c1ddb40e45f9827116ad9326abff31a413ed7734",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [
+     "r_dlightTest 4 320 192 24 0"
+    ],
+    "cfgLines": [],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 7.1,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "983b131c28fcf566545ae9f36f09cf299bb9b85e09dd3d7b1413b70d1d59d91e"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "69e335a193b45df9f95bd849a325d2fde45269088cf9f44308d4662b3ae73eea"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "90c0e6dd6eefa7b1e3051df91e99c7184e11b15f27011bf85257ed3603092ece"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "q3-lights-after-vk": {
+    "run": "q3-lights-after-vk",
+    "profile": "q3",
+    "map": "q3dm17",
+    "gametype": "0",
+    "renderer": "vk",
+    "runtime": ".tmp/runtime/spot-cone-after",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_vk_x86.dll": "3fa75e80366b02e1f4a70e4f077fb4431b7fef62a05cdf88c1f060cb5bcfedc4",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [
+     "r_dlightTest 4 320 192 24 0"
+    ],
+    "cfgLines": [],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 7.7,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "0b19f86be238862987ea377f57ffa1b37da5a6ba97e2bb5521591a9d61231328"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "ec2952e43e1fe387b9dae1e0e92dce2dc64cb0bf1be0bd3774f898816e50812f"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "3f59d80ef1f764c50edc9af3975a8629970eae4fae4caa94c9977a343c90d493"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "q3-lights-before-glx": {
+    "run": "q3-lights-before-glx",
+    "profile": "q3",
+    "map": "q3dm17",
+    "gametype": "0",
+    "renderer": "glx",
+    "runtime": ".tmp/runtime/spot-cone-before",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_glx_x86.dll": "654fc1c55fc9fbbfff27441474c64644c60d93aa0d8a9860e03c212f006596fe",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [
+     "r_dlightTest 4 320 192 24 0"
+    ],
+    "cfgLines": [],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 7.1,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "04abdcc82000ef9964db64a0d4ff02a72db7a5092b5553c9c784d8cb39e06533"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "af0f42ef779fee81c590f7a14cf90da79e96dc91ca1df5f68449a5c389dd169d"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "7f10eb01d56ac11207520bb1ce8e938d9e1e182a58a3a6b781ece3e149ef451d"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "q3-lights-before-rtx": {
+    "run": "q3-lights-before-rtx",
+    "profile": "q3",
+    "map": "q3dm17",
+    "gametype": "0",
+    "renderer": "rtx",
+    "runtime": ".tmp/runtime/spot-cone-before",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_rtx_x86.dll": "6652b050a2e3373dc7d0e6f47af2344bb479588b2f7b6c36fc0449720d050034",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [
+     "r_dlightTest 4 320 192 24 0"
+    ],
+    "cfgLines": [],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 7.1,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "55fe30f8e12ef58cbca2266b22904433ec9a658cad541cd157445ae107dd8deb"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "4969295fca3635e921f0550afdffbef0b9984d412d38346358ec3363e51da05f"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "90c0e6dd6eefa7b1e3051df91e99c7184e11b15f27011bf85257ed3603092ece"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "q3-lights-before-vk": {
+    "run": "q3-lights-before-vk",
+    "profile": "q3",
+    "map": "q3dm17",
+    "gametype": "0",
+    "renderer": "vk",
+    "runtime": ".tmp/runtime/spot-cone-before",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_vk_x86.dll": "e6a981dcc2dcd7e8bf64cab13b0dc696dc99714daba5dd0a807ca8f141ee1b74",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [
+     "r_dlightTest 4 320 192 24 0"
+    ],
+    "cfgLines": [],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 7.1,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "2874d868c6d7858f310fb091a0ce5bcc6f538fd66d94f2f0cfc0c35ea2ed4133"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "1004d745cb775f597e8f40acda9c149102eb4ec8c328022bbad1bf1da7151405"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "3f59d80ef1f764c50edc9af3975a8629970eae4fae4caa94c9977a343c90d493"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "q3-lights-debug-after-glx": {
+    "run": "q3-lights-debug-after-glx",
+    "profile": "q3",
+    "map": "q3dm17",
+    "gametype": "0",
+    "renderer": "glx",
+    "runtime": ".tmp/runtime/spot-cone-after",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_glx_x86.dll": "076c5d7187c570732ac61d6207726bb08f7121edbe23a2e2febad7e31a8d5f73",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [
+     "r_dlightTest 4 320 192 24 0"
+    ],
+    "cfgLines": [],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 8.3,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "29644a2e1e929f58496aa95d0ccfb50fae237e12b87882948d84681ce0db382c"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "44c0758afe7776ead47d9f09ac4b97ac2faa7ea421575a0a860376e031381aad"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "7f10eb01d56ac11207520bb1ce8e938d9e1e182a58a3a6b781ece3e149ef451d"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "q3-traced-after-2-rtx": {
+    "run": "q3-traced-after-2-rtx",
+    "profile": "q3",
+    "map": "q3dm17",
+    "gametype": "0",
+    "renderer": "rtx",
+    "runtime": ".tmp/runtime/spot-cone-after",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_rtx_x86.dll": "4b042957038e1903fa5b44e2c1ddb40e45f9827116ad9326abff31a413ed7734",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [
+     "r_dlightTest 4 320 192 24 0"
+    ],
+    "cfgLines": [],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 9.8,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "ad1551bfd05ebf7c203303f509511dd1d5347e118663e31614fcc13e8920f348"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "41d791a186c02a1f35a7e7efe75daa51d56744b4f489455bfc7646700cf38bcb"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "f965312abf22558936a0e24fa53b4d4a4e3571ed955b34ee0a5b538bc50a4ccb"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "q3-traced-after-rtx": {
+    "run": "q3-traced-after-rtx",
+    "profile": "q3",
+    "map": "q3dm17",
+    "gametype": "0",
+    "renderer": "rtx",
+    "runtime": ".tmp/runtime/spot-cone-after",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_rtx_x86.dll": "4b042957038e1903fa5b44e2c1ddb40e45f9827116ad9326abff31a413ed7734",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [
+     "r_dlightTest 4 320 192 24 0"
+    ],
+    "cfgLines": [],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 9.4,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "a553a151291bfa8b342c43e009c05dab1053fecafca19327ee57634c61dbe49a"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "3aa8ebe48deceea5d543c0c237ce9a96fa7412d61828d58d235b45d774150274"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "dd6533909374aa5378cc081d554c62299dcb6c124ec176475e16be28509bea79"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   },
+   "q3-traced-before-rtx": {
+    "run": "q3-traced-before-rtx",
+    "profile": "q3",
+    "map": "q3dm17",
+    "gametype": "0",
+    "renderer": "rtx",
+    "runtime": ".tmp/runtime/spot-cone-before",
+    "identity": {
+     "fntech3.exe": "19d4a101278093a0d32fb4004e587f1fe9ded26e29ec4715e2101bdcc7c64b46",
+     "fnql_rtx_x86.dll": "6652b050a2e3373dc7d0e6f47af2344bb479588b2f7b6c36fc0449720d050034",
+     "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769"
+    },
+    "commands": [
+     "r_dlightTest 4 320 192 24 0"
+    ],
+    "cfgLines": [],
+    "outcome": "exited",
+    "exit": 0,
+    "forced": false,
+    "seconds": 9.8,
+    "installationUnchanged": true,
+    "binariesUnchanged": true,
+    "errors": [],
+    "viewpos": [],
+    "captures": [
+     {
+      "name": "spot-again.png",
+      "sha256": "b3819fc09b346f237644a97195ff066d8ce7818d2226ade08117d55c4322c385"
+     },
+     {
+      "name": "spot-off.png",
+      "sha256": "6e97e3103a0b55872f20019ebf7dbb1e8c3c37cb6a3f3252af513f42fc019ba6"
+     },
+     {
+      "name": "spot-on.png",
+      "sha256": "eaedd4bb837daf38acc95f2728dd15bbd5ebafd7e8b43246383fd122c7c4eb57"
+     }
+    ],
+    "desktopSwitched": false,
+    "inputInjected": false
+   }
+  }
+ }
+}

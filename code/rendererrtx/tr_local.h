@@ -131,6 +131,12 @@ typedef struct dlight_s {
 	vec3_t	transformed2;		// origin2 in local coordinate system
 	int		additive;			// texture detail is lost tho when the lightmap is dark
 	qboolean linear;
+	// a static map spot (R_AddStaticMapLightsToScene): a linear light lit
+	// from its origin and only inside its cone (renderercommon/
+	// tr_spot_cone.h); qfalse for every other light
+	qboolean spot;
+	float	spotCosOuter;		// cosines of the cone's outer and inner
+	float	spotCosInner;		// half-angles
 	// American McGee's Alice: the lens flare its client game asked for (type
 	// bits 1 and 2), drawn from the light's own origin and colour
 	int		aliceFlare;

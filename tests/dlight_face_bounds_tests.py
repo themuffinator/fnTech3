@@ -90,8 +90,9 @@ class DlightFaceBoundsTests(unittest.TestCase):
         for renderer in RENDERERS:
             with self.subTest(renderer=renderer):
                 world = read(f'code/{renderer}/tr_world.c')
-                checks = ('typedef struct { vec3_t transformed, transformed2; '
-                          'float radius; qboolean linear; } dlight_t;\n')
+                checks = ('#include "code/renderercommon/tr_spot_cone.h"\n'
+                          'typedef struct { vec3_t transformed, transformed2; '
+                          'float radius; qboolean linear, spot; float spotCosOuter; } dlight_t;\n')
                 checks += function(world, 'qboolean R_LightCullBounds(')
                 checks += function(world, 'static qboolean R_LightCullFace(')
                 # This activates the face bounds without unrelated normal generation.

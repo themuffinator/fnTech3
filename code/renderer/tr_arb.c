@@ -5,6 +5,7 @@
 #include "../renderercommon/tr_menu_blur.h"
 #include "../renderercommon/tr_motion_blur.h"
 #include "../renderercommon/tr_entity_refraction.h"
+#include "../renderercommon/tr_spot_cone.h"
 
 #ifndef GL_RG
 #define GL_RG 0x8227
@@ -1478,6 +1479,12 @@ qboolean GLX_LightingSetupProgram( const shaderStage_t *pStage )
 	dlightFactors[1] = 0.0f;
 	dlightFactors[2] = 0.0f;
 	dlightFactors[3] = 0.0f;
+	if ( dl->spot ) {
+		// a static map spot: its cone's scale and bias (tr_spot_cone.h)
+		R_SpotConeScaleBias( dl->spotCosInner, dl->spotCosOuter,
+			&dlightFactors[1], &dlightFactors[2] );
+		dlightFactors[3] = 1.0f;
+	}
 
 	GL_ProgramDisable();
 	if ( !GLX_CompatBindDlightProgram( linear, fogMode, absLight, dlightShadowEnabled,
@@ -1787,6 +1794,8 @@ void ARB_SetupLightParams( const shaderStage_t *pStage )
 		fragmentProgram = (tess.shader->cullType == CT_TWO_SIDED) ? DLIGHT_SHADOW_LINEAR_ABS_FRAGMENT : DLIGHT_SHADOW_LINEAR_FRAGMENT;
 	} else if ( dlightShadow ) {
 		fragmentProgram = (tess.shader->cullType == CT_TWO_SIDED) ? DLIGHT_SHADOW_ABS_FRAGMENT : DLIGHT_SHADOW_FRAGMENT;
+	} else if ( dl->spot ) {
+		fragmentProgram = (tess.shader->cullType == CT_TWO_SIDED) ? DLIGHT_SPOT_ABS_FRAGMENT : DLIGHT_SPOT_FRAGMENT;
 	} else if ( dl->linear ) {
 		fragmentProgram = (tess.shader->cullType == CT_TWO_SIDED) ? DLIGHT_LINEAR_ABS_FRAGMENT : DLIGHT_LINEAR_FRAGMENT;
 	} else {
@@ -1853,6 +1862,13 @@ void ARB_SetupLightParams( const shaderStage_t *pStage )
 		//qglProgramLocalParameter4fARB( GL_FRAGMENT_PROGRAM_ARB, 2, dl->transformed[0], dl->transformed[1], dl->transformed[2], 0 );
 		//qglProgramLocalParameter4fARB( GL_FRAGMENT_PROGRAM_ARB, 3, dl->transformed2[0], dl->transformed2[1], dl->transformed2[2], 0 );
 		qglProgramLocalParameter4fARB( GL_FRAGMENT_PROGRAM_ARB, 4, ab[0], ab[1], ab[2], 1.0f / DotProduct( ab, ab ) );
+		if ( dl->spot ) {
+			float coneScale, coneBias;
+
+			R_SpotConeScaleBias( dl->spotCosInner, dl->spotCosOuter, &coneScale, &coneBias );
+			qglProgramLocalParameter4fARB( GL_FRAGMENT_PROGRAM_ARB, 11,
+				coneScale / VectorLength( ab ), coneBias, 0.0f, 0.0f );
+		}
 	}
 
 	qglProgramLocalParameter4fARB( GL_VERTEX_PROGRAM_ARB, 0, backEnd.or.viewOrigin[0], backEnd.or.viewOrigin[1], backEnd.or.viewOrigin[2], 0 );
@@ -2246,6 +2262,7 @@ static const char *ARB_BuildDlightFP( char *program, int programIndex )
 {
 	qboolean fog = qfalse;
 	qboolean linear = qfalse;
+	qboolean spot = qfalse;
 	qboolean abslight = qfalse;
 	qboolean shadow = qfalse;
 
@@ -2256,6 +2273,8 @@ static const char *ARB_BuildDlightFP( char *program, int programIndex )
 		case DLIGHT_ABS_FRAGMENT_FOG:
 		case DLIGHT_LINEAR_FRAGMENT_FOG:
 		case DLIGHT_LINEAR_ABS_FRAGMENT_FOG:
+		case DLIGHT_SPOT_FRAGMENT_FOG:
+		case DLIGHT_SPOT_ABS_FRAGMENT_FOG:
 		case DLIGHT_SHADOW_FRAGMENT_FOG:
 		case DLIGHT_SHADOW_ABS_FRAGMENT_FOG:
 		case DLIGHT_SHADOW_LINEAR_FRAGMENT_FOG:
@@ -2275,6 +2294,13 @@ static const char *ARB_BuildDlightFP( char *program, int programIndex )
 		case DLIGHT_SHADOW_LINEAR_ABS_FRAGMENT_FOG:
 			linear = qtrue;
 			break;
+		case DLIGHT_SPOT_FRAGMENT:
+		case DLIGHT_SPOT_FRAGMENT_FOG:
+		case DLIGHT_SPOT_ABS_FRAGMENT:
+		case DLIGHT_SPOT_ABS_FRAGMENT_FOG:
+			linear = qtrue;
+			spot = qtrue;
+			break;
 	}
 
 	switch ( programIndex ) {
@@ -2282,6 +2308,8 @@ static const char *ARB_BuildDlightFP( char *program, int programIndex )
 		case DLIGHT_ABS_FRAGMENT_FOG:
 		case DLIGHT_LINEAR_ABS_FRAGMENT:
 		case DLIGHT_LINEAR_ABS_FRAGMENT_FOG:
+		case DLIGHT_SPOT_ABS_FRAGMENT:
+		case DLIGHT_SPOT_ABS_FRAGMENT_FOG:
 		case DLIGHT_SHADOW_ABS_FRAGMENT:
 		case DLIGHT_SHADOW_ABS_FRAGMENT_FOG:
 		case DLIGHT_SHADOW_LINEAR_ABS_FRAGMENT:
@@ -2316,6 +2344,25 @@ static const char *ARB_BuildDlightFP( char *program, int programIndex )
 		// calculate light vector from projection point
 		"MAD dnLV, lightVector, tmp.x, LV; \n"
 		);
+		if ( spot ) {
+			strcat( program,
+			// a static map spot's cone (tr_spot_cone.h): tmp.w over |LV| is
+			// the cosine off the axis times |lightVector|, whose inverse
+			// spotCone.x carries
+			"PARAM spotCone = program.local[11]; \n"
+			"TEMP cone; \n"
+			"DP3 cone.x, LV, LV; \n"
+			"RSQ cone.x, cone.x; \n"
+			"MUL cone.x, cone.x, tmp.w; \n"
+			"MAD cone.x, cone.x, spotCone.x, spotCone.y; \n"
+			// discard fragments outside the outer angle
+			"KIL cone.x; \n"
+			"MIN cone.x, cone.x, {1.0}; \n"
+			"MAD cone.y, cone.x, attenShape.y, attenShape.x; \n"
+			"MUL cone.y, cone.y, cone.x; \n"
+			"MUL cone.y, cone.y, cone.x; \n"
+			);
+		}
 	} else {
 		strcat( program, "ATTRIB dnLV = fragment.texcoord[1]; \n" );
 	}
@@ -2329,13 +2376,24 @@ static const char *ARB_BuildDlightFP( char *program, int programIndex )
 	"DP3 tmp.w, n, n; \n"
 	"RSQ tmp.w, tmp.w; \n"
 	"MUL nn.xyz, n, tmp.w; \n"
-	
+
 	// normalize light vector
 	"TEMP lv; \n"
-	"DP3 tmp.w, dnLV, dnLV; \n"
-	"RSQ lv.w, tmp.w; \n"
-	"MUL lv.xyz, dnLV, lv.w; \n"
+	"DP3 tmp.w, dnLV, dnLV; \n" );
 
+	if ( spot ) {
+		// a spot is lit from its origin, not the segment's nearest point
+		strcat( program,
+		"DP3 lv.w, LV, LV; \n"
+		"RSQ lv.w, lv.w; \n"
+		"MUL lv.xyz, LV, lv.w; \n" );
+	} else {
+		strcat( program,
+		"RSQ lv.w, tmp.w; \n"
+		"MUL lv.xyz, dnLV, lv.w; \n" );
+	}
+
+	strcat( program,
 	// calculate light intensity
 	"TEMP light; \n"
 	"MUL tmp.x, tmp.w, lightRGB.w; \n"
@@ -2348,6 +2406,10 @@ static const char *ARB_BuildDlightFP( char *program, int programIndex )
 	"LRP tmp.x, dlightFactors.x, tmp.y, tmp.x; \n"
 
 	"MUL light, lightRGB, tmp.x; \n" ); // light.rgb
+
+	if ( spot ) {
+		strcat( program, "MUL light, light, cone.y; \n" );
+	}
 
 	if ( shadow ) {
 		strcat( program,
@@ -3741,7 +3803,7 @@ qboolean ARB_UpdatePrograms( void )
 	if ( !ARB_CompileProgram( Vertex, va( dlightVP, fogOutVPCode ), programs[ DLIGHT_VERTEX_FOG_OUT ] ) )
 		return qfalse;
 
-	for ( i = DLIGHT_FRAGMENT; i <= DLIGHT_LINEAR_ABS_FRAGMENT_FOG; i++ ) {
+	for ( i = DLIGHT_FRAGMENT; i <= DLIGHT_SPOT_ABS_FRAGMENT_FOG; i++ ) {
 		program = ARB_BuildDlightFP( buf, i );
 		if ( !ARB_CompileProgram( Fragment, program, programs[ i ] ) ) {
 			return qfalse;
