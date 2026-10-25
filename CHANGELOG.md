@@ -309,6 +309,12 @@ historical upstream records, not fnTech3 release history. See the
   the stick turns or moves the player smoothly, as in the original, and a
   full stick turns at the original's 1.27 times the key speed in both modes
   ([record](docs/fntech3/2026-10-24-windows-joystick.md#elite-forces-axis-switches-and-turn-scale)).
+- Read joysticks and gamepads in SDL3 builds on Linux and macOS too, and
+  give a recognised gamepad keys the games' own controls menus can bind:
+  `JOY1` onwards and the arrow keys, as their original engines reported a
+  joystick. Quake Live keeps its named `PAD0_*` gamepad keys. SDL3 builds
+  no longer start looking for controllers until joystick input is switched
+  on ([record](docs/fntech3/2026-10-25-sdl3-joystick.md)).
 
 ## [0.1.0] - 2026-10-11
 

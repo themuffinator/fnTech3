@@ -1074,10 +1074,11 @@ client_cpp_args = engine_cpp_args
 if imgui_dep.found()
   client_cpp_args += ['-DFNTECH3_ENTITY_EDITOR_UI']
 endif
-# Joystick input stays off until in_joystick is set. Windows reads devices
-# through WinMM, or through SDL3's gamepad API when SDL3 is the backend;
-# native Linux reads /dev/input/js*. Other SDL3 builds still leave it out.
-if build_client and (win32 or (linux and not use_sdl))
+# Joystick input stays off until in_joystick is set. Every SDL3 build reads
+# devices through SDL3's gamepad API; native Windows reads them through WinMM
+# and native Linux through /dev/input/js*. Only other native Unix builds,
+# which have no producer, leave it out.
+if build_client and (win32 or linux or use_sdl)
   client_cpp_args += ['-DUSE_JOYSTICK']
 endif
 if client_asm_src.length() > 0 and cc.get_id() != 'msvc'

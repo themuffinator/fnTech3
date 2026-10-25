@@ -29,7 +29,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <SDL3/SDL.h>
 
-//#define USE_JOYSTICK
+// The build files define USE_JOYSTICK for every SDL3 client; joystick input
+// stays off until in_joystick is set.
 
 #ifdef __cplusplus
 extern "C" {

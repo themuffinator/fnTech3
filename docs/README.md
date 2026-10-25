@@ -81,6 +81,10 @@ Release packages include them as web pages in their `manual` folder, built by
   -- why Windows builds had none, WinMM and SDL3 joystick input switched on
   behind `in_joystick`, WinMM hot-plug on Windows' device-change notice, a
   simulated WinMM device, and Elite Force's retail axis switches still open.
+- [Joystick input in SDL3 builds](fntech3/2026-10-25-sdl3-joystick.md)
+  -- SDL3 joystick input on Linux and macOS, SDL3 start-up deferred until
+  `in_joystick` is set, and the `JOY` keys a recognised gamepad gives every
+  game but Quake Live.
 - [F.A.K.K.2 gap round](fntech3/2026-10-23-fakk2-gap-round.md)
   -- the canal water's colour and Ritual's fog volumes drawn by retail's
   rules, the whole campaign through its own exits, demos exchanged with

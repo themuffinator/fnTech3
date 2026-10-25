@@ -1,0 +1,186 @@
+{
+ "record": "2026-10-25-sdl3-joystick.md",
+ "date": "2026-10-25",
+ "profiles": [
+  "all; live runs under stvef-mp"
+ ],
+ "evidence": [
+  "Source",
+  "Unit",
+  "Build",
+  "Live (no device)"
+ ],
+ "gatesClosed": [],
+ "baseCommit": "7f7b1f56869d0bd65b8812b12af831a076059263",
+ "baseNote": "HEAD 7f7b1f56 plus the uncommitted Windows joystick change of 2026-10-24 (2026-10-24-windows-joystick.md), applied as one staged base",
+ "buildChange": {
+  "meson.build": "if build_client and (win32 or linux or use_sdl): client_cpp_args += ['-DUSE_JOYSTICK']",
+  "CMakeLists.txt": "IF(WIN32 OR USE_SDL OR CMAKE_SYSTEM_NAME STREQUAL \"Linux\") TARGET_COMPILE_DEFINITIONS(q3ui PRIVATE USE_JOYSTICK)",
+  "Makefile": "Unix with USE_SDL=1: $(B)/client/sdl_input.o: CXXFLAGS += -DUSE_JOYSTICK (MinGW unchanged)",
+  "code/sdl/sdl_glw.h": "//#define USE_JOYSTICK replaced by a comment naming the build files",
+  "leftOut": "native Unix builds other than Linux: the X11 backend has no joystick producer"
+ },
+ "producerChange": {
+  "startup": {
+   "before": "IN_InitJoystick acquired SDL_INIT_JOYSTICK and SDL_INIT_GAMEPAD and listed devices in in_availableJoysticks whatever in_joystick was; hot-plug events re-listed while input was off",
+   "now": "in_availableJoysticks registered read-only and emptied first; with in_joystick 0 nothing else; with 1 one reference to each subsystem, listing, opening; hot-plug re-enumerates only while in_joystick is 1",
+   "references": {
+    "quake3_1_32": "Quake-III-Arena GPL code/win32/win_input.c:806 and code/unix/linux_joystick.c:77 return before any device call when in_joystick is 0",
+    "sdl3_3_4_0": "src/joystick/windows/SDL_windowsjoystick.c:287 creates the SDL_joystick detection thread; src/joystick/linux/SDL_sysjoystick.c:1052 udev callback, :1085 inotify watch on /dev/input",
+    "iortcw": "SP/code/sdl/sdl_input.c:512 lists, then SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER) when inactive; :1123 hot-plug only while in_joystick",
+    "lilium-voyager": "code/sdl/sdl_input.c:628, as iortcw",
+    "openjk": "shared/sdl/sdl_input.cpp:577 lists, then SDL_QuitSubSystem(SDL_INIT_JOYSTICK) when inactive",
+    "spearmint": "code/sdl/sdl_input.c:720 returns with the joystick subsystem kept",
+    "readers": "no code, menu, page or retail module in the tree reads in_availableJoysticks"
+   }
+  },
+  "gamepadKeys": {
+   "selector": "CL_ModulesTakeGamepadKeys (code/client/cl_keys.cpp): Com_GameIsQuakeLive()",
+   "quakeLive": "FnQL's PAD0_* keys, unchanged",
+   "otherProfiles": {
+    "buttons": {
+     "south": "JOY1", "east": "JOY2", "west": "JOY3", "north": "JOY4",
+     "leftShoulder": "JOY5", "rightShoulder": "JOY6", "back": "JOY7", "start": "JOY8",
+     "leftStick": "JOY9", "rightStick": "JOY10", "guide": "JOY11", "misc1": "JOY12",
+     "touchpad": "JOY13", "rightPaddle1": "JOY28", "leftPaddle1": "JOY29",
+     "rightPaddle2": "JOY30", "leftPaddle2": "JOY31",
+     "dpadUp": "JOY24", "dpadDown": "JOY25", "dpadRight": "JOY26", "dpadLeft": "JOY27"
+    },
+    "axes": {
+     "leftX": ["LEFTARROW", "RIGHTARROW"], "leftY": ["UPARROW", "DOWNARROW"],
+     "rightX": ["JOY18", "JOY19"], "rightY": ["JOY20", "JOY21"],
+     "leftTrigger": "JOY16", "rightTrigger": "JOY17"
+    },
+    "derivation": "Quake III's joyDirectionKeys (code/win32/win_input.cpp) by role; buttons 0-10 in SDL3's xinput mapping order (subprojects SDL3-3.4.0 src/joystick/SDL_gamepad_db.h line 36)",
+    "inferredNotVerified": "that the WinMM path gives an Xbox controller the same keys: trigger sides on Z, R/U for the right stick (from retail QL's WinMM view profile), WinMM button order"
+   },
+   "engineKeyNumbers": "K_JOY1 189, K_JOY32 220, K_AUX16 236 (end of the compatibility list), K_PAD0_SOUTH 248, K_PAD0_TOUCHPAD 278, MAX_KEYS 280",
+   "adapters": "Q3, STVEF, RTCW, WolfET and JKA event adapters return -1 for every PAD0_* key and a number for every key of the JOY table"
+  },
+  "rawLoop": "IN_JoyMove's joy_keys loop compares against static_cast<int>( ARRAY_LEN( joy_keys ) ) (GCC -Wextra sign-compare)"
+ },
+ "unit": {
+  "test": "tests/sdl_joystick_tests.py",
+  "compiler": "clang++ --target=i686-pc-windows-msvc -std=c++17 -O1 -Wall -Wno-sign-compare -Werror (falls back to g++)",
+  "slicedFromSdlInput": [
+   "gamepad, stick, stickInstance",
+   "joystick cvars",
+   "joy_keys through stick_state (key tables, constants, static_asserts)",
+   "IN_CloseJoystickHandles",
+   "IN_AcquireJoystickSubsystem",
+   "IN_InitJoystick",
+   "IN_ShutdownJoystick",
+   "KeyToAxisAndSign",
+   "IN_GamepadMove",
+   "IN_QueueHatKeys",
+   "IN_GetPackedHat",
+   "IN_JoyMove"
+  ],
+  "mutationsCaught": [
+   "in_joystick gate removed",
+   "stale list kept",
+   "d-pad left and right swapped",
+   "profile selection inverted",
+   "named axes in every game",
+   "triggers swapped"
+  ],
+  "result": "2 passed"
+ },
+ "builds": {
+  "linuxSdl3": {
+   "host": "WSL Ubuntu 24.04, GCC 13.3.0, Clang 18.1.3, Meson 1.10.2",
+   "tree": "git archive of the working tree (temporary index), f5c186e0d0356c0f03820ed98ef7b44bfe6acc7c",
+   "command": "meson setup .tmp/meson-linux-sdl --cross-file misc/meson/linux-x86.ini --buildtype=debugoptimized --force-fallback-for=sdl3,fontstash -Daudio-tests=false -Dbuild-client=true -Dbuild-server=false -Dcurl=disabled -Dglx-tests=false -Dogg-vorbis=false -Drenderer-dlopen=false -Drenderer-default=glx -Dsdl=enabled; ninja -k 0 fntech3",
+   "result": "exit 0; ELF 32-bit LSB pie executable, Intel 80386",
+   "fntech3Sha256": "62d26f4da7db7914aec6af294e96a4409b26bc9333ae4393868f77ad5cd69fac",
+   "sdl_input.cpp": "compiled with -DUSE_JOYSTICK, no warning",
+   "cl_keys.cpp": "one warning, unused parameter at line 109, present in the base",
+   "oneFileChecks": "g++ and clang++ -m32 -std=c++17 -fsyntax-only -Wall -Wextra -Werror -DUSE_JOYSTICK: base sdl_input.cpp failed on the raw loop's sign compare, candidate passes; cl_keys.cpp fails on line 109 in both"
+  },
+  "windowsSdl3": {
+   "dir": ".tmp/joystick-sdl/bs (worktree)",
+   "options": "--buildtype=debugoptimized --wrap-mode=nodownload -Db_vscrt=static_from_buildtype -Dstrict-warnings=true -Drenderer-dlopen=true -Drenderers=glx -Drenderer-default=glx -Dzlib:default_library=static -Dogg:default_library=static -Dlauncher=disabled -Dsdl=enabled",
+   "compiler": "MSVC x86 (VS 2022 developer shell)",
+   "result": "exit 0; sdl_input.cpp and cl_keys.cpp compiled with -DUSE_JOYSTICK /W4 /WX",
+   "fntech3.exe": "0031ae37fe3f17a8f76f8f1a875e9be64acb04110fc2852d327f19987347cbc0",
+   "fnql_glx_x86.dll": "88d6fa633dc7c25f166fe041744d333b751c66e1260510a280c4391288bd6fba"
+  },
+  "notBuilt": "macOS (any build system); CMake and Make SDL3 builds (no SDL3 package in WSL)"
+ },
+ "runtime": {
+  "installation": {
+   "path": "E:\\Games\\Star Trek Voyager Elite Force",
+   "readOnly": true,
+   "unchanged": true
+  },
+  "harness": ".tmp/joystick-sdl/probe_joystick_startup.py (worktree), the Windows record's harness with an on-then-off scenario added: private desktop, no input, isolated fs_homepath, empty configs, s_initsound 0, net_enabled 0, com_steamIntegration 0, cl_webuiEnable 0, developer 1, logfile 2",
+  "executableUnchangedDuringRuns": true,
+  "runs": [
+   {
+    "scenario": "off-then-restart",
+    "profile": "stvef-mp",
+    "quitByItself": true,
+    "errors": [],
+    "inputLines": [
+     "^5Joystick is not active.",
+     "PROBE cvars-off",
+     "   R      in_availableJoysticks \"\"",
+     "     AL   in_joystick \"0\"",
+     "in_joystick will be changed upon restarting.",
+     "^5Calling SDL_InitSubSystem(SDL_INIT_JOYSTICK)...",
+     "^5SDL_InitSubSystem(SDL_INIT_JOYSTICK) passed.",
+     "^5Calling SDL_InitSubSystem(SDL_INIT_GAMEPAD)...",
+     "^5SDL_InitSubSystem(SDL_INIT_GAMEPAD) passed.",
+     "^50 possible joysticks",
+     "^5No joysticks found.",
+     "PROBE cvars-on",
+     "   R      in_availableJoysticks \"\"",
+     "     AL   in_joystick \"1\""
+    ]
+   },
+   {
+    "scenario": "on-at-start",
+    "profile": "stvef-mp",
+    "quitByItself": true,
+    "errors": [],
+    "inputLines": [
+     "^5Calling SDL_InitSubSystem(SDL_INIT_JOYSTICK)...",
+     "^5SDL_InitSubSystem(SDL_INIT_JOYSTICK) passed.",
+     "^5Calling SDL_InitSubSystem(SDL_INIT_GAMEPAD)...",
+     "^5SDL_InitSubSystem(SDL_INIT_GAMEPAD) passed.",
+     "^50 possible joysticks",
+     "^5No joysticks found.",
+     "PROBE cvars-on",
+     "   R      in_availableJoysticks \"\""
+    ]
+   },
+   {
+    "scenario": "on-then-off",
+    "profile": "stvef-mp",
+    "quitByItself": true,
+    "errors": [],
+    "inputLines": [
+     "^5Calling SDL_InitSubSystem(SDL_INIT_JOYSTICK)...",
+     "^5SDL_InitSubSystem(SDL_INIT_JOYSTICK) passed.",
+     "^5Calling SDL_InitSubSystem(SDL_INIT_GAMEPAD)...",
+     "^5SDL_InitSubSystem(SDL_INIT_GAMEPAD) passed.",
+     "^50 possible joysticks",
+     "^5No joysticks found.",
+     "PROBE cvars-on",
+     "in_joystick will be changed upon restarting.",
+     "^5Joystick is not active.",
+     "PROBE cvars-off",
+     "   R      in_availableJoysticks \"\"",
+     "     AL   in_joystick \"0\""
+    ]
+   }
+  ],
+  "comparison": "the 2026-10-24 SDL3 build (309e1cc0...) printed both SDL_InitSubSystem lines and 0 possible joysticks before Joystick is not active. at an in_joystick 0 start"
+ },
+ "notRun": [
+  "no physical controller or force-feedback device; the user chose not to run hands-on device checks",
+  "macOS not built or run",
+  "Linux built, not run",
+  "CMake and Make SDL3 builds not built"
+ ]
+}

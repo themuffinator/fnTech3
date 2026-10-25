@@ -259,9 +259,10 @@ Backend notes:
   or unrepresentable higher IDs are ignored instead of aliased. Events for a
   replaced game window are rejected only after the optional SDL console has
   had a chance to consume its own window events. SDL owns explicit joystick
-  and gamepad subsystem references, refreshes the UI device list even while
-  controller input is disabled, and collapses the paired topology events SDL
-  emits for recognized gamepads.
+  and gamepad subsystem references and collapses the paired topology events
+  SDL emits for recognized gamepads. Since fnTech3's 2026-10-25 change it
+  takes those references, and lists devices, only while controller input is
+  enabled ([record](../fntech3/2026-10-25-sdl3-joystick.md)).
 - Win32 confines with `ClipCursor` and re-asserts it when the window rect moves,
   because Windows drops the clip region on deactivation. `win_wndproc.cpp`
   routes mouse messages through the same `WIN_ResolvePointerOwner` the frame

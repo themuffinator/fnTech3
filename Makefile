@@ -1515,6 +1515,8 @@ ifeq ($(USE_SDL),1)
         $(B)/client/sdl_gamma.o \
         $(B)/client/sdl_input.o \
         $(B)/client/sdl_snd.o
+    # Opt-in at run time through in_joystick, as on Windows.
+    $(B)/client/sdl_input.o: CXXFLAGS += -DUSE_JOYSTICK
 ifeq ($(COMPILE_PLATFORM),darwin)
     Q3OBJ += $(B)/client/sdl_macos_window.o
 endif

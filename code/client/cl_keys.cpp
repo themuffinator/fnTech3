@@ -834,6 +834,24 @@ static int CL_ModuleKeyEvent( int key ) {
 
 /*
 =============
+CL_ModulesTakeGamepadKeys
+
+Whether a recognised SDL3 gamepad's controls should reach this game as the
+engine's named gamepad keys (PAD0_A and on), which sit past the compatibility
+list. Quake Live's modules take this engine's numbers unchanged, and its web
+menus list every engine key by name. The other games' modules have no number
+for them; their engines, where read, took joysticks through WinMM, so their
+menus know joystick controls as JOY1-JOY32 and the arrow keys, and a
+gamepad's controls take those.
+=============
+*/
+qboolean CL_ModulesTakeGamepadKeys( void ) {
+	return Com_GameIsQuakeLive() ? qtrue : qfalse;
+}
+
+
+/*
+=============
 CL_UIKeyDownEvent
 
 Hands the UI a key press, numbered for its game; a key that game has no

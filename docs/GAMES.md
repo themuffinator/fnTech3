@@ -224,25 +224,34 @@ apply to which game.
 
 fnTech3 reads a joystick or gamepad in every game once you switch it on:
 turn on the joystick in the game's controls menu, or type `in_joystick 1`
-and then `in_restart` in the console. It stays off until you do.
+and then `in_restart` in the console. Until you do, it does not look for
+controllers at all.
 
-In the Windows download, the buttons act as keys named `JOY1` onwards, which
-you bind like any other key, as in the original Quake III and the games
-built on it. The stick's left, right, up and down act as the arrow keys
-(Elite Force's menus can make them smooth instead; see
+The buttons act as keys named `JOY1` onwards, which you bind like any other
+key, in the game's controls menu or in the console, as in the original
+Quake III and the games built on it. `joy_threshold` sets how far a stick
+must move before it counts.
+
+In the Windows download, the stick's left, right, up and down act as the
+arrow keys (Elite Force's menus can make them smooth instead; see
 [its notes](#star-trek-voyager-elite-force-stvef-sp-stvef-mp)), and the hat
-as `JOY24` to `JOY27`. `joy_threshold` sets how far a stick must
-move before it counts. You can plug the controller in after the game has
+as `JOY24` to `JOY27`. You can plug the controller in after the game has
 started: fnTech3 looks for it again when Windows reports a new device, and
 it should work within about two seconds. If it does not, type `in_restart`
-in the console. If you unplug it, any button it held is let go.
-
-A copy of fnTech3 built with SDL3 on Windows names a gamepad's buttons
-instead (`PAD0_A` and so on), and also notices a controller plugged in at
-any time. The games' own menus may not show those names, so bind them in the
-console, for example `bind PAD0_A +attack`. Linux builds read joysticks
-without SDL3 only; macOS builds do not read them yet
+in the console. If you unplug it, any button it held is let go
 ([details](fntech3/2026-10-24-windows-joystick.md)).
+
+A copy of fnTech3 built with SDL3, the default on Linux and the only choice
+on macOS, notices a controller plugged in at any time. It recognises most
+gamepads and gives them all the same keys: A, B, X and Y are `JOY1` to
+`JOY4`, the shoulder buttons `JOY5` and `JOY6`, Back and Start `JOY7` and
+`JOY8`, the stick clicks `JOY9` and `JOY10`, the triggers `JOY16` and
+`JOY17`, the left stick the arrow keys, the right stick `JOY18` to `JOY21`
+and the d-pad `JOY24` to `JOY27`. In Quake Live the gamepad's controls have
+names instead (`PAD0_A` and so on), which its controls menu shows. A Linux
+copy built without SDL3 reads the joystick through Linux's own joystick
+devices. fnTech3 is not built or tested on macOS
+([details](fntech3/2026-10-25-sdl3-joystick.md)).
 
 ## Playing online
 

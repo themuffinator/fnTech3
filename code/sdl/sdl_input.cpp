@@ -1082,9 +1082,70 @@ static qboolean s_joystickSubsystemAcquired;
 static qboolean s_gamepadSubsystemAcquired;
 
 static_assert( SDL_GAMEPAD_BUTTON_SOUTH == 0 );
+static_assert( kSupportedGamepadButtonCount == 21 );
+static_assert( SDL_GAMEPAD_AXIS_LEFTX == 0 && SDL_GAMEPAD_AXIS_COUNT == 6 );
 static_assert(
 	SDL_GAMEPAD_BUTTON_TOUCHPAD - SDL_GAMEPAD_BUTTON_MISC1 ==
 	K_PAD0_TOUCHPAD - K_PAD0_MISC1 );
+
+// The keys a recognised gamepad's controls queue, in SDL3's button and axis
+// order. An axis has a key for each direction; 0 queues none.
+struct gamepadKeys_t {
+	int buttons[kSupportedGamepadButtonCount];
+	int axisNegative[SDL_GAMEPAD_AXIS_COUNT];
+	int axisPositive[SDL_GAMEPAD_AXIS_COUNT];
+};
+
+// FnQL's named gamepad keys, which Quake Live's modules take.
+static constexpr gamepadKeys_t kNamedGamepadKeys = {
+	{
+		K_PAD0_SOUTH, K_PAD0_EAST, K_PAD0_WEST, K_PAD0_NORTH,
+		K_PAD0_BACK, K_PAD0_GUIDE, K_PAD0_START,
+		K_PAD0_LEFTSTICK_CLICK, K_PAD0_RIGHTSTICK_CLICK,
+		K_PAD0_LEFTSHOULDER, K_PAD0_RIGHTSHOULDER,
+		K_PAD0_DPAD_UP, K_PAD0_DPAD_DOWN, K_PAD0_DPAD_LEFT, K_PAD0_DPAD_RIGHT,
+		K_PAD0_MISC1, K_PAD0_PADDLE1, K_PAD0_PADDLE2, K_PAD0_PADDLE3,
+		K_PAD0_PADDLE4, K_PAD0_TOUCHPAD
+	},
+	{
+		K_PAD0_LEFTSTICK_LEFT, K_PAD0_LEFTSTICK_UP,
+		K_PAD0_RIGHTSTICK_LEFT, K_PAD0_RIGHTSTICK_UP, 0, 0
+	},
+	{
+		K_PAD0_LEFTSTICK_RIGHT, K_PAD0_LEFTSTICK_DOWN,
+		K_PAD0_RIGHTSTICK_RIGHT, K_PAD0_RIGHTSTICK_DOWN,
+		K_PAD0_LEFTTRIGGER, K_PAD0_RIGHTTRIGGER
+	}
+};
+
+// Every other game's modules know a joystick only by JOY1-JOY32 and the
+// arrow keys. Each control takes the key Quake III's joystick table
+// (joyDirectionKeys in code/win32/win_input.cpp) gives its role: the face,
+// shoulder, back, start, stick and guide buttons are JOY1-JOY11 in the order
+// of SDL3's own XInput joystick layout (the "xinput" mapping in SDL's
+// gamepad database), the left stick is the X and Y axes' arrow keys, the
+// triggers share the Z axis's JOY16 and JOY17 as Windows' legacy joystick
+// interface reports an Xbox pad's, the right stick is the R and U axes'
+// JOY18-JOY21, and the d-pad is the POV hat's JOY24-JOY27. The rest take
+// numbers that table leaves free. JOY1-JOY4 are Enter in Quake III's and
+// Elite Force's menus, and the arrow keys move through them.
+static constexpr gamepadKeys_t kJoystickGamepadKeys = {
+	{
+		K_JOY1, K_JOY2, K_JOY3, K_JOY4,		// south, east, west, north
+		K_JOY7, K_JOY11, K_JOY8,			// back, guide, start
+		K_JOY9, K_JOY10,					// stick clicks
+		K_JOY5, K_JOY6,						// shoulders
+		K_JOY24, K_JOY25, K_JOY27, K_JOY26,	// d-pad up, down, left, right
+		K_JOY12,							// misc
+		K_JOY28, K_JOY29, K_JOY30, K_JOY31,	// paddles
+		K_JOY13								// touchpad
+	},
+	{ K_LEFTARROW, K_UPARROW, K_JOY18, K_JOY20, 0, 0 },
+	{ K_RIGHTARROW, K_DOWNARROW, K_JOY19, K_JOY21, K_JOY16, K_JOY17 }
+};
+
+// Chosen when a gamepad opens; the profile cannot change while it is open.
+static const gamepadKeys_t *s_gamepadKeys = &kNamedGamepadKeys;
 
 struct joystickState_t {
 	qboolean gamepadButtons[kSupportedGamepadButtonCount];
@@ -1150,6 +1211,20 @@ static void IN_InitJoystick( void )
 
 	IN_CloseJoystickHandles();
 
+	// The ROM list may hold an earlier enumeration's devices.
+	cv = Cvar_Get( "in_availableJoysticks", "", CVAR_ROM );
+	Cvar_Set( "in_availableJoysticks", "" );
+	Cvar_SetDescription( cv, "List of available joysticks." );
+
+	// Like the WinMM and Linux producers, and the retail engines, touch no
+	// device while joystick input is off. SDL3's joystick subsystem would
+	// start device monitoring (a detection thread on Windows, udev or inotify
+	// on Linux) only to fill that list, which no module or menu reads.
+	if( !in_joystick->integer ) {
+		Com_DPrintf( "Joystick is not active.\n" );
+		return;
+	}
+
 	// Acquire one explicit reference for each subsystem, even when another SDL
 	// owner already initialized it. The persistent flags prevent hotplug
 	// re-enumeration from acquiring another reference.
@@ -1179,16 +1254,7 @@ static void IN_InitJoystick( void )
 		Q_strcat( buf, sizeof( buf ), "\n" );
 	}
 
-	cv = Cvar_Get( "in_availableJoysticks", buf, CVAR_ROM );
-	// The ROM cvar may already exist from an earlier enumeration. Refresh its
-	// engine-owned value so UI code sees hotplug changes immediately.
 	Cvar_Set( "in_availableJoysticks", buf );
-	Cvar_SetDescription( cv, "List of available joysticks." );
-
-	if( !in_joystick->integer ) {
-		Com_DPrintf( "Joystick is not active.\n" );
-		return;
-	}
 
 	in_joystickNo = Cvar_Get( "in_joystickNo", "0", CVAR_ARCHIVE );
 	Cvar_SetDescription( in_joystickNo, "Select which joystick to use." );
@@ -1217,6 +1283,8 @@ static void IN_InitJoystick( void )
 
 	if (SDL_IsGamepad(stickInstance))
 		gamepad = SDL_OpenGamepad(stickInstance);
+	s_gamepadKeys = CL_ModulesTakeGamepadKeys()
+		? &kNamedGamepadKeys : &kJoystickGamepadKeys;
 
 	Com_DPrintf( "Joystick %d opened\n", in_joystickNo->integer );
 	Com_DPrintf( "Name:       %s\n", SDL_GetJoystickNameForID(stickInstance) ? SDL_GetJoystickNameForID(stickInstance) : "Unknown joystick" );
@@ -1330,22 +1398,8 @@ static void IN_GamepadMove( void )
 	std::array<int, SDL_GAMEPAD_AXIS_COUNT> physicalAxes = {};
 	std::array<qboolean, SDL_GAMEPAD_AXIS_COUNT * 2>
 		digitalDirections = {};
-	static const int negMap[SDL_GAMEPAD_AXIS_COUNT] = {
-		K_PAD0_LEFTSTICK_LEFT,
-		K_PAD0_LEFTSTICK_UP,
-		K_PAD0_RIGHTSTICK_LEFT,
-		K_PAD0_RIGHTSTICK_UP,
-		0,
-		0
-	};
-	static const int posMap[SDL_GAMEPAD_AXIS_COUNT] = {
-		K_PAD0_LEFTSTICK_RIGHT,
-		K_PAD0_LEFTSTICK_DOWN,
-		K_PAD0_RIGHTSTICK_RIGHT,
-		K_PAD0_RIGHTSTICK_DOWN,
-		K_PAD0_LEFTTRIGGER,
-		K_PAD0_RIGHTTRIGGER
-	};
+	const int *const negMap = s_gamepadKeys->axisNegative;
+	const int *const posMap = s_gamepadKeys->axisPositive;
 
 	SDL_UpdateGamepads();
 
@@ -1357,12 +1411,8 @@ static void IN_GamepadMove( void )
 				? qtrue : qfalse;
 		if ( pressed != stick_state.gamepadButtons[i] )
 		{
-			if ( i >= SDL_GAMEPAD_BUTTON_MISC1 ) {
-				Com_QueueEvent(in_eventTime, SE_KEY, K_PAD0_MISC1 + i - SDL_GAMEPAD_BUTTON_MISC1, pressed, 0, NULL);
-			} else
-			{
-				Com_QueueEvent(in_eventTime, SE_KEY, K_PAD0_SOUTH + i, pressed, 0, NULL);
-			}
+			Com_QueueEvent( in_eventTime, SE_KEY,
+				s_gamepadKeys->buttons[i], pressed, 0, NULL );
 			stick_state.gamepadButtons[i] = pressed;
 		}
 	}
@@ -1648,7 +1698,7 @@ static void IN_JoyMove( void )
 	/* Time to update axes state based on old vs. new. */
 	if (axes != stick_state.oldaxes)
 	{
-		for( i = 0; i < ARRAY_LEN( joy_keys ); i++ ) {
+		for( i = 0; i < static_cast<int>( ARRAY_LEN( joy_keys ) ); i++ ) {
 			if( ( axes & ( 1u << i ) ) && !( stick_state.oldaxes & ( 1u << i ) ) ) {
 				Com_QueueEvent( in_eventTime, SE_KEY, joy_keys[i], qtrue, 0, NULL );
 			}
@@ -2523,16 +2573,14 @@ void HandleEvents( void )
 						{ device, kind };
 				}
 
-				if ( in_joystick ) {
-					if ( in_joystick->integer ) {
-						// Balance held buttons, hats, digital directions, and
-						// analog axes before IN_InitJoystick clears its producer
-						// snapshot.
-						IN_QueueInputReset(
-							gw_active && !gw_minimized ? qtrue : qfalse );
-					}
-					// Keep the UI-facing device list current even while runtime
-					// joystick input is disabled.
+				// With joystick input off the subsystems are not running, and
+				// a topology event from another SDL owner changes nothing here.
+				if ( in_joystick && in_joystick->integer ) {
+					// Balance held buttons, hats, digital directions, and
+					// analog axes before IN_InitJoystick clears its producer
+					// snapshot.
+					IN_QueueInputReset(
+						gw_active && !gw_minimized ? qtrue : qfalse );
 					IN_InitJoystick();
 				}
 				break;

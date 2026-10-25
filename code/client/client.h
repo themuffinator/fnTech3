@@ -775,6 +775,7 @@ void CL_RTCWLimboChat( vm_t *vm, intptr_t source );
 qboolean CL_RTCWGetLimboString( vm_t *vm, intptr_t index, intptr_t destination );
 int CL_RTCWSourceFileAndLine( int handle, char *filename, int *line );
 void CL_RTCWRegisterFont( const char *name, int pointSize, void *destination );
+qboolean CL_ModulesTakeGamepadKeys( void );
 qboolean CL_Q3KeyIsDown( int key );
 void CL_Q3SetBinding( int key, const char *binding );
 void CL_Q3KeyString( int key, char *buffer, int size, qboolean binding );

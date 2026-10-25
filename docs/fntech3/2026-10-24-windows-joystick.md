@@ -71,7 +71,7 @@ leaves out HIDAPI and raw input.
 | Meson, Windows, native or SDL3 | `-DUSE_JOYSTICK` only `if linux and build_client and not use_sdl` | `if build_client and (win32 or (linux and not use_sdl))` |
 | CMake (Windows is native only) | `IF(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT USE_SDL)` | `IF(WIN32 OR (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT USE_SDL))` |
 | Makefile, MinGW | none | `sdl_input.o` with SDL3, `win_input.o` without it, each `CXXFLAGS += -DUSE_JOYSTICK` |
-| Linux and macOS with SDL3 | none | still none |
+| Linux and macOS with SDL3 | none | still none; every SDL3 build since 2026-10-25 ([SDL3 record](2026-10-25-sdl3-joystick.md)) |
 
 The build change touched no source. Two follow-ups below, both added
 afterwards, do: the native backend's hot-plug, and a change to the WinMM
@@ -81,7 +81,9 @@ behaviour is the producers' own:
 - With `in_joystick 0`, the native backend makes no WinMM call, at start or
   per frame. An SDL3 build starts SDL3's joystick and gamepad subsystems to
   list devices in `in_availableJoysticks`, as FnQL's SDL3 backend and
-  ioquake3 do, and opens none.
+  ioquake3 do, and opens none. Since 2026-10-25 it starts neither until
+  `in_joystick` is 1 ([SDL3 record](2026-10-25-sdl3-joystick.md)); the
+  runs below predate that.
 - With `in_joystick 1`, the native backend probes WinMM's sixteen slots
   when input starts, takes the first device found, and reads it each frame
   while the window has focus and is neither minimized nor suspended.
@@ -104,7 +106,9 @@ behaviour is the producers' own:
   `PAD0_A` and so on, and its axes act as keys or, with
   `in_joystickUseAnalog 1`, as `j_*` axes. Quake III-family modules have no
   number for a `PAD0_*` key, so their menus never see one. A console `bind`
-  still works.
+  still works. Since 2026-10-25 only Quake Live keeps those keys; in every
+  other game a recognised gamepad queues `JOY` keys and the arrow keys
+  ([SDL3 record](2026-10-25-sdl3-joystick.md)).
 - Every profile shares the producers, so the joystick switch and threshold
   that Quake III's, RTCW's and Elite Force's controls menus show now take
   effect on Windows. `ui_joyavail` now exists in native Windows builds; the
@@ -308,7 +312,7 @@ lane's values are retail's.
 
 - **Source.** `tests/input_system_source_tests.py` checks the three build
   files' conditions and that SDL3 builds elsewhere still leave the define
-  out. It checks that both backends register `in_joystick` as `"0"`,
+  out (the SDL3 record's change replaced that check). It checks that both backends register `in_joystick` as `"0"`,
   archived and latched. It checks that WinMM is untouched before that cvar
   is read, and that the frame update polls only a focused, unminimized,
   unsuspended window.
@@ -405,8 +409,8 @@ mapping, dead zones, hot-plug and loss are covered only by the simulated
 WinMM device, the producers' existing tests and the device-change notice
 run; no controller plugged in after start was seen to open. The engine's
 synthetic input (`in_synthesize`) drives keys and the mouse, not a
-joystick, so it was not used. Linux and macOS builds with SDL3 still have
-no joystick input. Elite Force's switches and turn scale were not run
-against retail or in a live fnTech3 session; their evidence is the static
-reads and the unit checks above. The SDL3 backend does not read the
-switches.
+joystick, so it was not used. Linux and macOS builds with SDL3 had no
+joystick input until the [SDL3 record](2026-10-25-sdl3-joystick.md)'s
+change. Elite Force's switches and turn scale were not run against retail
+or in a live fnTech3 session; their evidence is the static reads and the
+unit checks above. The SDL3 backend does not read the switches.
