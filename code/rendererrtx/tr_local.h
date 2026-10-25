@@ -136,6 +136,11 @@ typedef struct dlight_s {
 	int		aliceFlare;
 	vec3_t	aliceFlareOrigin;
 	vec3_t	aliceFlareColor;
+	// Alice and F.A.K.K.2: the radius and colour the client game gave the
+	// light, before r_dlightScale, r_dlightIntensity and the colour controls;
+	// a radius of 0 for every other light
+	float	ritualRadius;
+	vec3_t	ritualColor;
 	qboolean castsRtShadows;	// RT visibility policy; raster lighting remains unchanged
 	unsigned int sourceFlags;	// DLIGHT_SOURCE_* provenance; sources may participate in multiple paths
 #ifdef USE_PMLIGHT

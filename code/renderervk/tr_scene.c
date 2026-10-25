@@ -556,6 +556,7 @@ static void RE_AddDynamicLightToSceneWithShadowEligibility( const vec3_t org,
 	dl->additive = additive;
 	dl->linear = qfalse;
 	dl->aliceFlare = 0;
+	dl->ritualRadius = 0.0f;
 #ifdef USE_PMLIGHT
 	dl->shadowEligible = shadowEligible;
 	dl->shadowPlanned = qfalse;
@@ -626,6 +627,7 @@ void RE_AddLinearLightToScene( const vec3_t start, const vec3_t end, float inten
 	dl->additive = 0;
 	dl->linear = qtrue;
 	dl->aliceFlare = 0;
+	dl->ritualRadius = 0.0f;
 #ifdef USE_PMLIGHT
 	dl->shadowEligible = qtrue;
 	dl->shadowPlanned = qfalse;
@@ -1316,6 +1318,18 @@ void RE_AddAliceLightToScene( const vec3_t org, float intensity, float r, float 
 	dl->aliceFlare = ri.gameId == COM_GAME_MOHAA ? ( ( type & 5 ) ? 1 : 0 ) : type & 3;
 	VectorCopy( org, dl->aliceFlareOrigin );
 	VectorSet( dl->aliceFlareColor, r, g, b );
+	dl->ritualRadius = COM_GAME_ID_IS_RITUAL( ri.gameId ) ? intensity : 0.0f;
+	VectorSet( dl->ritualColor, r, g, b );
+	/* An additive light reaches as far as its game asked: retail projects it
+	 * over its whole radius (fakk2.exe 1.02 0x0047d32b), and it lights the
+	 * world from white (tr_ritual_additive_light.h), so r_dlightScale's
+	 * balance for lights that modulate a surface does not apply to it. */
+	if ( dl->ritualRadius > 0.0f && dl->additive ) {
+		dl->radius = intensity;
+#ifdef USE_PMLIGHT
+		dl->shadowProjectionFar = R_DlightShadowProjectionFarForRadius( intensity, 1.0f );
+#endif
+	}
 }
 
 /*

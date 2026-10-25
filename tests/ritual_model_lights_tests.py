@@ -456,7 +456,7 @@ def renderer_fixture(renderer):
 #define DLIGHT_AT_RADIUS 16
 #define DLIGHT_MINIMUM_RADIUS 16
 enum { RF_MINLIGHT = 1, RF_LIGHTING_ORIGIN = 128, RDF_NOWORLDMODEL = 1 };
-struct dlight_t { vec3_t origin, color; float radius; bool linear; void *rtcwShader; };
+struct dlight_t { vec3_t origin, color; float radius; bool linear; void *rtcwShader; float ritualRadius; vec3_t ritualColor; };
 struct trRefdef_t { int rdflags, time, num_dlights; dlight_t *dlights; byte areamask[32]; };
 struct trRefEntity_t {
 	struct {
@@ -657,6 +657,81 @@ int main() {
 	world.ritualModelLights = nullptr;
 	R_SetupAliceEntityLighting( &view, &e, point, localPoint, 0 );
 	assert( !memcmp( &saved, &e, sizeof( e ) ) && gridCalls == 4 );
+
+	/* A light its model holds: retail's rule. F.A.K.K.2's dung pile light,
+	 * 96 across and a quarter green, ten units from where the model is lit,
+	 * inside a frame 40 across: 7500 * 96 / 100 = 7200 times its colour, past
+	 * 255, so the directed light comes down to 255 green and the ambient with
+	 * it, in either light mode, without turning the light's direction. */
+	tr.worldSun.valid = qfalse;
+	ri.gameId = COM_GAME_FAKK2;
+	dlight_t light = {};
+	VectorSet( light.origin, 10, 0, 32 ); VectorSet( light.ritualColor, 0, 0.25f, 0 );
+	/* the renderer's own colour, desaturated, is not the one retail weighs */
+	VectorSet( light.color, 0.5f, 0.2f, 0.5f );
+	light.radius = 48; light.ritualRadius = 96;
+	view.num_dlights = 1; view.dlights = &light;
+	const float down = 255.0f / 1850.0f;
+	for ( int lightMode = 0; lightMode <= 2; lightMode += 2 ) {
+		mode.integer = lightMode;
+		e = Fresh( FNTECH3_ALICE_RF_SHADOW );
+		R_SetupAliceEntityLighting( &view, &e, point, localPoint, 20 );
+		assert( Near( e.directedLight[1], 255, 0.05f ) && Near( e.directedLight[0], 40 * down, 0.01f ) );
+		assert( Near( e.directedLight[2], 60 * down, 0.01f ) && Near( e.ambientLight[2], 30 * down, 0.01f ) );
+		assert( Near( e.lightDir[2], 1 ) && ( ( e.ambientLightInt >> 16 ) & 0xff ) == (int)( 30 * down ) );
+	}
+	/* a dim one is added without the rescale; Alice's rule is four times it */
+	VectorSet( light.ritualColor, 0, 0.001f, 0 );
+	e = Fresh( FNTECH3_ALICE_RF_SHADOW );
+	R_SetupAliceEntityLighting( &view, &e, point, localPoint, 20 );
+	assert( Near( e.directedLight[1], 57.2f, 0.01f ) && e.ambientLight[1] == 20 && e.directedLight[0] == 40 );
+	ri.gameId = COM_GAME_ALICE;
+	e = Fresh( FNTECH3_ALICE_RF_SHADOW );
+	R_SetupAliceEntityLighting( &view, &e, point, localPoint, 20 );
+	assert( Near( e.directedLight[1], 78.8f, 0.01f ) );
+	/* with an overbright bit the light is halved and so is the ceiling */
+	ri.gameId = COM_GAME_FAKK2;
+	tr.identityLight = 0.5f; tr.identityLightByte = 127;
+	e = Fresh( FNTECH3_ALICE_RF_SHADOW );
+	R_SetupAliceEntityLighting( &view, &e, point, localPoint, 20 );
+	assert( Near( e.directedLight[1], 53.6f, 0.01f ) );
+	VectorSet( light.ritualColor, 0, 0.25f, 0 );
+	e = Fresh( FNTECH3_ALICE_RF_SHADOW );
+	R_SetupAliceEntityLighting( &view, &e, point, localPoint, 20 );
+	assert( Near( e.directedLight[1], 127, 0.05f ) );
+	tr.identityLight = 1; tr.identityLightByte = 255;
+	/* a light at the lighting point itself is weighed at a unit */
+	VectorCopy( point, light.origin ); VectorSet( light.ritualColor, 1e-6f, 0, 0 );
+	e = Fresh( FNTECH3_ALICE_RF_SHADOW );
+	R_SetupAliceEntityLighting( &view, &e, point, localPoint, 20 );
+	assert( Near( e.directedLight[0], 40.72f, 0.01f ) );
+	/* farther than its radius, a light the model holds adds nothing, and the
+	 * renderer's own vertex light leaves it out too */
+	VectorSet( light.origin, 10, 0, 32 ); VectorSet( light.ritualColor, 0, 0.25f, 0 ); light.ritualRadius = 5;
+	for ( int lightMode = 0; lightMode <= 2; lightMode += 2 ) {
+		mode.integer = lightMode;
+		e = Fresh( FNTECH3_ALICE_RF_SHADOW );
+		R_SetupAliceEntityLighting( &view, &e, point, localPoint, 20 );
+		assert( e.directedLight[1] == 50 && e.ambientLight[1] == 20 );
+	}
+	/* Outside the frame, with no frame, or a light no client game gave (a
+	 * map's static light): the renderer's own lights, as before -- the
+	 * vertex light turns toward it, the per-pixel one adds nothing here. */
+	light.ritualRadius = 96; VectorSet( light.color, 0, 0.25f, 0 );
+	for ( int k = 0; k < 3; k++ ) {
+		const float reach = k == 0 ? 4.0f : k == 1 ? 0.0f : 20.0f;
+		light.ritualRadius = k == 2 ? 0.0f : 96.0f;
+		mode.integer = 0;
+		e = Fresh( FNTECH3_ALICE_RF_SHADOW );
+		R_SetupAliceEntityLighting( &view, &e, point, localPoint, reach );
+		assert( Near( e.directedLight[1], 50 + 16 * 48 * 48 / 256.0f * 0.25f, 0.05f ) && e.lightDir[0] > 0.1f );
+		assert( e.ambientLight[1] == 20 );
+		mode.integer = 2;
+		e = Fresh( FNTECH3_ALICE_RF_SHADOW );
+		R_SetupAliceEntityLighting( &view, &e, point, localPoint, reach );
+		assert( e.directedLight[1] == 50 && Near( e.lightDir[2], 1 ) );
+	}
+	mode.integer = 0; view.num_dlights = 0; view.dlights = nullptr; ri.gameId = COM_GAME_ALICE;
 	puts( "ok" );
 	return 0;
 }

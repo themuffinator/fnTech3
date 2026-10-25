@@ -151,4 +151,74 @@ static qboolean R_RitualModelLight( const trRefdef_t *refdef, trRefEntity_t *ent
 	return qtrue;
 }
 
+/* A client game's light within the lit frame's radius (twice reach) of where
+ * its model is lit: one the model holds, as F.A.K.K.2's dung piles on
+ * creeperpens do, whose outward faces all turn away from it. */
+static qboolean R_RitualEnclosedDlight( const dlight_t *dl, const vec3_t lightOrigin, float reach ) {
+	vec3_t delta;
+	if ( reach <= 0.0f || dl->ritualRadius <= 0.0f || dl->linear || dl->rtcwShader ) {
+		return qfalse;
+	}
+	VectorSubtract( dl->origin, lightOrigin, delta );
+	return DotProduct( delta, delta ) < 4.0f * reach * reach ? qtrue : qfalse;
+}
+
+/*
+=================
+R_RitualAddEnclosedDlights
+
+A per-pixel or vertex dynamic light lights the faces turned toward it, so a
+light inside its own model leaves the model as it was. Retail lights a model
+from every dynamic light in reach by one rule (fakk2.exe 1.02
+0x0048f23d..0x0048f39b, alice.exe 0x004accfc..0x004acf07), which is used here
+for the lights R_RitualEnclosedDlight picks: a light no farther from where the
+model is lit than the radius its game gave, before r_dlightScale, adds the
+colour its game gave, before r_dlightIntensity and r_dlightSaturation, times
+that radius over the squared distance, times 7500 in F.A.K.K.2 and 30000 in
+Alice, to the directed light, and leaves the light's direction alone; then a directed light past 255 in any channel is scaled down to 255
+there, and the ambient light with it. Retail divides by a distance of zero;
+this one stops at a unit. Neither engine registers an overbright bit, so the
+light is taken down by any r_overBrightBits gives, as the minimum light is.
+Returns whether a light was added.
+=================
+*/
+static qboolean R_RitualAddEnclosedDlights( const trRefdef_t *refdef, trRefEntity_t *ent, const vec3_t lightOrigin,
+	float reach ) {
+	const float power = ( ri.gameId == COM_GAME_ALICE ? 30000.0f : 7500.0f ) * tr.identityLight;
+	const float ceiling = (float)tr.identityLightByte;
+	qboolean added = qfalse;
+	float brightest;
+	int i;
+
+	for ( i = 0; i < refdef->num_dlights; i++ ) {
+		const dlight_t *dl = &refdef->dlights[i];
+		vec3_t delta;
+		float d;
+		if ( !R_RitualEnclosedDlight( dl, lightOrigin, reach ) ) {
+			continue;
+		}
+		VectorSubtract( dl->origin, lightOrigin, delta );
+		d = VectorLength( delta );
+		if ( d > dl->ritualRadius ) {
+			continue;
+		}
+		if ( d < 1.0f ) {
+			d = 1.0f;
+		}
+		VectorMA( ent->directedLight, power * dl->ritualRadius / ( d * d ), dl->ritualColor, ent->directedLight );
+		added = qtrue;
+	}
+	if ( !added ) {
+		return qfalse;
+	}
+	brightest = MAX( ent->directedLight[0], MAX( ent->directedLight[1], ent->directedLight[2] ) );
+	if ( brightest > ceiling ) {
+		const float scale = ceiling / brightest;
+		VectorScale( ent->ambientLight, scale, ent->ambientLight );
+		VectorScale( ent->directedLight, scale, ent->directedLight );
+		VectorScale( ent->csmSunLight, scale, ent->csmSunLight );
+	}
+	return qtrue;
+}
+
 #endif

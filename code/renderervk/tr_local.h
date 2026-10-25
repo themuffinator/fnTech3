@@ -140,6 +140,11 @@ typedef struct dlight_s {
 	int		aliceFlare;
 	vec3_t	aliceFlareOrigin;
 	vec3_t	aliceFlareColor;
+	// Alice and F.A.K.K.2: the radius and colour the client game gave the
+	// light, before r_dlightScale, r_dlightIntensity and the colour controls;
+	// a radius of 0 for every other light
+	float	ritualRadius;
+	vec3_t	ritualColor;
 #ifdef USE_PMLIGHT
 	struct litSurf_s	*head;
 	struct litSurf_s	*tail;

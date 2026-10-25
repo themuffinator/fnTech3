@@ -1,0 +1,923 @@
+{
+ "record": "docs/fntech3/2026-10-24-fakk2-playability-round.md",
+ "date": "2026-10-24",
+ "baseHead": "1b11e9e84f11d9ac29e21d2e9587585fb9a535fb",
+ "scope": "gaps that affect playing F.A.K.K.2 in fnTech3; no retail server, disc or machine key",
+ "platform": "Windows 11 x86 build, MSVC 2022 (x86), clang for fixtures",
+ "build": {
+  "tree": "git archive of the base head, this round's files laid over it (.tmp/fakk2-round/src)",
+  "directory": ".tmp/fakk2-round/b",
+  "options": [
+   "--buildtype=debugoptimized",
+   "-Db_vscrt=static_from_buildtype",
+   "-Dstrict-warnings=true",
+   "-Drenderer-dlopen=true",
+   "-Drenderers=glx,vk,rtx",
+   "-Drenderer-default=glx",
+   "-Dbuild-client=true",
+   "-Dbuild-server=true",
+   "--wrap-mode=nodownload"
+  ],
+  "exportDiagnostics": [
+   "client game adapter prints its lights and scene calls while the unregistered cvar cl_diagLights is set (both runtimes)",
+   "renderers skip the enclosed-light rule while r_diagNoEnclosed is set, and the additive-light rule while r_diagNoAdditive is set (fakk2-diag only)",
+   "an intermediate build printed each entity's final light near the pile while r_diagEntityLight was set"
+  ],
+  "runtimes": {
+   "fakk2-fix": {
+    "note": "replaced the 2026-10-23 round's fold-only libraries, whose hashes are in that round's companion",
+    "fntech3.exe": "68863c9181acb1b35d70ce1bef34ce8569089392a7d816edc473cb92513852db",
+    "fntech3.ded.exe": "516533d36dcb9311792889fd26cca0ca276d26d3d60a31fb1de27aac7f0ee698",
+    "fnql_glx_x86.dll": "5972df4a8e2bfbe5e9f4ecb70e4234403bef7731750da1ef2080b3dfba9e3559",
+    "fnql_vk_x86.dll": "d66610d3dd2ae02a9adff789199b024bc0087e4991c37522d41e21820c0871e4",
+    "fnql_rtx_x86.dll": "b156c7440ee8fa7b45429b2bd6cb93851ae129f54487a2ae8da9a89a11df3cb1",
+    "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769",
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493"
+   },
+   "fakk2-diag": {
+    "fntech3.exe": "68863c9181acb1b35d70ce1bef34ce8569089392a7d816edc473cb92513852db",
+    "fntech3.ded.exe": "516533d36dcb9311792889fd26cca0ca276d26d3d60a31fb1de27aac7f0ee698",
+    "fnql_glx_x86.dll": "549a6f9931217b33b7c542aeb98fc4ff89049f1ba00c9b2b87f0b623d7e25276",
+    "fnql_vk_x86.dll": "2a03b8a9b9ec1787a94849d0080bf247306de37768f5c7d8316219ef1cda5e95",
+    "fnql_rtx_x86.dll": "04035e3a49b9510e4a386339a9ccbea5ee48025061749058b6d65f9550d967df",
+    "fntech3-pkg.fnz": "4646c0d5883441d268bc06cb96411decd5abf3b0e3723bbad427111f2508f769",
+    "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+    "note": "the build before the vertex-mode projection, with r_diagNoEnclosed and r_diagNoAdditive"
+   }
+  }
+ },
+ "retail": {
+  "executable": "fakk2.exe 1.02 (official patch)",
+  "sha256": "681bc51c3343d01d772c5ae4aae7523ae4547350b243c875156e138043335785",
+  "role": "client only"
+ },
+ "installations": {
+  "fakk2": ".tmp/fakk2-install/game (laid down from the user's disc)",
+  "alice": "E:\\Games\\Alice"
+ },
+ "conditions": "windowed 800x600 on a private desktop, isolated homes under .tmp/fakk2-round, loopback only, no OS input, engine screenshots",
+ "enclosedLights": {
+  "retail": {
+   "fakk2": {
+    "loop": "fakk2.exe 1.02 0x0048f23d..0x0048f2e0",
+    "rule": "d <= radius: directed += color * radius * 7500 / d^2; lightDir unchanged",
+    "constant": "7500.0 at 0x004d6050",
+    "rescale": "max directed > 255: directed and ambient scaled by 255 / max (0x0048f2e6..0x0048f395, 255.0 at 0x004d577c)"
+   },
+   "alice": {
+    "loop": "alice.exe 0x004accfc..0x004ace50",
+    "constant": "30000.0 at 0x005004a0",
+    "rescale": "0x004ace56..0x004acf07, 255.0 at 0x004ffb00",
+    "lightList": "up to eight directions and colours kept for a refdef with byte +0x4c bit 1; unused here"
+   }
+  },
+  "fnTech3": {
+   "function": "R_RitualAddEnclosedDlights, R_RitualEnclosedDlight (code/renderercommon/tr_ritual_model_light_render.h)",
+   "selection": "a light with dlight_t.ritualRadius > 0 (set by RE_AddAliceLightToScene under the Ritual profiles only), not linear, within 2 x reach of the lighting point",
+   "radius": "the client game's own, before r_dlightScale",
+   "minimumDistance": 1.0,
+   "overbright": "power x tr.identityLight, ceiling tr.identityLightByte",
+   "modes": "every r_dlightMode; vertex mode no longer also weighs a held light",
+   "renderers": [
+    "GL",
+    "Vulkan",
+    "RTX"
+   ],
+   "colour": "the client game's own (dlight_t.ritualColor), before r_dlightIntensity and r_dlightSaturation (0.8 by default)"
+  },
+  "creeperpens": {
+   "light": {
+    "origin": [
+     -224,
+     1552,
+     32
+    ],
+    "radius": 96,
+    "color": [
+     0,
+     0.247,
+     0
+    ],
+    "type": 4,
+    "entity": "haypoo script_object (*112)"
+   },
+   "model": {
+    "name": "haypoo_model",
+    "tiki": "obj_poopile.tik",
+    "origin": [
+     -209.93,
+     1549.83,
+     16.25
+    ],
+    "scale": 0.8,
+    "shader": "pooshine (rgbGen lightingDiffuse, envmap GL_DST_COLOR GL_ONE)"
+   },
+   "pileBox": [
+    85,
+    375,
+    150,
+    435
+   ],
+   "meanRgb": {
+    "retail": [
+     17.8,
+     43.8,
+     7.0
+    ],
+    "beforePerPixel": [
+     56.3,
+     52.9,
+     15.9
+    ],
+    "beforeVertex": [
+     40.1,
+     42.3,
+     12.1
+    ],
+    "firstBuildGreyedColour": [
+     26.7,
+     43.9,
+     9.3
+    ],
+    "ruleWithGameColour": [
+     18.7,
+     43.8,
+     7.5
+    ],
+    "finalGl": [
+     19.4,
+     45.9,
+     8.2
+    ],
+    "finalVulkanNoBloom": [
+     19.5,
+     46.1,
+     8.3
+    ],
+    "finalRtxDefaultsNoBloom": [
+     18.6,
+     44.3,
+     7.4
+    ]
+   },
+   "retailFrame": ".tmp/fakk2/sweep/creeperpens/frames/retail/fakk/screenshots/shot0000.tga",
+   "tool": ".tmp/fakk2-round/tools/poo_view.py",
+   "middleBox": [
+    100,
+    380,
+    140,
+    420
+   ],
+   "middleMeanRgb": {
+    "retail": [
+     13.5,
+     31.6,
+     3.9
+    ],
+    "firstBuildGreyedColour": [
+     23.9,
+     31.8,
+     6.7
+    ],
+    "ruleWithGameColour": [
+     13.3,
+     31.7,
+     3.9
+    ]
+   }
+  },
+  "abInOneRun": {
+   "tool": ".tmp/fakk2-round/tools/alice_enclosed_ab.py",
+   "measure": "pixels where on/off differ by > 20 and the two on frames agree within 8",
+   "fakk2": {
+    "fakkhouse": 3799,
+    "homes1": 2668,
+    "creeperpens": 2189,
+    "cemetery": 415,
+    "towncenter_good": 425,
+    "swamp1": 641
+   },
+   "fakk2LevelsWithNoClientLight": [
+    "fakkhouse",
+    "homes1",
+    "cemetery",
+    "towncenter_good",
+    "swamp1"
+   ],
+   "alice": {
+    "garden1": 539,
+    "hatter1": 1769,
+    "fortress1": 1128,
+    "skool1": 1430,
+    "jlair2": 1128,
+    "wforest": 2164
+   },
+   "aliceMostChangedCropMeans": {
+    "hatter1": {
+     "on": [
+      37.2,
+      31.6,
+      30.4
+     ],
+     "off": [
+      37.3,
+      31.6,
+      30.4
+     ],
+     "onAgain": [
+      37.1,
+      31.6,
+      30.3
+     ]
+    },
+    "skool1": {
+     "on": [
+      16.9,
+      11.5,
+      5.0
+     ],
+     "off": [
+      16.6,
+      11.3,
+      5.0
+     ],
+     "onAgain": [
+      16.9,
+      11.5,
+      5.1
+     ]
+    }
+   },
+   "retailAliceComparison": "none",
+   "finalBuild": {
+    "alice": {
+     "garden1": 508,
+     "hatter1": 1501,
+     "fortress1": 1182,
+     "skool1": 1436,
+     "jlair2": 12980,
+     "wforest": 2188
+    },
+    "fakk2": {
+     "creeperpens": 3081,
+     "fakkhouse": 3868,
+     "homes1": 2770
+    },
+    "jlair2": "the Jabberwock fight: the two on frames average 57.5 and 67.8 red; animation, not the rule"
+   }
+  },
+  "retailValues": {
+   "tool": ".tmp/fakk2-round/tools/retail_cdb.py with .tmp/fakk2-round/poo/cdb/cmds2.txt",
+   "breakpoints": {
+    "before": "0x0048f1f6",
+    "after": "0x0048f39b",
+    "armedBy": "0x00460220 R_ScreenShot_f"
+   },
+   "lightingPoint": [
+    -218.53,
+    1552.73,
+    43.01
+   ],
+   "flatLight": "renderfx 0x40000 (0x0048ed5a) takes 0x0048f143: ambient and directed 150, default sun direction",
+   "before": {
+    "ambient": [
+     150,
+     150,
+     150
+    ],
+    "directed": [
+     150,
+     150,
+     150
+    ],
+    "lightDir": [
+     0.4286,
+     0.2857,
+     0.8571
+    ]
+   },
+   "after": {
+    "ambient": [
+     28.9,
+     28.9,
+     28.9
+    ],
+    "directed": [
+     28.9,
+     255,
+     28.9
+    ]
+   }
+  },
+  "firstBuildGreyedColour": {
+   "fnTech3LightingPoint": [
+    -218.53,
+    1552.73,
+    43.01
+   ],
+   "renderfx": "0x40010",
+   "after": {
+    "ambient": [
+     29.68,
+     29.68,
+     29.68
+    ],
+    "directed": [
+     104.24,
+     255.0,
+     104.24
+    ]
+   },
+   "cause": "dl->color greyed by r_dlightSaturation 0.8"
+  }
+ },
+ "trainer": {
+  "map": "training",
+  "tool": ".tmp/fakk2-round/tools/frames_cmp.py",
+  "box": [
+   420,
+   300,
+   480,
+   460
+  ],
+  "retailMean": [
+   55.8,
+   58.4,
+   59.5
+  ],
+  "fnMean": [
+   60.8,
+   63.1,
+   64.0
+  ],
+  "viewMeanAbsDiff": 3.29,
+  "outcome": "settled by the 2026-09-25 compiled model lights; the contracts record's note is corrected"
+ },
+ "creeperpensSession": {
+  "tool": ".tmp/fakk2-round/tools/creeper_quit.py",
+  "steps": [
+   "devmap creeperpens",
+   "skipcinematic",
+   "savegame cptest",
+   "loadgame cptest",
+   "disconnect",
+   "devmap creeperpens",
+   "skipcinematic",
+   "disconnect"
+  ],
+  "markersReached": 6,
+  "errors": 0,
+  "saveFiles": [
+   "save/config_cptest.sav",
+   "save/config_cptest.ssv",
+   "save/config_cptest.tga"
+  ]
+ },
+ "fogInside": {
+  "tool": ".tmp/fakk2-round/tools/fog_inside.py",
+  "placement": "rcon place, a server alias for script $player origin \"x y z\"",
+  "dedicatedServerWaits": "only the client frame counts millisecond waits down (alice.exe 0x0043a183); a dedicated server's cfg wait never ends",
+  "cemeteryFog0": {
+   "shader": "textures/we_cemetary/blackfog (fogParms 0 0 0 256)",
+   "bounds": [
+    [
+     3008,
+     -128,
+     256
+    ],
+    [
+     3520,
+     384,
+     640
+    ]
+   ],
+   "julie": [
+    3264,
+    128,
+    300
+   ],
+   "retailMean": [
+    2.9,
+    2.1,
+    1.4
+   ],
+   "fnMean": [
+    7.6,
+    4.4,
+    3.0
+   ],
+   "meanAbsDiff": 2.93,
+   "noStaticLights": {
+    "fnMean": [
+     4.1,
+     2.4,
+     1.7
+    ],
+    "meanAbsDiff": 0.79
+   },
+   "staticLightShadowMaxLights8": {
+    "fnMean": [
+     7.6,
+     4.4,
+     3.0
+    ],
+    "meanAbsDiff": 2.93
+   },
+   "lightsReachingVolume": [
+    "cemetery-light-0169",
+    "cemetery-light-0168",
+    "cemetery-light-0036",
+    "cemetery-light-0172",
+    "cemetery-light-0117",
+    "cemetery-light-0035",
+    "cemetery-light-0003"
+   ],
+   "staticLightShadows0": {
+    "fnMean": [
+     7.6,
+     4.4,
+     3.0
+    ],
+    "meanAbsDiff": 2.93
+   },
+   "counters": {
+    "default": "promoted 8, shadow-eligible 2, planned 0 (nosurf 2, disabled 6)",
+    "shadowMax8": "promoted 8, shadow-eligible 7, planned 0 (nosurf 7, disabled 1: the spot)"
+   },
+   "spotLight": {
+    "name": "cemetery-light-0117",
+    "origin": [
+     2016,
+     224,
+     1984
+    ],
+    "direction": [
+     -0.06163,
+     -0.06163,
+     -0.9962
+    ],
+    "outerAngle": 15,
+    "intensity": 12000,
+    "radius": 4743.4,
+    "fnTech3Model": "a linear light from origin to origin + radius x direction, reach radius x r_dlightScale (2372), lit all round; the cone is used only by spot shadows (r_spotShadows 0)",
+    "distanceFromAxisToPassage": 1073,
+    "otherSpotsReaching": 0,
+    "overlayTest": "a home copy of the sidecar without it was not read: the package's sidecar comes first"
+   },
+   "spotShadows1": {
+    "fnMean": [
+     7.6,
+     4.4,
+     3.0
+    ],
+    "meanAbsDiff": 2.93,
+    "note": "spot shadows do not limit the light to the cone"
+   }
+  },
+  "oracleway": "skipping the opening loads oracle; the point fell into oracle's void, outside the world, not a playable view",
+  "cliffs": {
+   "cliff1River": {
+    "placedAt": [
+     1056,
+     1824,
+     -100
+    ],
+    "outcome": "fell into the river inside the chasm mist",
+    "retailMean": [
+     35.4,
+     53.5,
+     51.2
+    ],
+    "fnMean": [
+     36.8,
+     55.0,
+     52.4
+    ],
+    "meanAbsDiff": 7.08,
+    "riverShader": "textures/cliffs/wa_slowriver: $lightmap, texture GL_DST_COLOR GL_ZERO, texture GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA alphaGen constant 0.4"
+   },
+   "firstViews": {
+    "cliff1": 2.96,
+    "cliff2": 5.22
+   }
+  }
+ },
+ "blendedFogFade": {
+  "retail": {
+   "functions": [
+    "0x004944f0 (rgb)",
+    "0x004945c0",
+    "0x00494650"
+   ],
+   "calls": "0x0047d9b5..0x0047d9df",
+   "texCoords": "0x00494d30",
+   "multiplier": "max(0, 1 - (t - 0.25) * s * 256), no upper bound, stored as a byte",
+   "constants": {
+    "0x004d56d0": 0.25,
+    "0x004d60d0": 256.0,
+    "0x004d5390": 1.0,
+    "0x004d5338": 0.0
+   }
+  },
+  "decision": "accepted difference under invariant 12: fnTech3 fades blended stages by retail's fog image",
+  "reason": "translucent stages inside the four default volumes are scenery, and the formula's other half overflows a colour byte"
+ },
+ "tests": {
+  "tests/ritual_model_lights_tests.py": "4 passed, 69 subtests",
+  "tests/ritual_additive_light_tests.py": "3 passed, 5 subtests",
+  "tests/alice_renderer_parity_tests.py": "passed",
+  "filesReadingChangedCode": {
+   "selection": "tests/**/*_tests.py naming tr_scene.c, tr_light.c, tr_local.h, tr_arb.c, tr_vbo.c, tr_shade.c, tr_ritual_additive_light, tr_ritual_projected_light, RE_AddLinearLightToScene, RE_AddDynamicLightToScene, struct dlight_t, tr_ritual_model_light_render, R_SetupAliceEntityLighting or aliceFlare",
+   "count": 94,
+   "pytestPassed": 89,
+   "scriptRunPassed": [
+    "tests/csm_shadow_cache_source_tests.py",
+    "tests/shadow_manager_source_tests.py",
+    "tests/shadow_projection_source_tests.py",
+    "tests/surface_light_proxy_source_tests.py",
+    "tests/glx/glx_spot_shadow_source_tests.py"
+   ],
+   "log": ".tmp/fakk2-round/light-tests4.log"
+  },
+  "docs": [
+   "tests/changelog_tests.py and tests/generate_docs_tests.py 9 passed"
+  ],
+  "tests/ritual_projected_light_tests.py": "4 passed, 3 subtests"
+ },
+ "gates": "none closed",
+ "additiveLights": {
+  "retail": {
+   "fakk2": "fakk2.exe 1.02 0x0047d32b..0x0047d33d: dlight type bit 4 -> GL_State(0x824) GL_ONE GL_ONE, else 0x823 GL_DST_COLOR GL_ONE",
+   "alice": "alice.exe 0x004935ab..0x004935bd, the same",
+   "image": "*dlight, created at 0x0046fd88, bound at 0x0047d318"
+  },
+  "fnTech3": {
+   "predicate": "RB_RitualAdditiveWorldLight (code/renderercommon/tr_ritual_additive_light.h)",
+   "receivers": "world and brush models; models keep their texture",
+   "bindSites": [
+    "renderer/tr_arb.c ARB_Lighting",
+    "renderer/tr_arb.c ARB_Lighting_Fast",
+    "renderer/tr_vbo.c RB_StageIteratorVBODlight",
+    "renderervk/tr_shade.c VK_LightingPass",
+    "rendererrtx/tr_shade.c VK_LightingPass"
+   ],
+   "radius": "the game's own (RE_AddAliceLightToScene restores intensity; shadowProjectionFar for 1.0)",
+   "rtxPathTracer": "not changed: its traced dynamic lights take the surface's reflectance"
+  },
+  "wallBox": [
+   0,
+   330,
+   70,
+   440
+  ],
+  "wallMeanRgb": {
+   "retail": [
+    33.7,
+    51.8,
+    15.5
+   ],
+   "before": [
+    54.3,
+    52.1,
+    25.2
+   ],
+   "finalGl": [
+    64.1,
+    81.7,
+    35.0
+   ],
+   "finalVulkanNoBloom": [
+    64.2,
+    81.8,
+    35.0
+   ],
+   "rtxBefore": [
+    34.2,
+    34.8,
+    15.4
+   ],
+   "finalRtxDefaultsNoBloom": [
+    38.1,
+    43.2,
+    17.7
+   ]
+  },
+  "halfRadiusBuild": "with r_dlightScale's half radius the wall was unchanged, 54.3, 52.1, 25.2",
+  "abInOneRun": {
+   "cvar": "r_diagNoAdditive",
+   "fakk2": {
+    "creeperpens": 7930,
+    "fakkhouse": 3777
+   },
+   "alice": {
+    "garden1": 511,
+    "fortress1": 1182,
+    "skool1": 1430,
+    "hatter1": 1475,
+    "wforest": 1754
+   },
+   "aliceMostChangedBlocks": {
+    "garden1": {
+     "on": [
+      33.2,
+      27.2,
+      26.2
+     ],
+     "off": [
+      33.2,
+      27.3,
+      26.7
+     ]
+    },
+    "fortress1": {
+     "on": [
+      121.6,
+      111.8,
+      77.4
+     ],
+     "off": [
+      118.5,
+      108.8,
+      75.6
+     ]
+    },
+    "skool1": {
+     "on": [
+      14.6,
+      13.1,
+      8.5
+     ],
+     "off": [
+      11.6,
+      10.2,
+      6.7
+     ]
+    },
+    "hatter1": {
+     "on": [
+      133.4,
+      120.7,
+      105.3
+     ],
+     "off": [
+      129.8,
+      117.2,
+      102.4
+     ]
+    }
+   }
+  },
+  "vertexMode": {
+   "retail": {
+    "fakk2": "fakk2.exe 1.02 0x0047d0a1..0x0047d268",
+    "alice": "alice.exe 0x004932b3..0x0049348b",
+    "axis": "x if |nx| > |ny| and |nx| > |nz|; else y if |ny| > |nz|; else z: (y,z), (x,z), (x,y)",
+    "scale": "0.75 / radius about 0.5 (0x004d5f88, 0x004d5688)",
+    "fade": "(radius - |dist . normal|) / radius, none past the radius (0x004d5f84 = 4/3 against the 0.75 scale)",
+    "image": "32x32, 16000 / d^2, below 75 cut (0x0046fcf2..0x0046fd6d); fnTech3's 16x16, 4000 / d^2, the same shape"
+   },
+   "fnTech3": {
+    "helper": "RB_RitualProjectDlightVertex (code/renderercommon/tr_ritual_projected_light.h)",
+    "colour": "the client game's own for its lights; Vulkan and RTX clamp each byte",
+    "gpuOption": "r_glxDlightProjectedProgram (developer-only, off in every GLX profile) evaluates Quake III's rule; it now leaves the Ritual profiles to the CPU pass; with it set, the frame matches the default (mean difference 0.03)"
+   },
+   "before": {
+    "pile": [
+     19.1,
+     43.9,
+     7.4
+    ],
+    "wall": [
+     41.2,
+     41.4,
+     18.3
+    ],
+    "boards": [
+     41.5,
+     35.2,
+     18.5
+    ],
+    "belowBoards": [
+     35.2,
+     66.3,
+     19.8
+    ]
+   },
+   "staticLightsOff": {
+    "boxes": {
+     "boards": [
+      10,
+      320,
+      40,
+      420
+     ],
+     "belowBoards": [
+      40,
+      380,
+      80,
+      440
+     ],
+     "wall": [
+      0,
+      330,
+      70,
+      440
+     ],
+     "pile": [
+      85,
+      375,
+      150,
+      435
+     ]
+    },
+    "retail": {
+     "boards": [
+      33.2,
+      42.1,
+      15.2
+     ],
+     "belowBoards": [
+      31.8,
+      80.6,
+      18.5
+     ],
+     "wall": [
+      33.7,
+      51.8,
+      15.5
+     ],
+     "pile": [
+      17.8,
+      43.8,
+      7.0
+     ]
+    },
+    "gl": {
+     "boards": [
+      32.7,
+      43.0,
+      15.3
+     ],
+     "belowBoards": [
+      31.9,
+      80.4,
+      18.7
+     ],
+     "wall": [
+      33.4,
+      52.5,
+      15.7
+     ],
+     "pile": [
+      17.5,
+      43.5,
+      7.0
+     ]
+    },
+    "vulkan": {
+     "boards": [
+      32.7,
+      42.9,
+      15.3
+     ],
+     "belowBoards": [
+      31.9,
+      80.5,
+      18.8
+     ],
+     "wall": [
+      33.4,
+      52.5,
+      15.7
+     ],
+     "pile": [
+      17.7,
+      43.6,
+      7.1
+     ]
+    },
+    "rtx": {
+     "boards": [
+      35.5,
+      33.4,
+      16.2
+     ],
+     "belowBoards": [
+      33.8,
+      69.5,
+      20.1
+     ],
+     "wall": [
+      35.8,
+      41.1,
+      16.7
+     ],
+     "pile": [
+      17.8,
+      43.6,
+      7.2
+     ]
+    },
+    "glStaleNormals": {
+     "boards": [
+      32.7,
+      40.1,
+      15.3
+     ],
+     "belowBoards": [
+      31.9,
+      71.0,
+      18.7
+     ],
+     "wall": [
+      33.4,
+      46.1,
+      15.7
+     ],
+     "pile": [
+      17.5,
+      42.8,
+      7.0
+     ],
+     "cause": "GL fills tess.normal only for shaders that ask (USE_TESS_NEEDS_NORMAL); now filled under the Ritual profiles while lights are projected"
+    }
+   },
+   "staticLightsOn": {
+    "gl": {
+     "boards": [
+      61.1,
+      80.2,
+      27.1
+     ],
+     "belowBoards": [
+      43.1,
+      102.9,
+      22.8
+     ],
+     "wall": [
+      58.9,
+      88.5,
+      25.7
+     ]
+    },
+    "vulkan": {
+     "boards": [
+      60.9,
+      79.6,
+      27.0
+     ],
+     "belowBoards": [
+      43.0,
+      102.7,
+      22.9
+     ],
+     "wall": [
+      58.7,
+      88.0,
+      25.7
+     ]
+    },
+    "rtx": {
+     "boards": [
+      36.6,
+      34.5,
+      16.4
+     ],
+     "belowBoards": [
+      35.1,
+      70.6,
+      20.5
+     ],
+     "wall": [
+      37.8,
+      42.8,
+      17.3
+     ]
+    }
+   },
+   "beforeRoundStaticLightsOff": {
+    "gl": {
+     "belowBoards": [
+      32.9,
+      64.3,
+      19.0
+     ]
+    },
+    "vulkan": {
+     "belowBoards": [
+      33.0,
+      64.3,
+      19.1
+     ]
+    }
+   },
+   "ruledOut": [
+    "r_srgbTextures 0",
+    "r_hdr 0",
+    "the GLX streamed draw",
+    "r_dlightSaturation 1"
+   ]
+  }
+ },
+ "alice": "alice.exe is SafeDisc-wrapped and cannot run here; both rules rest on its own code and the in-run A/B runs"
+}

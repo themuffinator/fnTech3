@@ -1,5 +1,6 @@
 #include "tr_local.h"
 #include "../renderercommon/tr_csm_model_light.h"
+#include "../renderercommon/tr_ritual_additive_light.h"
 #include "tr_common.h"
 #include "tr_glx_compat.h"
 #include "../renderercommon/tr_menu_blur.h"
@@ -1040,7 +1041,11 @@ static void ARB_Lighting( const shaderStage_t* pStage )
 
 	GL_SelectTexture( 0 );
 
-	R_BindAnimatedImage( &pStage->bundle[ tess.shader->lightingBundle ] );
+	if ( RB_RitualAdditiveWorldLight( tess.light ) ) {
+		GL_Bind( tr.whiteImage );
+	} else {
+		R_BindAnimatedImage( &pStage->bundle[ tess.shader->lightingBundle ] );
+	}
 	
 	ARB_DrawLightingElements( numIndexes, hitIndexes );
 }
@@ -1063,7 +1068,11 @@ static void ARB_Lighting_Fast( const shaderStage_t* pStage )
 
 	GL_SelectTexture( 0 );
 
-	R_BindAnimatedImage( &pStage->bundle[ tess.shader->lightingBundle ] );
+	if ( RB_RitualAdditiveWorldLight( tess.light ) ) {
+		GL_Bind( tr.whiteImage );
+	} else {
+		R_BindAnimatedImage( &pStage->bundle[ tess.shader->lightingBundle ] );
+	}
 	
 	ARB_DrawLightingElements( tess.numIndexes, tess.indexes );
 }

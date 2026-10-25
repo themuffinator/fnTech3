@@ -1259,10 +1259,13 @@ a fourth:
 - Presentation, and kept: fnTech3's curves are finer (`blood`'s thorns are
   smooth where retail's are angular; `r_subdivisions`, under the defaults
   above), and models are lit by fnTech3's own lighting, so Julie is darker
-  or lighter than retail's from map to map. The trainer on `training` is a
-  blue-grey beside the blue wall, where retail shows skin tones and blonde
-  hair. She has her own skins (`models/npc/edenfemale/random1_1` and `_2`,
-  loaded as the implicit lit shaders), so the tint is the lighting.
+  or lighter than retail's from map to map. The trainer on `training` had
+  drawn blue-grey beside the blue wall, where retail shows skin tones and
+  blonde hair. She has her own skins (`models/npc/edenfemale/random1_1` and
+  `_2`, loaded as the implicit lit shaders), so the tint was the lighting.
+  Settled by the compiled model lights below: on 2026-10-24 she averaged
+  60.8, 63.1, 64.0 beside retail's 55.8, 58.4, 59.5, with the same tones and
+  hair ([playability round](2026-10-24-fakk2-playability-round.md#the-trainer-on-training)).
 - Settled: models were too dark where a map's light grid is dark. On `water`
   and `otto` fnTech3 drew Julie nearly black where retail lights her; on
   `water`, where the dedicated server starts the player, the light grid is
@@ -1293,13 +1296,22 @@ a fourth:
   fnTech3 had also kept 24 of the 47 frames, so its caustics cycled in half
   the time; it now keeps retail's 64 (`MAX_IMAGE_ANIMATIONS`; 0x00476e00,
   `alice.exe` 0x0048c5bc, `tests/shader_animation_tests.py`).
-- Not traced: on `creeperpens`, the pile beside the green glowing lumps
-  (`obj_poopile.tik`, surfaces `material1` `pooshine` and `material2`
-  `cartasteroid`) is dark green in retail and plain brown in fnTech3.
+- Settled on 2026-10-24: on `creeperpens`, the pile beside the green glowing
+  lumps (`obj_poopile.tik`, surfaces `material1` `pooshine` and `material2`
+  `cartasteroid`) is dark green in retail and was plain brown in fnTech3.
   `pooshine` is its brown texture (`pooskin`, average 67, 43, 15) under
   `rgbGen lightingDiffuse` and an environment map; the light grid there is
   neutral to warm, and the nearest compiled lights are yellowish, so the
-  green is not from either.
+  green is not from either. It is the level's `haypoo` light, the client
+  game's green additive light inside the pile, which retail puts on the pile
+  by its rule for every dynamic light (0x0048f23d..0x0048f395) and no
+  per-pixel light can from inside. fnTech3 now uses that rule for a light
+  the model holds, and the pile is green
+  ([playability round](2026-10-24-fakk2-playability-round.md#the-dung-pile-on-creeperpens)).
+  The light is additive, which retail adds to the world whatever the
+  surface; fnTech3's per-pixel pass now lights the world from white for such
+  a light, and the wall behind the pile takes its green glow
+  ([playability round](2026-10-24-fakk2-playability-round.md#additive-lights-on-the-world)).
 
 ## Observed at run time
 

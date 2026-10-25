@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include "tr_local.h"
 #include "tr_glx_compat.h"
+#include "../renderercommon/tr_ritual_additive_light.h"
 
 /*
 
@@ -1836,7 +1837,9 @@ static void VBO_RenderProjectedDlightOverlay( const shaderCommands_t *input )
 		( input->shader->surfaceFlags & ( SURF_NODLIGHT | SURF_SKY ) ) ) {
 		return;
 	}
-	if ( !GLX_CompatProjectedDlightWorldOverlayActive() ) {
+	// it evaluates Quake III's projection; the Ritual profiles project by
+	// their own rule in the CPU pass (tr_ritual_projected_light.h)
+	if ( !GLX_CompatProjectedDlightWorldOverlayActive() || COM_GAME_ID_IS_RITUAL( ri.gameId ) ) {
 		return;
 	}
 	if ( !GLX_CompatBindProjectedDlightOverlayProgram() ) {
@@ -2114,7 +2117,11 @@ qboolean RB_StageIteratorVBODlight( void )
 	qglTexCoordPointer( 2, GL_FLOAT, 0, (const GLvoid *)(intptr_t)pStage->tex_offset[texBundle] );
 
 	GL_SelectTexture( 0 );
-	R_BindAnimatedImage( &pStage->bundle[ texBundle ] );
+	if ( RB_RitualAdditiveWorldLight( tess.light ) ) {
+		GL_Bind( tr.whiteImage );
+	} else {
+		R_BindAnimatedImage( &pStage->bundle[ texBundle ] );
+	}
 
 	VBO_RenderIndexes();
 

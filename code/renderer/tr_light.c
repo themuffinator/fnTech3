@@ -533,8 +533,9 @@ American McGee's Alice's entity light, from retail's R_SetupEntityLighting
   gives it to everything.
 
 Dynamic lights, the clamp and the rest are this renderer's, as for every
-other profile; retail's own dynamic-light falloff and its rescaling of an
-over-bright directed light are not reproduced.
+other profile, but for a client game's light the model holds, which only
+retail's own falloff and its rescaling of an over-bright directed light put
+on it (R_RitualAddEnclosedDlights).
 =================
 */
 void R_SetupAliceEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent, const vec3_t lightOrigin,
@@ -619,7 +620,7 @@ void R_SetupAliceEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent, c
 #endif
 	for ( i = 0 ; i < refdef->num_dlights ; i++ ) {
 		dl = &refdef->dlights[i];
-		if ( dl->rtcwShader ) continue;
+		if ( dl->rtcwShader || R_RitualEnclosedDlight( dl, lightOrigin, reach ) ) continue;
 		VectorSubtract( dl->origin, lightOrigin, dir );
 		d = VectorNormalize( dir );
 
@@ -632,6 +633,7 @@ void R_SetupAliceEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent, c
 		VectorMA( ent->directedLight, d, dl->color, ent->directedLight );
 		VectorMA( lightDir, d, dir, lightDir );
 	}
+	R_RitualAddEnclosedDlights( refdef, ent, lightOrigin, reach );
 
 	// clamp ambient
 	for ( i = 0 ; i < 3 ; i++ ) {

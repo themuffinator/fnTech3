@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // tr_shade.c
 
 #include "tr_local.h"
+#include "../renderercommon/tr_ritual_projected_light.h"
 #include "../renderercommon/tr_mohaa_shade.h"
 #include "../renderercommon/tr_rtcw_normal_fade.h"
 #include "../renderercommon/tr_stvef_alpha.h"
@@ -466,9 +467,11 @@ static qboolean GLX_TryStreamDrawDynamicLightPass( const shaderCommands_t *input
 	}
 
 	// the projected-light shader replacement needs real normals for its
-	// per-fragment front test; stream them only when it can take this draw
-	projectedProgram = ( lightMask && GLX_CompatDlightProjectedProgramEnabled() ) ?
-		qtrue : qfalse;
+	// per-fragment front test; stream them only when it can take this draw.
+	// It evaluates Quake III's projection, so Alice and F.A.K.K.2 keep the
+	// CPU pass, which projects by their own rule (tr_ritual_projected_light.h).
+	projectedProgram = ( lightMask && GLX_CompatDlightProjectedProgramEnabled() &&
+		!COM_GAME_ID_IS_RITUAL( ri.gameId ) ) ? qtrue : qfalse;
 
 	xyzBytes = input->numVertexes * (int)sizeof( input->xyz[0] );
 	colorBytes = input->numVertexes * 4 * (int)sizeof( colors[0] );
@@ -909,6 +912,11 @@ void RB_BeginSurface( shader_t *shader, int fogNum ) {
 	if ( backEnd.viewParms.passFlags & VPF_DLIGHT_SHADOW ) {
 		tess.needsNormal = qtrue;
 	}
+	// Alice's and F.A.K.K.2's projected lights follow each vertex's normal
+	// (tr_ritual_projected_light.h)
+	if ( COM_GAME_ID_IS_RITUAL( ri.gameId ) && !R_GetDlightMode() && backEnd.refdef.num_dlights > 0 ) {
+		tess.needsNormal = qtrue;
+	}
 #else
 	tess.needsNormal = state->needsNormal || r_shownormals->integer ||
 		liquidNeedsNormal;
@@ -1302,6 +1310,17 @@ static void ProjectDlightTexture( void ) {
 			VectorSubtract( origin, tess.xyz[i], dist );
 
 			backEnd.pc.c_dlightVertexes++;
+
+			if ( COM_GAME_ID_IS_RITUAL( ri.gameId ) ) {
+				const float *own = dl->ritualRadius > 0.0f ? dl->ritualColor : dl->color;
+				clipBits[i] = RB_RitualProjectDlightVertex( dist, tess.normal[i], radius, cullBackFaces,
+					texCoords, &modulate );
+				colors[0] = own[0] * modulate;
+				colors[1] = own[1] * modulate;
+				colors[2] = own[2] * modulate;
+				colors[3] = 1.0f;
+				continue;
+			}
 
 			texCoords[0] = 0.5f + dist[0] * scale;
 			texCoords[1] = 0.5f + dist[1] * scale;

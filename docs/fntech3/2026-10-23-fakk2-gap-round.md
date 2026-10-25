@@ -26,7 +26,10 @@ Every gate stays partial and the release gate stays closed.
   this round's renderer libraries in `.tmp/runtime/fakk2-fix` (the stage fold)
   and `.tmp/runtime/fakk2-fog` (the fold and the fog image). `fntech3.exe`
   SHA-256 `e7159320...`, `fntech3.ded.exe` `516533d3...`; the renderer
-  libraries' hashes are in the companion.
+  libraries' hashes are in the companion. The 2026-10-24
+  [playability round](2026-10-24-fakk2-playability-round.md) has since put
+  its own build in `fakk2-fix`, so the fold-only libraries are known by
+  those hashes alone.
 - **Retail:** `fakk2.exe` 1.02 (SHA-256 `681bc51c...`), the official patch's
   plain executable, run from `.tmp/runtime/fakk2-retail` as a client only; its
   server needs the game CD.
@@ -299,4 +302,7 @@ so.
   platform has run.
 - **Fog volumes.** Retail's CPU fade of blended stages in a fog volume is not
   reproduced (above), and no frame inside one of the four maps' default fog
-  volumes has been set beside retail's.
+  volumes has been set beside retail's. Both were taken up on 2026-10-24: a
+  view inside `cemetery`'s black fog matches retail's with fnTech3's static
+  lights off, and the fade is recorded as an accepted difference
+  ([playability round](2026-10-24-fakk2-playability-round.md#inside-the-fog-volumes)).

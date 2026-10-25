@@ -72,6 +72,11 @@ Release packages include them as web pages in their `manual` folder, built by
 
 ### Game-specific ledgers and records
 
+- [F.A.K.K.2 playability round](fntech3/2026-10-24-fakk2-playability-round.md)
+  -- a light a model holds lit by retail's rule, additive lights adding their
+  own colour to the world, the trainer's colour, saving and leaving on
+  `creeperpens`, views inside the fog volumes, the static spot light in a
+  dark passage, and retail's fade of blended stages in fog accepted.
 - [F.A.K.K.2 gap round](fntech3/2026-10-23-fakk2-gap-round.md)
   -- the canal water's colour and Ritual's fog volumes drawn by retail's
   rules, the whole campaign through its own exits, demos exchanged with

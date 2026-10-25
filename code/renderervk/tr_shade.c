@@ -26,6 +26,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../renderercommon/tr_mohaa_shade.h"
 #include "../renderercommon/tr_q3_ihv_fog_vk.h"
 #include "../renderercommon/tr_ritual_far_fog_render.h"
+#include "../renderercommon/tr_ritual_projected_light.h"
+#include "../renderercommon/tr_ritual_additive_light.h"
 #include "../renderercommon/tr_rtcw_normal_fade.h"
 #include "../renderercommon/tr_stvef_alpha.h"
 #include "../renderercommon/tr_jka_entity.h"
@@ -649,6 +651,19 @@ static void ProjectDlightTexture( void ) {
 			VectorSubtract( origin, tess.xyz[i], dist );
 
 			backEnd.pc.c_dlightVertexes++;
+
+			if ( COM_GAME_ID_IS_RITUAL( ri.gameId ) ) {
+				const float *own = dl->ritualRadius > 0.0f ? dl->ritualColor : dl->color;
+				int k;
+				clipBits[i] = RB_RitualProjectDlightVertex( dist, tess.normal[i], radius,
+					r_dlightBacks->integer ? qfalse : qtrue, texCoords, &modulate );
+				for ( k = 0; k < 3; k++ ) {
+					const float value = own[k] * modulate * 255.0f;
+					colors[k] = value <= 0.0f ? 0 : value >= 255.0f ? 255 : (byte)value;
+				}
+				colors[3] = 255;
+				continue;
+			}
 
 			texCoords[0] = 0.5f + dist[0] * scale;
 			texCoords[1] = 0.5f + dist[1] * scale;
@@ -2153,7 +2168,9 @@ void VK_LightingPass( void )
 		vk_material_t material;
 
 		vk_material_init( &material );
-		vk_material_set_descriptor( &material, VK_DESC_TEXTURE0, R_AnimatedImageDescriptor( &pStage->bundle[ tess.shader->lightingBundle ] ) );
+		vk_material_set_descriptor( &material, VK_DESC_TEXTURE0, RB_RitualAdditiveWorldLight( tess.light ) ?
+			R_ImageDescriptor( tr.whiteImage ) :
+			R_AnimatedImageDescriptor( &pStage->bundle[ tess.shader->lightingBundle ] ) );
 		vk_material_set_descriptor( &material, VK_DESC_TEXTURE2, shadowDescriptor );
 		if ( fog_stage ) {
 			vk_material_set_descriptor( &material, VK_DESC_FOG_DLIGHT, tr.fogImage->descriptor );
