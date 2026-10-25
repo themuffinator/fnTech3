@@ -868,7 +868,7 @@
       }
      },
      "rule": "RT_ShaderFullbrightLit: scene-lit, texels glow from 0.55 to 0.85 (RT_BrightTexel)",
-     "decision": "left open: a cross-profile RTX lighting choice"
+     "decision": "the maintainer kept the tracer's rule for every profile (2026-10-24): an accepted difference"
     }
    },
    "introOnGlx": {
@@ -2565,6 +2565,2530 @@
    "source names": "INTERNET1..INTERNET5 (ext_data/mp_normaltext.dat)"
   },
   "change": "Com_GameCommunityMasterServer (sv_master2 default for stvef-mp); code/client/client_stvef_masters.hpp reads Holomatch lists as text"
+ },
+ "signOff": {
+  "convention": "docs/fntech3/COMPATIBILITY.md#gate-status-and-sign-off (maintainer approved, 2026-10-24)",
+  "binaries": {
+   "client": "40ff7f307925f0b331e148399f279b9c104cc722243fb78cbd99daa7dd2a21ec",
+   "dedicated": "a1a2dc823b91ac7601fe3f1e56d976f67a01db666a6189eadbdada70a9063142",
+   "commit": "7f7b1f56869d0bd65b8812b12af831a076059263"
+  },
+  "probeScripts": {
+   "scripts/probe_net_corruption.py": "stvef-mp added",
+   "scripts/probe_demo_faults.py": "stvef-mp added",
+   "scripts/probe_bsp_faults.py": "stvef-sp and stvef-mp added",
+   "scripts/probe_stvef_save_faults.py": "new"
+  },
+  "probes": {
+   "damagedDemos": {
+    "profile": "stvef-mp",
+    "engine": "fnTech3",
+    "installation": "E:\\Repositories\\fnTech3\\.tmp\\stvef-stock",
+    "installationUnchanged": true,
+    "sourceDemo": ".tmp\\stvef-faults\\extreme.efdemo",
+    "sourceSha256": "21867bcdf8796a4b793e756bdb03c01488f62f17c9df0a7d4c3f565daebdb3ef",
+    "sourceRecords": 1875,
+    "clientSha256": "40ff7f307925f0b331e148399f279b9c104cc722243fb78cbd99daa7dd2a21ec",
+    "messageLimit": 16384,
+    "fuzz": {
+     "count": 40,
+     "seed": 20260918
+    },
+    "outcomes": {
+     "completed": 6,
+     "rejected": 41,
+     "stalled": 0,
+     "crashed": 0,
+     "hung": 0
+    },
+    "passed": true,
+    "sourceCommit": "7f7b1f56869d0bd65b8812b12af831a076059263",
+    "cases": {
+     "truncated-header": {
+      "outcome": "completed",
+      "expected": "completed",
+      "errors": [],
+      "inputSha256": "9ec562df1ca981c99bf2a81c59c100afd73b9b65fd0f5ef8c9ba749118eb4b62"
+     },
+     "truncated-body": {
+      "outcome": "completed",
+      "expected": "completed",
+      "errors": [],
+      "inputSha256": "a254dc3b3dc8dc691c96ab928ef5599564fd18e5249e9fba6f042822e880e4a9"
+     },
+     "no-terminator": {
+      "outcome": "completed",
+      "expected": "completed",
+      "errors": [],
+      "inputSha256": "2c4b6752bbdde47bf65ddb9e14038e06e181019e9129d1cf22fcfcc1a6669a2c"
+     },
+     "length-negative": {
+      "outcome": "rejected",
+      "expected": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDemoMessage: invalid demo message length -2"
+      ],
+      "inputSha256": "e579c13c345aee389b3947ff302c2914d269b64b4c5bc72ef8e66ea3a4d8deca"
+     },
+     "length-over-limit": {
+      "outcome": "rejected",
+      "expected": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDemoMessage: invalid demo message length 16385"
+      ],
+      "inputSha256": "7ef603c301007b308301d0e07ca5a610f8572e8366d6758619b456029fc91553"
+     },
+     "length-huge": {
+      "outcome": "rejected",
+      "expected": "rejected",
+      "errors": [
+       "ERROR: CL_ReadDemoMessage: invalid demo message length 2147483647"
+      ],
+      "inputSha256": "087a36cf07d53446ad1fd0fe660ebc4fc63161c7fe194da81204e97a7fc90ec2"
+     },
+     "flipped-body": {
+      "outcome": "rejected",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "inputSha256": "c4ba578c3bddff0cb8562c002ac65db73de21b15a8b8d8ef98f2e6541839c38e"
+     },
+     "fuzz-20260918-000": {
+      "outcome": "rejected",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [
+       "ERROR: CL_ReadDeltaEntity: invalid or truncated entity delta"
+      ],
+      "inputSha256": "53f37c26aece6281023f6ba829cdecffc982e249b8548f6aa68f9862b687e8e2"
+     },
+     "fuzz-20260918-001": {
+      "outcome": "rejected",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [
+       "ERROR: CL_ReadDeltaEntity: invalid or truncated entity delta"
+      ],
+      "inputSha256": "2162ab03fdf6f7f314d79b695e6ff1eb2c9b62ee409657eff85de28d4fcb99ae"
+     },
+     "fuzz-20260918-002": {
+      "outcome": "rejected",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [
+       "ERROR: CL_ParseServerMessage: Illegible server message"
+      ],
+      "inputSha256": "d1ab8aa25b08f1858a81c24fa34a5ff2ff3c373b7ff9168881a09950cf315399"
+     },
+     "fuzz-20260918-003": {
+      "outcome": "rejected",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [
+       "ERROR: CL_ReadDeltaEntity: invalid or truncated entity delta"
+      ],
+      "inputSha256": "5fe5b2ce06df8e41ed6b186f619ac03b12741ea79166cd7bb4c60792861e9d0d"
+     },
+     "fuzz-20260918-004": {
+      "outcome": "rejected",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [
+       "ERROR: CL_ReadDeltaEntity: invalid or truncated entity delta"
+      ],
+      "inputSha256": "8c8c1521dc128e1bb4da21b47f9d10c5b6ee3b4916901419a00cdf3fd98fbf11"
+     },
+     "fuzz-20260918-005": {
+      "outcome": "rejected",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [
+       "ERROR: CL_ReadDeltaEntity: invalid or truncated entity delta"
+      ],
+      "inputSha256": "04e383994dc290d61a81e8498312ba70039b88962e28236c8cf79dc74d8eaf9e"
+     },
+     "fuzz-20260918-006": {
+      "outcome": "rejected",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "inputSha256": "683cb3de6d0149398ec2c6c11dd777880d2d7b29b9604c6fa5c7ce511dc2ca61"
+     },
+     "fuzz-20260918-007": {
+      "outcome": "rejected",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [
+       "ERROR: CL_ReadDeltaEntity: invalid or truncated entity delta"
+      ],
+      "inputSha256": "8b192af4fbb5af2974a1004744bd21168b3c8ca87f8fcc32e7c359958ef50465"
+     },
+     "fuzz-20260918-008": {
+      "outcome": "rejected",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [
+       "ERROR: CL_ReadDeltaEntity: invalid or truncated entity delta"
+      ],
+      "inputSha256": "4075a87748d204fa4e7149f732ce0ada16b5303a2ba2b215deae7b498c09d588"
+     },
+     "fuzz-20260918-009": {
+      "outcome": "rejected",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "inputSha256": "cc5a04a5d0140cb15ecc350e0db5cf1b8f6f932fabf9160e40cb474c7592eb80"
+     },
+     "fuzz-20260918-010": {
+      "outcome": "rejected",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [
+       "ERROR: CL_ReadDeltaEntity: invalid or truncated entity delta"
+      ],
+      "inputSha256": "de210941f417302706a8a30a0fefd542cdcb6e838c723de1a0b66687a0282c82"
+     },
+     "fuzz-20260918-011": {
+      "outcome": "rejected",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [
+       "ERROR: Bad player movement angle"
+      ],
+      "inputSha256": "14fba4b7e24738ac5ec42c875e93b8bd2c5a195716b32cc9711bb3c5c32e197a"
+     },
+     "fuzz-20260918-012": {
+      "outcome": "rejected",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [
+       "ERROR: CL_ReadDeltaEntity: invalid or truncated entity delta"
+      ],
+      "inputSha256": "e7f00a71f64f00bf23da482b8dd3878328f2d0448c90e5c480d0706998c3765f"
+     },
+     "fuzz-20260918-013": {
+      "outcome": "rejected",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [
+       "ERROR: CL_ReadDeltaEntity: invalid or truncated entity delta"
+      ],
+      "inputSha256": "b1e59ae2717e1876fbc52b5c84d8214da32c72c15e239db4f2fe90b45835d299"
+     },
+     "fuzz-20260918-014": {
+      "outcome": "rejected",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "inputSha256": "bb3ec0df07d304a0d79c1e4db10af95c9a8900ec6e729c0b479426c73eb887a8"
+     },
+     "fuzz-20260918-015": {
+      "outcome": "completed",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [],
+      "inputSha256": "7f04673ea8e1802fa4263eefb6705abbbc8dd331af246475492b9b1317f1475a"
+     },
+     "fuzz-20260918-016": {
+      "outcome": "rejected",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [
+       "ERROR: CL_ReadDeltaEntity: invalid or truncated entity delta"
+      ],
+      "inputSha256": "de219e659fe1c16d422a70319f074e651971d558adb18d5285e8d7db18673051"
+     },
+     "fuzz-20260918-017": {
+      "outcome": "rejected",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [
+       "ERROR: CL_ReadDeltaEntity: invalid or truncated entity delta"
+      ],
+      "inputSha256": "ee5ba1d34b1c3e01cf7cabe96c6dc970c2aeaa476477b78ee61879f2b2dfc20c"
+     },
+     "fuzz-20260918-018": {
+      "outcome": "rejected",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [
+       "ERROR: CL_ReadDeltaEntity: invalid or truncated entity delta"
+      ],
+      "inputSha256": "472b755a1d826305edf7978df1fa2d5c29916e21ff0c05bbb68c04ec1ed823bf"
+     },
+     "fuzz-20260918-019": {
+      "outcome": "rejected",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "inputSha256": "b87779fc71bf9b207beec0bfed02e22f1cb3351f834db03f0c70f883b2b3fe7a"
+     },
+     "fuzz-20260918-020": {
+      "outcome": "rejected",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "inputSha256": "19acc4633e19cab6514ba974c1710cda233f1e217cedd3f36b8b8d4b8ab183f7"
+     },
+     "fuzz-20260918-021": {
+      "outcome": "completed",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [],
+      "inputSha256": "6c50db47d3a22f73b0fc4929a18bcd24e85716513f4f9a6cc45748f7eb7a2c82"
+     },
+     "fuzz-20260918-022": {
+      "outcome": "rejected",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [
+       "ERROR: CL_ReadDeltaEntity: invalid or truncated entity delta"
+      ],
+      "inputSha256": "8cc51009daf622b8e5bdfdfab63b828778af06a7b66398f6d765577c8ca4005c"
+     },
+     "fuzz-20260918-023": {
+      "outcome": "rejected",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [
+       "ERROR: CL_ReadDeltaEntity: invalid or truncated entity delta"
+      ],
+      "inputSha256": "c32d9bbaf63e2d9f784faa60833462a9ebda172ac26e75a5155bd70ba2fafcf0"
+     },
+     "fuzz-20260918-024": {
+      "outcome": "rejected",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [
+       "ERROR: CL_ReadDeltaEntity: invalid or truncated entity delta"
+      ],
+      "inputSha256": "d2433e6f9e7fa73290e9abbafb911fc102313d99819c544b72d0aaefa67ea785"
+     },
+     "fuzz-20260918-025": {
+      "outcome": "rejected",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [
+       "ERROR: CG_ProcessSnapshots: Server time went backwards"
+      ],
+      "inputSha256": "34f0ef282b41f8f6685f989d39ac221778bda2d83e2d02618b8feafa91b68e60"
+     },
+     "fuzz-20260918-026": {
+      "outcome": "rejected",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ],
+      "inputSha256": "bf0b0068c976a6112db77813438c4a41f14d7fe42e6d175f33046e94bc00cf64"
+     },
+     "fuzz-20260918-027": {
+      "outcome": "rejected",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "inputSha256": "1c839dd0c00efe5da62a005dcd5a53c4222e45b0f186c445ade7f63ed14587fd"
+     },
+     "fuzz-20260918-028": {
+      "outcome": "rejected",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [
+       "ERROR: CL_ReadDeltaEntity: invalid or truncated entity delta"
+      ],
+      "inputSha256": "9cdf3fe2c220e344010773d2c1ff8abd1be918a53a7c21a8dd8b11537c5e5492"
+     },
+     "fuzz-20260918-029": {
+      "outcome": "rejected",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [
+       "ERROR: CL_ReadDeltaEntity: invalid or truncated entity delta"
+      ],
+      "inputSha256": "bd6837791c6cd510070f4e741ae1937b546d119c221ea9245ca1a8c3b121cc6c"
+     },
+     "fuzz-20260918-030": {
+      "outcome": "rejected",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [
+       "ERROR: CL_ReadDeltaEntity: invalid or truncated entity delta"
+      ],
+      "inputSha256": "8f1dead290f75a5dc5af5e6d808d428f07565c55489783b43c5b6e5099e3bff0"
+     },
+     "fuzz-20260918-031": {
+      "outcome": "rejected",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [
+       "ERROR: CL_ReadDeltaEntity: invalid or truncated entity delta"
+      ],
+      "inputSha256": "7dd6611e17aadbb63a39b9873663f0d5e9d923cbe5b4f89bc26a21051708c74b"
+     },
+     "fuzz-20260918-032": {
+      "outcome": "rejected",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [
+       "ERROR: CL_ReadDeltaEntity: invalid or truncated entity delta"
+      ],
+      "inputSha256": "72995d29028ef2b8da0c4283572a2a4b405637fb44755f00ed346742f52c8463"
+     },
+     "fuzz-20260918-033": {
+      "outcome": "rejected",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [
+       "ERROR: Unknown event: 104"
+      ],
+      "inputSha256": "cf0d4b86f537adcad038790db0362f39217cff791207794613d4c73d55b83236"
+     },
+     "fuzz-20260918-034": {
+      "outcome": "rejected",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "inputSha256": "e9e105898e952e130fc698a717e31f9600a15d34667a800b698c116aa23b30d7"
+     },
+     "fuzz-20260918-035": {
+      "outcome": "rejected",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "inputSha256": "bd1a753705fb7b217363e523bddb22a65a7f67b9581c9301567ea5e7f30c91cb"
+     },
+     "fuzz-20260918-036": {
+      "outcome": "completed",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [],
+      "inputSha256": "77e371086103ce3d6364710ad36251ec8c6c369397c79e2705622f69e88535d1"
+     },
+     "fuzz-20260918-037": {
+      "outcome": "rejected",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "inputSha256": "8e2672e67e79f528941698540aa3998add66bc3a1e956377ace281379792d5ce"
+     },
+     "fuzz-20260918-038": {
+      "outcome": "rejected",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ],
+      "inputSha256": "e2cdfa191590089df1c0d7687b0afeb60f64d6bd7845446de8dd575d561e10bb"
+     },
+     "fuzz-20260918-039": {
+      "outcome": "rejected",
+      "expected": "completed-or-rejected-or-stalled",
+      "errors": [
+       "ERROR: CL_ReadDeltaEntity: invalid or truncated entity delta"
+      ],
+      "inputSha256": "26f4804e3e2f72195a248a1c38b2581223203f26071a2a918dab30273358e99f"
+     }
+    }
+   },
+   "damagedMapsHolomatch": {
+    "profile": "stvef-mp",
+    "map": "pak0.pk3:maps/hm_borg1.bsp",
+    "mapBytes": 2078188,
+    "mapSha256": "2c88ad1fe9c493121f43e5e5de93b038395f8426b9bd76448a49b1ef85fd969e",
+    "version": 46,
+    "lumps": [
+     [
+      1927176,
+      12568
+     ],
+     [
+      144,
+      5832
+     ],
+     [
+      5976,
+      26016
+     ],
+     [
+      117192,
+      63684
+     ],
+     [
+      31992,
+      85200
+     ],
+     [
+      261984,
+      22724
+     ],
+     [
+      284708,
+      12056
+     ],
+     [
+      296764,
+      200
+     ],
+     [
+      180876,
+      15204
+     ],
+     [
+      196080,
+      65904
+     ],
+     [
+      296964,
+      774180
+     ],
+     [
+      1939816,
+      138372
+     ],
+     [
+      1939744,
+      72
+     ],
+     [
+      1071144,
+      364312
+     ],
+     [
+      1508232,
+      344064
+     ],
+     [
+      1852296,
+      74880
+     ],
+     [
+      1435456,
+      72776
+     ]
+    ],
+    "fuzz": {
+     "count": 17,
+     "seed": 20260918
+    },
+    "clientSha256": "40ff7f307925f0b331e148399f279b9c104cc722243fb78cbd99daa7dd2a21ec",
+    "outcomes": {
+     "loaded": 9,
+     "rejected": 81,
+     "faulted": 0,
+     "crashed": 0,
+     "hung": 0
+    },
+    "sourceCommit": "7f7b1f56869d0bd65b8812b12af831a076059263",
+    "passed": true,
+    "cases": {
+     "lump0-offset-past-end": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[0] size/offset"
+      ],
+      "inputSha256": "90ec4f0ca062a3a289318ce8ed6984cb190a9b0c5a873d13c6c4dc58b8111b5a"
+     },
+     "lump0-offset-negative": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[0] size/offset"
+      ],
+      "inputSha256": "62e52d53620d9ad3917f5dac03513c669945a18f08b4c29997b3d7ce2503dff5"
+     },
+     "lump0-length-huge": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[0] size/offset"
+      ],
+      "inputSha256": "74a27dbcef114c12df2ed1c5c78baed5d0012776ba63f717e54db0d2150a15ca"
+     },
+     "lump1-offset-past-end": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[1] size/offset"
+      ],
+      "inputSha256": "de0c364feb57c345aa1bdbb2ced35ae390981555d9f310cf5fc7af9acd6adcfd"
+     },
+     "lump1-offset-negative": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[1] size/offset"
+      ],
+      "inputSha256": "254d667167ac67efb9bae726650b3898922d00e7bb7ee34b0b7864851287e792"
+     },
+     "lump1-length-odd": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadShaders: funny lump size"
+      ],
+      "inputSha256": "76e3cbe3234baca70c7d3d7a958f066c5b18b73ada696263d034e7d050858dbc"
+     },
+     "lump1-length-huge": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[1] size/offset"
+      ],
+      "inputSha256": "a79e6bfde91f5173329d752715b7064d57e1976e5a54b173fc8b27603bc08372"
+     },
+     "lump2-offset-past-end": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[2] size/offset"
+      ],
+      "inputSha256": "6cd13f0291ce7fa2a8354a366fd4e82c65445a56c938b75035d1d81f9d1f1dbf"
+     },
+     "lump2-offset-negative": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[2] size/offset"
+      ],
+      "inputSha256": "3bd2d7f66be23c558d2fce1aa6aaf6159a8b18ff338b805e11cf9bc92131f01c"
+     },
+     "lump2-length-odd": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadPlanes: funny lump size"
+      ],
+      "inputSha256": "5f5ddfbfa7abfa9badee3a8b3e0c49087603c74170337f508438ede780d38926"
+     },
+     "lump2-length-huge": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[2] size/offset"
+      ],
+      "inputSha256": "2434f6237e93ec42646b0b3708eb9cbcb67b00151960fe01a5ee948e71151c75"
+     },
+     "lump3-offset-past-end": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[3] size/offset"
+      ],
+      "inputSha256": "229c28c9831c6024f5735940eb4be6e782db0c90b1841dd538a98fcde4fe3ae1"
+     },
+     "lump3-offset-negative": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[3] size/offset"
+      ],
+      "inputSha256": "93de17cf25c1ffd43456308dbee1e244a9697859c0c7238e8c09c54ae6ea3914"
+     },
+     "lump3-length-odd": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadNodes: funny lump size"
+      ],
+      "inputSha256": "64f7b94328210059fbd69b6240ef2f7e23b44a88f92ad3d765b7d5df4dc2505d"
+     },
+     "lump3-length-huge": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[3] size/offset"
+      ],
+      "inputSha256": "949cab90046615f4ae1c8c6c16b08d94a21b15c0723989d7596de3eeacfd0ceb"
+     },
+     "lump4-offset-past-end": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[4] size/offset"
+      ],
+      "inputSha256": "4a741311d7e0b169c9cb6d92ac021a02b90e9993e932c1253bfdf52eae378c6d"
+     },
+     "lump4-offset-negative": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[4] size/offset"
+      ],
+      "inputSha256": "e0eb9aa6c27b36486f0f9aba2a4b39bda2349d1b5f171575bfdaab25fd8a7d00"
+     },
+     "lump4-length-odd": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadLeafs: funny lump size"
+      ],
+      "inputSha256": "76d186cb13f50b1db8bc1a46e62903a55d8e7e449f8f9c6edd4b59ad726b6cb6"
+     },
+     "lump4-length-huge": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[4] size/offset"
+      ],
+      "inputSha256": "8ae8611ae51317a62450d50f2ce83fe6d4da6f65ddb027af85f5aa1e05521c5d"
+     },
+     "lump5-offset-past-end": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[5] size/offset"
+      ],
+      "inputSha256": "673e7da9612d50113a1229e29486191accdee0759ed08c80ebc26199496609a3"
+     },
+     "lump5-offset-negative": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[5] size/offset"
+      ],
+      "inputSha256": "cba3440cb1abb019c853468a720ef238c708f4cdb761983604d87bb3fa47136e"
+     },
+     "lump5-length-odd": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadLeafSurfaces: funny lump size"
+      ],
+      "inputSha256": "88c45b51b0d361c29ac37b0cfac3841a9d644c75ac78324704e8d8ad157dc900"
+     },
+     "lump5-length-huge": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[5] size/offset"
+      ],
+      "inputSha256": "12179f038919f1be01090557b25616fc0c6014deadef0d292922dc8ba4934c24"
+     },
+     "lump6-offset-past-end": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[6] size/offset"
+      ],
+      "inputSha256": "0cf92d2b7e80c51dfac5eb298755906892e4df6a480c6a53a173d76d9dbd3896"
+     },
+     "lump6-offset-negative": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[6] size/offset"
+      ],
+      "inputSha256": "cd4b313b54008caa6d1157912236530670d5843a48d5d61deecaf4f7f0500035"
+     },
+     "lump6-length-odd": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadLeafBrushes: funny lump size"
+      ],
+      "inputSha256": "9cf41a1bdfd7edb8179b9f6509b44335b2b99c816fe71e08edc8f99b5d82a217"
+     },
+     "lump6-length-huge": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[6] size/offset"
+      ],
+      "inputSha256": "d95de188f0321e818295f7cb47613a80b182899daea239ef8b75b267b0cc13cd"
+     },
+     "lump7-offset-past-end": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[7] size/offset"
+      ],
+      "inputSha256": "f63e36b3bd743d30c612c4650f76afe02b5127e99e215ce43eb2afc5312bf609"
+     },
+     "lump7-offset-negative": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[7] size/offset"
+      ],
+      "inputSha256": "823478d896495341ff94a329a31284b8f82055676e20d1a6c2ac630d3b3c05dd"
+     },
+     "lump7-length-odd": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadSubmodels: funny lump size"
+      ],
+      "inputSha256": "9bd74a2d709796c2990667e10ca12906fcb35745b49aa5f05e0c9a9a7f778164"
+     },
+     "lump7-length-huge": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[7] size/offset"
+      ],
+      "inputSha256": "9024dfb523f8b28629f7bad54ce3b73930ab82f077e8becf2e39cef3e66ca81b"
+     },
+     "lump8-offset-past-end": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[8] size/offset"
+      ],
+      "inputSha256": "8ff1a9c062a85289967d1711847c18acde57451342ff7ed56341950293f63e90"
+     },
+     "lump8-offset-negative": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[8] size/offset"
+      ],
+      "inputSha256": "8ffef0e3e500496e4df220d7fab9f3ca458fbe0798f5e2fdc85d0ee15b9a6e3c"
+     },
+     "lump8-length-odd": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadBrushes: funny lump size"
+      ],
+      "inputSha256": "5509cc8411dd76d0a8a64665357e2bfe0b1524fb61ceee9de44b09b96c7ea9b8"
+     },
+     "lump8-length-huge": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[8] size/offset"
+      ],
+      "inputSha256": "1e7e24f18f2207952322ef09b80d7ab42108ac40ed4315f2378d70851576b9da"
+     },
+     "lump9-offset-past-end": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[9] size/offset"
+      ],
+      "inputSha256": "619aae1b0465678631b7986829db85f0dfb2787b90805b05c823a93214bf02fe"
+     },
+     "lump9-offset-negative": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[9] size/offset"
+      ],
+      "inputSha256": "fce7421c67924431972ffdabc7276b49cedf1376f129f4ba0b09249f3f561c5e"
+     },
+     "lump9-length-odd": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadBrushSides: funny lump size"
+      ],
+      "inputSha256": "105d42f63bcb4d460ecb0d48e7fca2dcacdb643913a21fa000e0ec19d0912594"
+     },
+     "lump9-length-huge": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[9] size/offset"
+      ],
+      "inputSha256": "6f00980de442857509511d26843e1e016bbdf9474d957cb4eaf09b7d91b7ba64"
+     },
+     "lump10-offset-past-end": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[10] size/offset"
+      ],
+      "inputSha256": "999b45b2f373ccb63019d377d73babecca1359343ddf6099737ebc9dc3fa749c"
+     },
+     "lump10-offset-negative": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[10] size/offset"
+      ],
+      "inputSha256": "382d7d265904bc5431d81d0bf5555c71ad421abe11b861b6f16baab25b0bd56d"
+     },
+     "lump10-length-odd": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadPatches: funny lump size"
+      ],
+      "inputSha256": "83469fefb864774f2954ef0a1e4f2790ae3301e91c60c81a94828bdebc4263b9"
+     },
+     "lump10-length-huge": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[10] size/offset"
+      ],
+      "inputSha256": "0432145d03601e26e1e41e0ef69e809ee77f09b6669d0eafeb84c855c55dc481"
+     },
+     "lump11-offset-past-end": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[11] size/offset"
+      ],
+      "inputSha256": "b8a3a6eae5b8037fcf5e142ac0a521705fabe456e695dc1842373ee86d56dabf"
+     },
+     "lump11-offset-negative": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[11] size/offset"
+      ],
+      "inputSha256": "35d26e9a93de4d8e2746b2a5fb0955778b1dd73b929a97507cc1af2a4a994a19"
+     },
+     "lump11-length-odd": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[11] size/offset"
+      ],
+      "inputSha256": "b1d2f77fbe5a0d681ec102bff2bf17067b0e4f9803e7e6c416d406686779cd3b"
+     },
+     "lump11-length-huge": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[11] size/offset"
+      ],
+      "inputSha256": "7ea8a8c63d44fd3196c0f8c5307c14b81561b5f17f0c8d1e3f1a300245690a49"
+     },
+     "lump12-offset-past-end": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[12] size/offset"
+      ],
+      "inputSha256": "59b3f69ac96b8d27c13b0d78b54723d8a1f6abcfad6daf58253e58990a178530"
+     },
+     "lump12-offset-negative": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[12] size/offset"
+      ],
+      "inputSha256": "55be0fe3e0643964df5cfe794fda36ed7dc02e02854469ab72ab6a0015ac4480"
+     },
+     "lump12-length-odd": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: R_LoadFogs(): funny lump size in maps/bspfault.bsp"
+      ],
+      "inputSha256": "059754f7dbe4f99f481e8a85411b8a3e669a2ce54e4100d4766df07fca14efc3"
+     },
+     "lump12-length-huge": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[12] size/offset"
+      ],
+      "inputSha256": "a019b29cb78d82201616a927d9ee0c78638ef5235c310f96b6a898c0dedcd8c8"
+     },
+     "lump13-offset-past-end": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[13] size/offset"
+      ],
+      "inputSha256": "88c057f2fce7b343398e300d6ed5da289c55c12f27eb3b5fdaef8e904436b1b7"
+     },
+     "lump13-offset-negative": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[13] size/offset"
+      ],
+      "inputSha256": "abcb40f21ffc98ec593afb16243928b453b9f49a28a56c02add47f2c3ca406d7"
+     },
+     "lump13-length-odd": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadPatches: funny lump size"
+      ],
+      "inputSha256": "b17a95961e55bc21ed088b7b93efb5223cb09a143713b546c93c15dd22c5cfa9"
+     },
+     "lump13-length-huge": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[13] size/offset"
+      ],
+      "inputSha256": "5129d3a7513399517df15bad2885e2976d363951b8c66866a19fbdc922a96f97"
+     },
+     "lump14-offset-past-end": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[14] size/offset"
+      ],
+      "inputSha256": "47474c8aeda193bfaa036cfe8b4879b93a435ef86d78f9d4ddd883a95648dce5"
+     },
+     "lump14-offset-negative": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[14] size/offset"
+      ],
+      "inputSha256": "1a51cb56b43dc1bb0d8f40871cb13bf60062eeaf8a2a20f2f1d92334dac4c005"
+     },
+     "lump14-length-odd": {
+      "outcome": "loaded",
+      "expected": null,
+      "errors": [],
+      "inputSha256": "002c126df3fa2a4babd7a53046ff80fa4c2aa3d2a73cfda58f98afa8a6f080a2"
+     },
+     "lump14-length-huge": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[14] size/offset"
+      ],
+      "inputSha256": "eb11739762be4bd185831c5b7473a1a46b294af903da5fece7452f488d51471d"
+     },
+     "lump15-offset-past-end": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[15] size/offset"
+      ],
+      "inputSha256": "ddfc1443f19e509fba73fd87cc5fb4105fd354af980244578dbb222d3fa5cdc8"
+     },
+     "lump15-offset-negative": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[15] size/offset"
+      ],
+      "inputSha256": "8ac34436da1f034a2158bdb2e55fde796391fba7d4c9fd8c06a7027151087e68"
+     },
+     "lump15-length-odd": {
+      "outcome": "loaded",
+      "expected": null,
+      "errors": [],
+      "inputSha256": "a11ef295f07bf429ea155e2f0a65f3d7db9902bc74eb2b32994385a9eacb9ce7"
+     },
+     "lump15-length-huge": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[15] size/offset"
+      ],
+      "inputSha256": "19da8ec77ec2ab4aef40d24c9b7db62098cbbf10c8b82cd2b969b671a1e9446a"
+     },
+     "lump16-offset-past-end": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[16] size/offset"
+      ],
+      "inputSha256": "d64f2b0038741439774b73d99d672ea13e0eeedf1a1a98b459b6127bae8bf79f"
+     },
+     "lump16-offset-negative": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[16] size/offset"
+      ],
+      "inputSha256": "a2e50b1d679a874ee35eccf00a4fe4c02b373cf91ccc8653ace5f25da863a55d"
+     },
+     "lump16-length-huge": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[16] size/offset"
+      ],
+      "inputSha256": "454992dcb005183d42ae1282cdd4cc2a9a379573f8d8bb569fbc9bf89b18fc46"
+     },
+     "header-version": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has BSP version 45 unsupported by the selected game"
+      ],
+      "inputSha256": "a22b01894d40b09a1945ee4701d32859a871e7582b0703953fe5a20607c6e173"
+     },
+     "header-ident": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong file identifier"
+      ],
+      "inputSha256": "5a4c9bd3ed05a9ecb73ed2847076a98188f3b3f8d48b7092ff59e933e24c7c0d"
+     },
+     "truncated-half": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[0] size/offset"
+      ],
+      "inputSha256": "642eb80efadb2528b2014b743cb8c1c026df43891dd0bca573a63c6fd3646ee0"
+     },
+     "truncated-last-lump": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[11] size/offset"
+      ],
+      "inputSha256": "1d0c2fbdfd60e58a1368ff4eccf3504948662834bb73171ae9f80c148bd29cb7"
+     },
+     "tree-cycle": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadNodes: child 0 of node 1768 leads back to that node or one above it"
+      ],
+      "inputSha256": "f6a1ad7b4417c8dcd709e91dc3890816f9adcda30cd76af48c112fe017cd61d6"
+     },
+     "tree-self": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadNodes: child 1768 of node 1768 leads back to that node or one above it"
+      ],
+      "inputSha256": "415b80b26ce5f90826b5de75a6049ba4ee3d47443e0e81413930f518a88d0a9c"
+     },
+     "tree-shared-path": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadNodes: child 1068 of node 1067 is already below another node"
+      ],
+      "inputSha256": "bfafdaed32f9de06eccf3d17307a2eb0076b442e37e9827f5fb646016f6e51c1"
+     },
+     "fuzz-20260918-000-lump1": {
+      "outcome": "loaded",
+      "expected": null,
+      "errors": [],
+      "inputSha256": "ab03ee0b5405ff874f64866c08bd512e0f87453fd16dc00e4b5c41848bdd7a77"
+     },
+     "fuzz-20260918-001-lump2": {
+      "outcome": "loaded",
+      "expected": null,
+      "errors": [],
+      "inputSha256": "4d71a818dfadd92aedcb85a55457b7298d5a977629db9d367d04dd16125afe84"
+     },
+     "fuzz-20260918-002-lump3": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadNodes: node 503 has a bad child"
+      ],
+      "inputSha256": "1da0837d9da2c709d6307a246ab3024f217e44c794370c01ae2ca2820156d20f"
+     },
+     "fuzz-20260918-003-lump4": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadLeafs: leaf 339 has a bad area or cluster"
+      ],
+      "inputSha256": "aac5817fa2ec89f5267dae2226be3138d8a4c37884f1fff1492332f86fd9f8be"
+     },
+     "fuzz-20260918-004-lump5": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadLeafSurfaces: leaf surface 176 names a bad surface"
+      ],
+      "inputSha256": "a0a7d49f8c32d3818f79bbf8c514c336c3d0c78f98a5df48607bebc7b6fd3cbf"
+     },
+     "fuzz-20260918-005-lump6": {
+      "outcome": "loaded",
+      "expected": null,
+      "errors": [],
+      "inputSha256": "a54efb9d1c41c24c6b555981d2861d7b9501aad55aed4753dbedd60229073c91"
+     },
+     "fuzz-20260918-006-lump7": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadSubmodels: model 1 has a bad brush or surface range"
+      ],
+      "inputSha256": "78151ae7cc40ba6a475adda0c4c11c831458cc54b355ee6247dba86dd4858800"
+     },
+     "fuzz-20260918-007-lump8": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadBrushes: brush 54 has a bad side range"
+      ],
+      "inputSha256": "cfc17cf11beff0ef019d1ca64039776efaad87ba214d088a39aab9cfe484bd1e"
+     },
+     "fuzz-20260918-008-lump9": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadBrushSides: bad shaderNum: 105"
+      ],
+      "inputSha256": "b92e42fa5b018b3c0a1b7e0b1335bc215bbd42603268dbc060a7c361bf65f0f3"
+     },
+     "fuzz-20260918-009-lump10": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_SubdivideGridColumns: subdivided grid is > MAX_GRID_SIZE"
+      ],
+      "inputSha256": "7949662b39f5aa98aaadad8404c825d8c7eeb05ef761a6f164af7087b2b353aa"
+     },
+     "fuzz-20260918-010-lump11": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: Bad index in face surface"
+      ],
+      "inputSha256": "cad6733b0cd52618cfa122d18f3b0735222f7cff968ea46a7c20f2ebaee2f732"
+     },
+     "fuzz-20260918-011-lump12": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: fog brushNumber out of range"
+      ],
+      "inputSha256": "8940aa343ad063d050b688286787f9f82f0da1e54cea58043c7a6115b555ae42"
+     },
+     "fuzz-20260918-012-lump13": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: ParseFace: surface 253 has a bad vertex or index range"
+      ],
+      "inputSha256": "458fa2fda691448f73175eae6ca7d2335806a4a25afe349271ef4daf07f88a56"
+     },
+     "fuzz-20260918-013-lump14": {
+      "outcome": "loaded",
+      "expected": null,
+      "errors": [],
+      "inputSha256": "ae1d35e802db8e1e0407bc14c949ee77ef277bae223d7d80ce7a7e8fd0adbb28"
+     },
+     "fuzz-20260918-014-lump15": {
+      "outcome": "loaded",
+      "expected": null,
+      "errors": [],
+      "inputSha256": "79fbfb8cfec812840862e63c6e991a5af3b9b592ca69958f67c3a79a8718ca98"
+     },
+     "fuzz-20260918-015-lump16": {
+      "outcome": "loaded",
+      "expected": null,
+      "errors": [],
+      "inputSha256": "53bb1d8e80e18d9301c9a080eb74ef85a655e55e3031dc81942aca84e3c7ab27"
+     },
+     "fuzz-20260918-016-lump1": {
+      "outcome": "loaded",
+      "expected": null,
+      "errors": [],
+      "inputSha256": "50cd5175c43a1ce29f20c9fd658707db9663549da4d50a8f36ab2e6687ed9093"
+     }
+    }
+   },
+   "damagedMapsSinglePlayer": {
+    "profile": "stvef-sp",
+    "map": "pak0.pk3:maps/voy2.bsp",
+    "mapBytes": 6761072,
+    "mapSha256": "bb5f5e2708ba70f5002ba8e7099673f736c7841beff4821b899e2e065ad3d691",
+    "version": 46,
+    "lumps": [
+     [
+      5987400,
+      42272
+     ],
+     [
+      144,
+      10584
+     ],
+     [
+      10728,
+      93600
+     ],
+     [
+      278808,
+      126144
+     ],
+     [
+      104328,
+      174480
+     ],
+     [
+      659408,
+      88596
+     ],
+     [
+      748004,
+      37300
+     ],
+     [
+      785304,
+      5200
+     ],
+     [
+      404952,
+      43632
+     ],
+     [
+      448584,
+      210824
+     ],
+     [
+      790504,
+      2996400
+     ],
+     [
+      6029672,
+      731400
+     ],
+     [
+      6029672,
+      0
+     ],
+     [
+      3786904,
+      1285544
+     ],
+     [
+      5390056,
+      540672
+     ],
+     [
+      5930728,
+      56672
+     ],
+     [
+      5072448,
+      317608
+     ]
+    ],
+    "fuzz": {
+     "count": 17,
+     "seed": 20260918
+    },
+    "clientSha256": "40ff7f307925f0b331e148399f279b9c104cc722243fb78cbd99daa7dd2a21ec",
+    "outcomes": {
+     "loaded": 11,
+     "rejected": 78,
+     "faulted": 0,
+     "crashed": 0,
+     "hung": 0
+    },
+    "sourceCommit": "7f7b1f56869d0bd65b8812b12af831a076059263",
+    "passed": true,
+    "cases": {
+     "lump0-offset-past-end": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[0] size/offset"
+      ],
+      "inputSha256": "84cfcf4b12e57ed14ad83335da5821622b757f4a9616bbc5b64dfa88c1f9181a"
+     },
+     "lump0-offset-negative": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[0] size/offset"
+      ],
+      "inputSha256": "5f2960fa00363e711d65cbdddce61fdd68d4a1312c41d11dc16042649c5940a1"
+     },
+     "lump0-length-huge": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[0] size/offset"
+      ],
+      "inputSha256": "7a3d7136f50851e715cfedaf7f0ed770296a8cfb5e41e1b96dd0906f63c1508c"
+     },
+     "lump1-offset-past-end": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[1] size/offset"
+      ],
+      "inputSha256": "41e6c53b2dfc4ee1d2bae82f3082dc35216418b0187e377bdcd2ff118e8a28af"
+     },
+     "lump1-offset-negative": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[1] size/offset"
+      ],
+      "inputSha256": "540737308134f6e833b286aa91a66f09a9ff5874dd5ead6ba976e74ea2988b7e"
+     },
+     "lump1-length-odd": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadShaders: funny lump size"
+      ],
+      "inputSha256": "b6293b0e8b467c57f7eefefcf85d43bb6f91fc840a7588d9c41f7b198ead9dd6"
+     },
+     "lump1-length-huge": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[1] size/offset"
+      ],
+      "inputSha256": "eae45520e94caf3fe39e9ce6b0b67b4e6240b9f28d95dab5bae777c3d8e1d8d9"
+     },
+     "lump2-offset-past-end": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[2] size/offset"
+      ],
+      "inputSha256": "476a731a6236a6535cea486cbdaadc012edb6daac697b2aef12ab9bd2314f35d"
+     },
+     "lump2-offset-negative": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[2] size/offset"
+      ],
+      "inputSha256": "ddb5d5e73561e26513b54e6abddaff697f4f2fbbb95abc066c4941cbafcb5da7"
+     },
+     "lump2-length-odd": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadPlanes: funny lump size"
+      ],
+      "inputSha256": "baae571cfcd5bb4d508ef0524fd22b7136c3ce3d294d030ca7592b280de53768"
+     },
+     "lump2-length-huge": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[2] size/offset"
+      ],
+      "inputSha256": "b55f988c89a083ecfa36a289ed8318de171d673902ecb82e5db5c8ff6f4583e7"
+     },
+     "lump3-offset-past-end": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[3] size/offset"
+      ],
+      "inputSha256": "423d9f517bd516113abf7bf1b8468fd5457b0504b4bb9c56da79217092569e32"
+     },
+     "lump3-offset-negative": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[3] size/offset"
+      ],
+      "inputSha256": "b72420a6e9ff29eba8c6e49b26cf51ef3eb621e89fee70c0db3c27eab27ef758"
+     },
+     "lump3-length-odd": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadNodes: funny lump size"
+      ],
+      "inputSha256": "00e8efff2b57b942d2be24f62ffc17421fc3ab4b03dc7f6f23a9486b629724b7"
+     },
+     "lump3-length-huge": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[3] size/offset"
+      ],
+      "inputSha256": "ff4052f6102f530762f896b490fe077c82afffa0af60407694351a0381c7a542"
+     },
+     "lump4-offset-past-end": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[4] size/offset"
+      ],
+      "inputSha256": "e765c8ad5055e9065df628586b426189d49dcb3d01f9296c1d260e942cd2ba90"
+     },
+     "lump4-offset-negative": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[4] size/offset"
+      ],
+      "inputSha256": "2a47b609042cf7265f701e88b6e73ea609435f0324d6c56856a9dfc54b04a540"
+     },
+     "lump4-length-odd": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadLeafs: funny lump size"
+      ],
+      "inputSha256": "727b834a579f97c7f9279e9d02872c2c16b3582c9af40760f0df3d1955251ffc"
+     },
+     "lump4-length-huge": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[4] size/offset"
+      ],
+      "inputSha256": "d5f5ea7e26fea13209db5a866a8f9eae328a741906a87f65ed8fbe7fc35775af"
+     },
+     "lump5-offset-past-end": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[5] size/offset"
+      ],
+      "inputSha256": "ff308fcb3632cf19e19ba099c070d01c2391a1ce13472a7f0e536cf967d687fd"
+     },
+     "lump5-offset-negative": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[5] size/offset"
+      ],
+      "inputSha256": "6e85e4e58774a69447645789fa0512fad0405644ef3af44caf847997f11a8235"
+     },
+     "lump5-length-odd": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadLeafSurfaces: funny lump size"
+      ],
+      "inputSha256": "45fdb747403bd020c17816368e04be04da51ed483193bbb50676f7573f76ad0a"
+     },
+     "lump5-length-huge": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[5] size/offset"
+      ],
+      "inputSha256": "79b7a817c4048f0763d2ccaf38e9a3b353ce6cbb4c2627b2130d0c4e5742e740"
+     },
+     "lump6-offset-past-end": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[6] size/offset"
+      ],
+      "inputSha256": "ee489678f5d87f76be0318d072b7cab9ad3b8a7c7d454e1b41349a0cd76d6f52"
+     },
+     "lump6-offset-negative": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[6] size/offset"
+      ],
+      "inputSha256": "0bd032f03a8fd84c36a2513c941c47cbd79facfc929294cf37c12dcee4dc69f1"
+     },
+     "lump6-length-odd": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadLeafBrushes: funny lump size"
+      ],
+      "inputSha256": "5ddd2deb5319e98d2cf763ee39f250e63d8af1a2b0ab77aec41e0d119ca11a8d"
+     },
+     "lump6-length-huge": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[6] size/offset"
+      ],
+      "inputSha256": "a0e7a2bc5ec49642a08730e2d5bb75e411a88650b6a9eadf7f3977d44b78e9ef"
+     },
+     "lump7-offset-past-end": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[7] size/offset"
+      ],
+      "inputSha256": "eab502ab413a7e5d967cefc42b4ac581553f35e342b9c096c64425a3df50b3fa"
+     },
+     "lump7-offset-negative": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[7] size/offset"
+      ],
+      "inputSha256": "f0ca2bafcd66173e93d394ca90d6863d2f0fb3a9f57365a27227e732ce0d643f"
+     },
+     "lump7-length-odd": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadSubmodels: funny lump size"
+      ],
+      "inputSha256": "ca5216c8f10dc7db0993a57f7da7590409f3882d2da9eb29a996273a5f6f54b7"
+     },
+     "lump7-length-huge": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[7] size/offset"
+      ],
+      "inputSha256": "7fbb7751f41e01cdf7eba03d4c45d367784a2d0ca66099dc2c52e1b543c1720d"
+     },
+     "lump8-offset-past-end": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[8] size/offset"
+      ],
+      "inputSha256": "b73250e952e6242bd092d0fc544988523b83afef23f7aca08c2ca2e60853831f"
+     },
+     "lump8-offset-negative": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[8] size/offset"
+      ],
+      "inputSha256": "3c74eede8f070aa75cfe4416a8f8d221159adebfc3ca848444fc1b44c845cdf7"
+     },
+     "lump8-length-odd": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadBrushes: funny lump size"
+      ],
+      "inputSha256": "44e9a0fd8cf075351724f04ab402a2b11c45f74b5afb004fd2f33a74f22f0ea3"
+     },
+     "lump8-length-huge": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[8] size/offset"
+      ],
+      "inputSha256": "918741feef86cf64ac5cd793059f253b900acff77b259ca06532cbbd48e45c1c"
+     },
+     "lump9-offset-past-end": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[9] size/offset"
+      ],
+      "inputSha256": "8f9c16da1ce9efce6840aa24aecbdf0e25ef4e88d84570b52e5284654691711d"
+     },
+     "lump9-offset-negative": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[9] size/offset"
+      ],
+      "inputSha256": "88a092c5814b26df556cb1dd2d641696828e9d4bd233e961bf94a9c2a1d9e050"
+     },
+     "lump9-length-odd": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadBrushSides: funny lump size"
+      ],
+      "inputSha256": "ad1c5420bbfbf686ba2a34d300c80a69dda3a3c6f0afe63776739f06a3e6cbdb"
+     },
+     "lump9-length-huge": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[9] size/offset"
+      ],
+      "inputSha256": "21798a1103e905b514334eeb2117323cf5ce68adafa0c18a4296ee7ccb59ec09"
+     },
+     "lump10-offset-past-end": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[10] size/offset"
+      ],
+      "inputSha256": "253c13805982fc8d1741477f44a46cb515f8dfab438130c8ce11a09af5b6d180"
+     },
+     "lump10-offset-negative": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[10] size/offset"
+      ],
+      "inputSha256": "32dce60c652f3d8f8e9a58e7027cbcafe0ec7c9efdcfad58f1024eeac7047e11"
+     },
+     "lump10-length-odd": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadPatches: funny lump size"
+      ],
+      "inputSha256": "cbf13c78ef747e2f4deae8cae9d539a126e0637d47d18ca21cba01b7d9df325b"
+     },
+     "lump10-length-huge": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[10] size/offset"
+      ],
+      "inputSha256": "67c3f6df91a15bf264652d4251c86ef98386132998a98bb6b373a4d766341c25"
+     },
+     "lump11-offset-past-end": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[11] size/offset"
+      ],
+      "inputSha256": "30b2abeaf8dbb21719e8c23057e75159f59c1f1789ded95d07fa0d56dfb5dd7c"
+     },
+     "lump11-offset-negative": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[11] size/offset"
+      ],
+      "inputSha256": "316fc2fd7d94de45ba130100b56e5123c5f92a27baa3e6f0cca17bc2882ae46e"
+     },
+     "lump11-length-odd": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[11] size/offset"
+      ],
+      "inputSha256": "dd850344b5080053844c29402926a294ee32dd1c43c7fb1b7f0525afe099afb0"
+     },
+     "lump11-length-huge": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[11] size/offset"
+      ],
+      "inputSha256": "b6508d1986ec3ed5cc94cd60485131ce67244f2920cfe19ec58cb4e556913915"
+     },
+     "lump12-offset-past-end": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[12] size/offset"
+      ],
+      "inputSha256": "d26cd0cf5e915f04d7f10b8e3b22d6a87bbe247fb09602ba7286f496a79510a9"
+     },
+     "lump12-offset-negative": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[12] size/offset"
+      ],
+      "inputSha256": "cecc77c732bb6333c656514c7b819312775ab293eea7a357e91ccf283755a3de"
+     },
+     "lump12-length-huge": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[12] size/offset"
+      ],
+      "inputSha256": "7c4d1e2b3c5b77870ade635dcfd15ff2f2a8e9f80487efbb434096fbf3d86d39"
+     },
+     "lump13-offset-past-end": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[13] size/offset"
+      ],
+      "inputSha256": "a3ded5e9a3dec4a485c7a9cb7bd9ae222b1f6fe5c1656d8e6705b5b3fc3f6200"
+     },
+     "lump13-offset-negative": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[13] size/offset"
+      ],
+      "inputSha256": "7c553131e20ccc911ce57ccd0d3e62cbd961b44df9518f6ee6b83ba6e63461bd"
+     },
+     "lump13-length-odd": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadPatches: funny lump size"
+      ],
+      "inputSha256": "566b1cbf2c347ca285ae8e1555760e101539751aff70957311f01f253e3ba0e6"
+     },
+     "lump13-length-huge": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[13] size/offset"
+      ],
+      "inputSha256": "7f9590008b64e3e7b3386d1f0d324b938b6d1548a423eb59f5e807fbc4c02b56"
+     },
+     "lump14-offset-past-end": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[14] size/offset"
+      ],
+      "inputSha256": "7c20072a02d5200592a554425d3efe6426ac569c25ab6daa01229999d491bf52"
+     },
+     "lump14-offset-negative": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[14] size/offset"
+      ],
+      "inputSha256": "dff4e2a228477f94b2733213b4bdaa7da7b1c39e62b8467abb4bf6947cd54750"
+     },
+     "lump14-length-odd": {
+      "outcome": "loaded",
+      "expected": null,
+      "errors": [],
+      "inputSha256": "bdc57dd1fa0fc493dd41d0bb8cc84294eed80c68db90cd2ac97fcd1df70de098"
+     },
+     "lump14-length-huge": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[14] size/offset"
+      ],
+      "inputSha256": "4ee588a0a92ef06761dcc84d7bfd57c0563c1a75989cfdc99cdda3527261d84a"
+     },
+     "lump15-offset-past-end": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[15] size/offset"
+      ],
+      "inputSha256": "4a1628b6b12fa8c2082ec9440b8c6b6124bc026d017c9ddc01adf4dafe9282e8"
+     },
+     "lump15-offset-negative": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[15] size/offset"
+      ],
+      "inputSha256": "76f05cd1266e49ef89edf4f87fbda59c5fa737840cc5c143095621e395049453"
+     },
+     "lump15-length-odd": {
+      "outcome": "loaded",
+      "expected": null,
+      "errors": [],
+      "inputSha256": "fd3b278580fffb8522b3b70ee33624b9e241ad95533f59041685065269b1cf94"
+     },
+     "lump15-length-huge": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[15] size/offset"
+      ],
+      "inputSha256": "39e1be6883e81d41baf113b07adad32e39f375f48335a31b707ee16fbe82ca70"
+     },
+     "lump16-offset-past-end": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[16] size/offset"
+      ],
+      "inputSha256": "4fe4c98ed89e559f7c42f9d2317a7697707ffc8352fb9a77d4ab5ed9aaba9aa2"
+     },
+     "lump16-offset-negative": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[16] size/offset"
+      ],
+      "inputSha256": "7d36264cea1dcf255f789bd6398713433761308a46ca9dcf5fee21cf3c28068b"
+     },
+     "lump16-length-huge": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[16] size/offset"
+      ],
+      "inputSha256": "6f5ba7d2bf53bbd4c136e4abc2657a07d435251852c325c0f5b3b45c2dddad86"
+     },
+     "header-version": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has BSP version 45 unsupported by the selected game"
+      ],
+      "inputSha256": "3e91be1a24dd166325fe1cd41bffe5d19e263a621f3a0add998f33643cc369a5"
+     },
+     "header-ident": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong file identifier"
+      ],
+      "inputSha256": "5f6bb2b2c13f985eb478ac39874266f32f8edd05bc7a2bc26bb6193f6c8ef88f"
+     },
+     "truncated-half": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[0] size/offset"
+      ],
+      "inputSha256": "fddc05fd32949dff85e35df59939cd485d81503ef85ad8cfea8ae563ebeb3e77"
+     },
+     "truncated-last-lump": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CM_LoadMap: maps/bspfault.bsp has wrong lump[11] size/offset"
+      ],
+      "inputSha256": "e2b7154f02aeb3b957843c381df57f496a911cdb3b7daf568eb8743ad867d055"
+     },
+     "tree-cycle": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadNodes: child 0 of node 3503 leads back to that node or one above it"
+      ],
+      "inputSha256": "973f5b95f0c1802a0a7a98de50dd5a15b55c67631455ce91f619c28e916493bd"
+     },
+     "tree-self": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadNodes: child 3503 of node 3503 leads back to that node or one above it"
+      ],
+      "inputSha256": "6f9642cb4dfa17fda060d19ef6bd1743eefabf461ddbb7248049f181ef9ab35d"
+     },
+     "tree-shared-path": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadNodes: child 339 of node 338 is already below another node"
+      ],
+      "inputSha256": "8eed228a1ed7d522c71d6be73b1c46b6a614b986198e76d3b772e1e91d03e30b"
+     },
+     "fuzz-20260918-000-lump1": {
+      "outcome": "loaded",
+      "expected": null,
+      "errors": [],
+      "inputSha256": "2a042bdead5deab99b5c75846331477210040c0fbfb5af0addfef882d8cf5cae"
+     },
+     "fuzz-20260918-001-lump2": {
+      "outcome": "loaded",
+      "expected": null,
+      "errors": [],
+      "inputSha256": "f87c6332b0e9878ed464985f159ee48dd0927509585b7cd208a6737cd4495e34"
+     },
+     "fuzz-20260918-002-lump3": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadNodes: node 593 has a bad plane"
+      ],
+      "inputSha256": "edd76b27157a133e90544545babdb3d1a0ecbd35cc5c5731b176613079e8340c"
+     },
+     "fuzz-20260918-003-lump4": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadLeafs: leaf 412 has a bad area or cluster"
+      ],
+      "inputSha256": "44e6874bbb0be79893fbbcd04247324561fd25ba97cba32b7ed188112fb72829"
+     },
+     "fuzz-20260918-004-lump5": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadLeafSurfaces: leaf surface 2280 names a bad surface"
+      ],
+      "inputSha256": "0370418597b264c190d37f5616c4c784a6692ac734a2462570a01119fab5bd13"
+     },
+     "fuzz-20260918-005-lump6": {
+      "outcome": "loaded",
+      "expected": null,
+      "errors": [],
+      "inputSha256": "4a59746cef4e410c8a4d188b6e326a4645b1daa791abb03f8422604d3493ca0b"
+     },
+     "fuzz-20260918-006-lump7": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadSubmodels: model 28 has a bad brush or surface range"
+      ],
+      "inputSha256": "ed8c9c7ea43d75b1a6032f0838f83e796123331381cdac5cea00f19f73d977e3"
+     },
+     "fuzz-20260918-007-lump8": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadBrushes: brush 55 has a bad side range"
+      ],
+      "inputSha256": "6cfd572837a2cb6c25c52ac6218fcb9726f03b3e7c269630a144da3096ad7720"
+     },
+     "fuzz-20260918-008-lump9": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: CMod_LoadBrushSides: brush side 396 has a bad plane"
+      ],
+      "inputSha256": "2988b42b5acd8e95b367557fb84e46bd2da8e4fc3e46d6a2d7438364bbf45981"
+     },
+     "fuzz-20260918-009-lump10": {
+      "outcome": "loaded",
+      "expected": null,
+      "errors": [],
+      "inputSha256": "12b9038924f48a7cf8fbe1d6bb93f9d2b783a59b30b110a331ba049a48d59174"
+     },
+     "fuzz-20260918-010-lump11": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: Bad index in face surface"
+      ],
+      "inputSha256": "5879ac82567f88f86ba234222e4a548eebc1c8e82aa67045f76f15f54bd2110d"
+     },
+     "fuzz-20260918-011-lump13": {
+      "outcome": "rejected",
+      "expected": null,
+      "errors": [
+       "ERROR: ParseFace: surface 3735 has a bad vertex or index range"
+      ],
+      "inputSha256": "7d0dee7798430c58db47b9e4f97ae746d1fa25e3ca9d1f704c4a6885d19b5230"
+     },
+     "fuzz-20260918-012-lump14": {
+      "outcome": "loaded",
+      "expected": null,
+      "errors": [],
+      "inputSha256": "b612cc064b7ee7d67923399315d20ffc13c14970f175ee820967d132527a282e"
+     },
+     "fuzz-20260918-013-lump15": {
+      "outcome": "loaded",
+      "expected": null,
+      "errors": [],
+      "inputSha256": "f4aa4c17b0627ba748ab2d09459e7af603a1e2bbf761a8a9e02c8de37af7d540"
+     },
+     "fuzz-20260918-014-lump16": {
+      "outcome": "loaded",
+      "expected": null,
+      "errors": [],
+      "inputSha256": "dd6358f3d3b6093164ba45afdc844220d2299b2f2d2da3ede5cdbaa9a10798b3"
+     },
+     "fuzz-20260918-015-lump1": {
+      "outcome": "loaded",
+      "expected": null,
+      "errors": [],
+      "inputSha256": "dee4bfd2fa9ef37d202450fbd8ee3b925e79e5ade09f1bddf90b931787a9b82f"
+     },
+     "fuzz-20260918-016-lump2": {
+      "outcome": "loaded",
+      "expected": null,
+      "errors": [],
+      "inputSha256": "4cd4eb019b18c1847e388adef322117b0c856b0cd43789c5a11747ffd1bd5755"
+     }
+    }
+   },
+   "corruptedTraffic": {
+    "profile": "stvef-mp",
+    "map": "hm_borg1",
+    "every": 8,
+    "seconds": 15,
+    "seed": 20260918,
+    "direction": "both",
+    "serverSha256": "a1a2dc823b91ac7601fe3f1e56d976f67a01db666a6189eadbdada70a9063142",
+    "clientSha256": "40ff7f307925f0b331e148399f279b9c104cc722243fb78cbd99daa7dd2a21ec",
+    "sourceCommit": "7f7b1f56869d0bd65b8812b12af831a076059263",
+    "serverReady": true,
+    "serverExitCode": null,
+    "outcomes": {
+     "connected": 1,
+     "dropped": 19,
+     "faulted": 0,
+     "crashed": 0,
+     "hung": 0,
+     "never-active": 0
+    },
+    "serverDrops": [],
+    "serverFaults": 0,
+    "passed": true,
+    "sessions": {
+     "0": {
+      "outcome": "dropped",
+      "errors": []
+     },
+     "1": {
+      "outcome": "connected",
+      "errors": []
+     },
+     "2": {
+      "outcome": "dropped",
+      "errors": [
+       "ERROR: CL_ValidateReliableAcknowledge: incorrect reliable sequence acknowledge number"
+      ]
+     },
+     "3": {
+      "outcome": "dropped",
+      "errors": [
+       "ERROR: CL_ReadDeltaEntity: invalid or truncated entity delta"
+      ]
+     },
+     "4": {
+      "outcome": "dropped",
+      "errors": [
+       "ERROR: CL_ValidateReliableAcknowledge: incorrect reliable sequence acknowledge number"
+      ]
+     },
+     "5": {
+      "outcome": "dropped",
+      "errors": [
+       "ERROR: CL_ValidateReliableAcknowledge: incorrect reliable sequence acknowledge number"
+      ]
+     },
+     "6": {
+      "outcome": "dropped",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ]
+     },
+     "7": {
+      "outcome": "dropped",
+      "errors": [
+       "ERROR: CL_ParseSnapshot: Invalid size 170 for areamask"
+      ]
+     },
+     "8": {
+      "outcome": "dropped",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ]
+     },
+     "9": {
+      "outcome": "dropped",
+      "errors": []
+     },
+     "10": {
+      "outcome": "dropped",
+      "errors": [
+       "ERROR: cl.snap.serverTime < cl.oldFrameServerTime"
+      ]
+     },
+     "11": {
+      "outcome": "dropped",
+      "errors": [
+       "ERROR: CL_ValidateReliableAcknowledge: incorrect reliable sequence acknowledge number"
+      ]
+     },
+     "12": {
+      "outcome": "dropped",
+      "errors": []
+     },
+     "13": {
+      "outcome": "dropped",
+      "errors": []
+     },
+     "14": {
+      "outcome": "dropped",
+      "errors": [
+       "ERROR: CL_ParseServerMessage: Illegible server message"
+      ]
+     },
+     "15": {
+      "outcome": "dropped",
+      "errors": [
+       "ERROR: CL_ValidateReliableAcknowledge: incorrect reliable sequence acknowledge number"
+      ]
+     },
+     "16": {
+      "outcome": "dropped",
+      "errors": [
+       "ERROR: CL_ParsePacketEntities: end of message"
+      ]
+     },
+     "17": {
+      "outcome": "dropped",
+      "errors": [
+       "ERROR: cl.snap.serverTime < cl.oldFrameServerTime"
+      ]
+     },
+     "18": {
+      "outcome": "dropped",
+      "errors": [
+       "ERROR: CL_ParseSnapshot: Invalid size 85 for areamask"
+      ]
+     },
+     "19": {
+      "outcome": "dropped",
+      "errors": [
+       "ERROR: CL_ReadDeltaPlayerstate: invalid or truncated player-state delta"
+      ]
+     }
+    }
+   },
+   "damagedSaves": {
+    "clientSha256": "40ff7f307925f0b331e148399f279b9c104cc722243fb78cbd99daa7dd2a21ec",
+    "base": {
+     "command": [
+      "E:\\Repositories\\fnTech3\\.tmp\\runtime\\stvef-compat-after\\fntech3.exe",
+      "+set",
+      "com_gameProfile",
+      "stvef-sp",
+      "+set",
+      "fs_basepath",
+      "E:\\Repositories\\fnTech3\\.tmp\\stvef-stock",
+      "+set",
+      "fs_homepath",
+      "E:\\Repositories\\fnTech3\\.tmp\\stvef-faults\\save\\base-home",
+      "+set",
+      "fs_game",
+      "",
+      "+set",
+      "r_fullscreen",
+      "0",
+      "+set",
+      "r_mode",
+      "3",
+      "+set",
+      "in_mouse",
+      "0",
+      "+set",
+      "in_joystick",
+      "0",
+      "+set",
+      "in_nograb",
+      "1",
+      "+set",
+      "s_initsound",
+      "0",
+      "+set",
+      "com_steamIntegration",
+      "0",
+      "+set",
+      "fs_skipWorkshop",
+      "1",
+      "+set",
+      "cl_webuiEnable",
+      "0",
+      "+set",
+      "cl_renderer",
+      "glx",
+      "+set",
+      "logfile",
+      "2",
+      "+set",
+      "net_enabled",
+      "0",
+      "+set",
+      "com_hunkMegs",
+      "256",
+      "+set",
+      "com_introplayed",
+      "1",
+      "+set",
+      "com_maxfps",
+      "60",
+      "+set",
+      "com_maxfpsUnfocused",
+      "60",
+      "+exec",
+      "probe.cfg"
+     ],
+     "exitCode": 0,
+     "seconds": 14.7,
+     "errors": [],
+     "bytes": 727763,
+     "sha256": "f7c93b707efb85e493baa500617e84cb8f93cc8da4fd2998ca1f8ae66d406bf6",
+     "chunks": 3407
+    },
+    "sourceCommit": "7f7b1f56869d0bd65b8812b12af831a076059263",
+    "seed": 20261024,
+    "counts": {
+     "loaded": 1,
+     "rejected": 34,
+     "crashed": 0,
+     "faulted": 0,
+     "hung": 0
+    },
+    "failed": [],
+    "cases": {
+     "empty": {
+      "outcome": "rejected",
+      "expected": "rejected",
+      "errors": [
+       "ERROR: Loaded chunk ID () does not match requested chunk ID (COMM)"
+      ],
+      "inputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+     },
+     "short-header": {
+      "outcome": "rejected",
+      "expected": "rejected",
+      "errors": [
+       "ERROR: Error during loading chunk COMM"
+      ],
+      "inputSha256": "b1e7df65b582c23aaa9d536cb4dc42b6fe834c7da026e991f032346b6201593e"
+     },
+     "truncated-1": {
+      "outcome": "rejected",
+      "expected": "rejected",
+      "errors": [
+       "ERROR: Error during loading chunk SHOT"
+      ],
+      "inputSha256": "2d6db87f8ca988d568e0cd04012dccc924cac33c71e1ec55c5626784b4ef4e23"
+     },
+     "truncated-2": {
+      "outcome": "rejected",
+      "expected": "rejected",
+      "errors": [
+       "ERROR: Error during loading chunk SHOT"
+      ],
+      "inputSha256": "b9137d3ead6ff1ea7304b410b7c6fa48a11757ffbf81d7df48dd6bd309ddbf2d"
+     },
+     "truncated-3": {
+      "outcome": "rejected",
+      "expected": "rejected",
+      "errors": [
+       "ERROR: Error during loading chunk GCLI"
+      ],
+      "inputSha256": "6ee7f2ec86854ba8deecb3a863883ea75f15afe88171d4b1f96570ef58b51f62"
+     },
+     "truncated-4": {
+      "outcome": "rejected",
+      "expected": "rejected",
+      "errors": [
+       "ERROR: Error during loading chunk GENT"
+      ],
+      "inputSha256": "1cf46e73d2cb4123407535a65ece341c57ab65f50efa57264fd3cea92a51040a"
+     },
+     "truncated-5": {
+      "outcome": "rejected",
+      "expected": "rejected",
+      "errors": [
+       "ERROR: Error during loading chunk GENT"
+      ],
+      "inputSha256": "dcf0aee3ef44507994252ad4e3b67af070cecbdc82df3cecfaf9c5e24e966df9"
+     },
+     "truncated-6": {
+      "outcome": "rejected",
+      "expected": "rejected",
+      "errors": [
+       "ERROR: Error during loading chunk GENT"
+      ],
+      "inputSha256": "6e3bd87d6e074987bf2c5901b97ec7c08cce89489e718f1aa5e0d8727b332e4a"
+     },
+     "truncated-7": {
+      "outcome": "rejected",
+      "expected": "rejected",
+      "errors": [
+       "ERROR: Error during loading chunk GENT"
+      ],
+      "inputSha256": "fc4c02a8568c3c1c4201b9d8ae92e968540b8190d5f6b65b563e2e3117c309a1"
+     },
+     "first-id": {
+      "outcome": "rejected",
+      "expected": "rejected",
+      "errors": [
+       "ERROR: Loaded chunk ID (BNLL) does not match requested chunk ID (COMM)"
+      ],
+      "inputSha256": "8b6bb3a60b349789d5082ade96919af9cded4c99035a221b7ffd265cfcc2598a"
+     },
+     "first-length-huge": {
+      "outcome": "rejected",
+      "expected": "rejected",
+      "errors": [
+       "ERROR: Loaded chunk (COMM) has different length than requested"
+      ],
+      "inputSha256": "8fac6261eb0968357d7260b47b24f5ecd1f19fc719fca160b900f2065e3c8012"
+     },
+     "first-length-short": {
+      "outcome": "rejected",
+      "expected": "rejected",
+      "errors": [
+       "ERROR: Loaded chunk (COMM) has different length than requested"
+      ],
+      "inputSha256": "46a496eb6726ccb0d6887273db6209ff4d497f06487e788d519b2f71e96aad36"
+     },
+     "first-checksum": {
+      "outcome": "rejected",
+      "expected": "rejected",
+      "errors": [
+       "ERROR: Failed checksum check for chunk"
+      ],
+      "inputSha256": "b948f02d908a3c654b7cf4cfbefb72c367167686eeec95af8ee1a94a61a05c5e"
+     },
+     "first-magic": {
+      "outcome": "rejected",
+      "expected": "rejected",
+      "errors": [
+       "ERROR: Bad savegame magic for chunk COMM"
+      ],
+      "inputSha256": "43569cfe925417f5efe426051e6ea94d1e445abbd6208e0c9eca133c34bc16f3"
+     },
+     "trailing-garbage": {
+      "outcome": "loaded",
+      "expected": "loaded-or-rejected",
+      "errors": [],
+      "inputSha256": "10cc9ab6bd0c93de07b97d1416d4b34b2dddccf49db9ed17685a970c45010091"
+     },
+     "fuzz-20261024-000": {
+      "outcome": "rejected",
+      "expected": "rejected",
+      "errors": [
+       "ERROR: Failed checksum check for chunk"
+      ],
+      "inputSha256": "4e02ce35674bcfb37c63dbb7f8ac1b81acb079aa9e9ee87c328ec9458eaae202"
+     },
+     "fuzz-20261024-001": {
+      "outcome": "rejected",
+      "expected": "rejected",
+      "errors": [
+       "ERROR: Failed checksum check for chunk"
+      ],
+      "inputSha256": "4e1dadf6194e7d927fa5e7fc7ab22f12e6cc07b9852e91cca10189756fc95800"
+     },
+     "fuzz-20261024-002": {
+      "outcome": "rejected",
+      "expected": "rejected",
+      "errors": [
+       "ERROR: Failed checksum check for chunk"
+      ],
+      "inputSha256": "0963d9989c7775963719505ed260dfb86b05cffd376d76941bf843f5ececc253"
+     },
+     "fuzz-20261024-003": {
+      "outcome": "rejected",
+      "expected": "rejected",
+      "errors": [
+       "ERROR: Failed checksum check for chunk"
+      ],
+      "inputSha256": "41b31f7d3a1f4747c1d2d1a6136f7374a70bd6ad89a7fe1e365b6bc8bedcfad3"
+     },
+     "fuzz-20261024-004": {
+      "outcome": "rejected",
+      "expected": "rejected",
+      "errors": [
+       "ERROR: Failed checksum check for chunk"
+      ],
+      "inputSha256": "a803252af490f5400f8ca7025c220ae9e5563e83aa2c8732aa9fec5ad156cb32"
+     },
+     "fuzz-20261024-005": {
+      "outcome": "rejected",
+      "expected": "rejected",
+      "errors": [
+       "ERROR: Failed checksum check for chunk"
+      ],
+      "inputSha256": "f05b231d6ce09f935d60c81a3ee61cb8dabf94dabd903e36047107b16972e04a"
+     },
+     "fuzz-20261024-006": {
+      "outcome": "rejected",
+      "expected": "rejected",
+      "errors": [
+       "ERROR: Failed checksum check for chunk"
+      ],
+      "inputSha256": "2f832787047d76a59ec327c676d262bc6c6449a7bc98102468c36e4bcc28d996"
+     },
+     "fuzz-20261024-007": {
+      "outcome": "rejected",
+      "expected": "rejected",
+      "errors": [
+       "ERROR: Failed checksum check for chunk"
+      ],
+      "inputSha256": "9f891b0a13c2a254e7018b5435c856397eb1f68231ec59e5c72291d16852df41"
+     },
+     "fuzz-20261024-008": {
+      "outcome": "rejected",
+      "expected": "rejected",
+      "errors": [
+       "ERROR: Failed checksum check for chunk"
+      ],
+      "inputSha256": "deed2d3d11b731b528c74687e6fc2a1a33194fea89b8cc625bd15bdcc07ae57a"
+     },
+     "fuzz-20261024-009": {
+      "outcome": "rejected",
+      "expected": "rejected",
+      "errors": [
+       "ERROR: Failed checksum check for chunk"
+      ],
+      "inputSha256": "a97ea3d866bfeb28966dbf66026ea16ccd623eccb2879cc4f5171e0f2a854dd0"
+     },
+     "fuzz-20261024-010": {
+      "outcome": "rejected",
+      "expected": "rejected",
+      "errors": [
+       "ERROR: Failed checksum check for chunk"
+      ],
+      "inputSha256": "d4b5cdd4771c51a1241a72bd9764612cc1f93c0cb40678becfe61082570c1967"
+     },
+     "fuzz-20261024-011": {
+      "outcome": "rejected",
+      "expected": "rejected",
+      "errors": [
+       "ERROR: Failed checksum check for chunk"
+      ],
+      "inputSha256": "106e8e7103954eee265d0edf5e74280671a3c4b2357a3bbe4d3cb91593f0ec5a"
+     },
+     "fuzz-20261024-012": {
+      "outcome": "rejected",
+      "expected": "rejected",
+      "errors": [
+       "ERROR: Failed checksum check for chunk"
+      ],
+      "inputSha256": "26b7d4860ef135b23fec5633e79b4374cfd55e7dfb45a3c24ee2002655b9ec20"
+     },
+     "fuzz-20261024-013": {
+      "outcome": "rejected",
+      "expected": "rejected",
+      "errors": [
+       "ERROR: Failed checksum check for chunk"
+      ],
+      "inputSha256": "75df44f69bbaccd12e2bc6571e7edb32ed0ae1daba887853abe85c8fd3e94705"
+     },
+     "fuzz-20261024-014": {
+      "outcome": "rejected",
+      "expected": "rejected",
+      "errors": [
+       "ERROR: Failed checksum check for chunk"
+      ],
+      "inputSha256": "9a1777c959d8c8540270cb6692cbc2bebe103ff783dc9f675756762cb7d01f7a"
+     },
+     "fuzz-20261024-015": {
+      "outcome": "rejected",
+      "expected": "rejected",
+      "errors": [
+       "ERROR: Failed checksum check for chunk"
+      ],
+      "inputSha256": "2346cc0358af1ae68d9d03190a6528e337ba4cb5ecfc2c983f4115923cc19618"
+     },
+     "fuzz-20261024-016": {
+      "outcome": "rejected",
+      "expected": "rejected",
+      "errors": [
+       "ERROR: Failed checksum check for chunk"
+      ],
+      "inputSha256": "962d53fdce140123f8530fb295f3b1d3b7492e269b9c43da7fbcb0e0b896a628"
+     },
+     "fuzz-20261024-017": {
+      "outcome": "rejected",
+      "expected": "rejected",
+      "errors": [
+       "ERROR: Failed checksum check for chunk"
+      ],
+      "inputSha256": "c957ef6cfae75b616b3923585ed818c7b1f70062c9903d20590c0390087c716f"
+     },
+     "fuzz-20261024-018": {
+      "outcome": "rejected",
+      "expected": "rejected",
+      "errors": [
+       "ERROR: Failed checksum check for chunk"
+      ],
+      "inputSha256": "7b955e460272df992692415e83432e28f8be81736bb3db00a686bd8407dae32c"
+     },
+     "fuzz-20261024-019": {
+      "outcome": "rejected",
+      "expected": "rejected",
+      "errors": [
+       "ERROR: Failed checksum check for chunk"
+      ],
+      "inputSha256": "ca9a5ff8853aada947b16d14f81e90992e99b54c033c7462524fffeb59072518"
+     }
+    }
+   }
+  },
+  "retailPlaysFnTech3Demo": {
+   "tool": ".tmp/stvef-faults/demo_interop.py",
+   "demo": {
+    "bytes": 31118,
+    "sha256": "42c373686bd99b2d925e1756edac439d0b8112502a228f012cc05dc5a65d91b3"
+   },
+   "retail": {
+    "exit": 0,
+    "forced": false,
+    "frames": [
+     288
+    ],
+    "errors": []
+   },
+   "fntech3": {
+    "exit": 0,
+    "forced": false,
+    "frames": [
+     288
+    ],
+    "errors": []
+   }
+  },
+  "statuses": {
+   "Profile / identity / discovery": "PARTIAL: other retail installations not probed",
+   "Audio codecs": "PARTIAL: listening checks not run",
+   "Holomatch wire codec": "PASS: Interop",
+   "Holomatch game module / server": "PASS: Live, Interop",
+   "Holomatch client framing / demos": "PASS: Interop",
+   "Holomatch cgame / UI": "PARTIAL: the menu's internet sources not driven through the menu",
+   "Languages": "PARTIAL: listening checks not run",
+   "SP module host / savegames": "PASS: Live, Interop",
+   "SP menus / cgame": "PASS: Live",
+   "Renderer / cinematics": "PASS: Live",
+   "Interoperability": "PASS: Interop",
+   "Input / physical devices": "PARTIAL: physical devices not run",
+   "Optional services": "PARTIAL: a public fnTech3 server's listing on the community master not verified"
+  }
  },
  "accepted": [
   "flare appearance (retail intensity rule; fnTech3 draws flares at the same lights)",

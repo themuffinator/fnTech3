@@ -55,12 +55,13 @@ sys.path.insert(0, str(ROOT / 'tests'))
 from windows_private_process import WindowsPrivateProcess
 
 GAMES = {'q3': 'baseq3', 'ql': 'baseq3', 'rtcw-sp': 'main', 'rtcw-mp': 'main', 'wolfet': 'etmain', 'fakk2': 'fakk',
-         'alice': 'base'}
+         'alice': 'base', 'stvef-mp': 'baseEF'}
 RETAIL = {'q3': 'quake3.exe', 'rtcw-mp': 'WolfMP.exe'}
 # The Ritual engines start every game message with 0xc000 bytes (Netchan_MessageLimit).
-LIMITS = {'q3': 16384, 'ql': 16384, 'rtcw-sp': 32768, 'rtcw-mp': 32768, 'wolfet': 32768, 'fakk2': 49152, 'alice': 49152}
+LIMITS = {'q3': 16384, 'ql': 16384, 'rtcw-sp': 32768, 'rtcw-mp': 32768, 'wolfet': 32768, 'fakk2': 49152, 'alice': 49152,
+          'stvef-mp': 16384}
 EXTENSIONS = {'q3': 'dm_68', 'ql': 'dm_91', 'rtcw-sp': 'dm_49', 'rtcw-mp': 'dm_60', 'wolfet': 'dm_84', 'fakk2': 'dm3',
-              'alice': 'dm3'}
+              'alice': 'dm3', 'stvef-mp': 'efdemo'}
 TICK = 'FAULT_DEMO_TICK'
 STATS = re.compile(r'^\d+ frames, [\d.]+ seconds: [\d.]+ fps', re.M)
 BODY_DAMAGE = 'completed-or-rejected-or-stalled'

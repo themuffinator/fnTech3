@@ -50,7 +50,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tests'))
 from windows_private_process import WindowsPrivateProcess
 
-GAMES = {'q3': 'baseq3', 'ql': 'baseq3', 'rtcw-mp': 'main'}
+GAMES = {'q3': 'baseq3', 'ql': 'baseq3', 'rtcw-mp': 'main', 'stvef-mp': 'baseEF'}
 TICK = 'NET_FAULT_TICK'
 ERROR = re.compile(r'^ERROR: .*$', re.M)
 # win_main.cpp's exception filter reports a caught hardware exception this way.

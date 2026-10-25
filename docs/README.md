@@ -287,8 +287,9 @@ Release packages include them as web pages in their `manual` folder, built by
   profile.
 - [Elite Force against the replacement rule](fntech3/2026-10-24-stvef-playability.md)
   -- path tracing in both modes and the holodeck intro fixed under it, frame
-  rates beside retail, a retail module fault below timescale 1, and which
-  differences are now accepted.
+  rates beside retail, internet server lists again, a retail module fault
+  below timescale 1, accepted differences, and the first gate sign-off, with
+  damaged traffic, demos, maps and saves.
 - [October 8 Medal of Honor GameSpy LAN search](fntech3/2026-10-08-mohaa-gamespy-lan-search.md)
   -- the Join LAN Game list's GameSpy search beside its `getinfo` scan, and
   the query sockets on Linux.

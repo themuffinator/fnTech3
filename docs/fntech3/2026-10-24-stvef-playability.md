@@ -1,22 +1,26 @@
 # Elite Force against the replacement rule, 2026-10-24
 
-AGENTS.md invariant 12, added today, asks every game to play fully and perform
-well in fnTech3, with its servers and clients playing with the retail ones in
-both directions and its own rendering drawn correctly, and not to reproduce
-what a modern replacement leaves behind: disc and key checks, dead online
-services, obsolete hardware paths, or a retail engine's incidental output.
-This record reads Elite Force's open items against that rule. It adds evidence
-the gate matrix lacked: RTX's path tracing runs both modes on Windows x86, and
-fnTech3 plays Elite Force faster than `stvoyHM.exe` and `stvoy.exe` 1.20 on
-every raster renderer. On the way it fixes two defects: Holomatch's holodeck
-intro under the path tracer, and Holomatch's internet browser, which could not
-read an Elite Force master's list. Raven's master has gone, so Holomatch now
-also asks the community master by default. It finds one fault in the retail
-single-player module, which a probe reached by lowering `timescale`. It
-records which differences are now accepted. The [JSON
-companion](2026-10-24-stvef-playability.json) holds the commands, binaries,
-hashes and every run. This is Live subset, Unit and Source evidence; no
-compatibility gate closes.
+AGENTS.md invariant 12, added today, asks every game to play fully and
+perform well in fnTech3, with its servers and clients playing with the
+retail ones in both directions and its own rendering drawn correctly, and
+not to reproduce what a modern replacement leaves behind: disc and key
+checks, dead online services, obsolete hardware paths, or a retail engine's
+incidental output. This record reads Elite Force's open items against that
+rule. It adds evidence the gate matrix lacked: RTX's path tracing runs both
+modes on Windows x86, and fnTech3 plays Elite Force faster than
+`stvoyHM.exe` and `stvoy.exe` 1.20 on every raster renderer. On the way it
+fixes two defects: Holomatch's holodeck intro under the path tracer, and
+Holomatch's internet browser, which could not read an Elite Force master's
+list. Raven's master has gone, so Holomatch now also asks the community
+master by default. It finds one fault in the retail single-player module,
+which a probe reached by lowering `timescale`. It records which differences
+are now accepted, and judges the Elite Force gates by the ledger's new
+[gate sign-off convention](COMPATIBILITY.md#gate-status-and-sign-off), after
+damaged-input probes for the traffic, demos, maps and saves the gates read:
+seven of the thirteen pass. The
+[JSON companion](2026-10-24-stvef-playability.json) holds the commands,
+binaries, hashes and every run. This is Live, Interop, Unit and Source
+evidence.
 
 ## Identity
 
@@ -89,9 +93,10 @@ its bright texels glow (`RT_ShaderFullbrightLit`,
 as the [RTX guide](../RTX.md) tells players ("exactly as bright or as dark as
 its own lights make it"). The door's textures are dark (mean 0.08, 99th
 percentile 0.46 and 0.60), so traced it is nearly black. That is the tracer's
-rule for every profile, not an Elite Force fault; whether surfaces a map
-leaves unlit should glow at their full colour under it is a decision for every
-game, and this record leaves it open.
+rule for every profile, not an Elite Force fault. Asked whether surfaces a map
+leaves unlit should glow at their full colour under it, the maintainer kept
+the rule for every profile (2026-10-24), so the traced door is an accepted
+difference.
 
 ## The holodeck intro under the path tracer, fixed
 
@@ -279,6 +284,9 @@ synthesized.
   intensity rule. Presentation, invariant 11.
 - Vulkan's and RTX's default bloom and uncompressed textures, fnTech3
   features (same record).
+- The traced look of surfaces a map leaves unlit, such as `stasis1`'s
+  door: the tracer lights them by the scene in every profile, by the
+  maintainer's choice.
 - Pixel identity with retail beyond the measured bounds: GLx 0.03 to 1.4
   of 255 in eight synchronized scenes, the three renderers within about
   0.25 of one another like for like, and 0.39 to 2.20 over 54 Holomatch
@@ -300,6 +308,70 @@ through its campaign to the closing movie and credits
 ([campaign record](2026-10-09-stvef-sp-campaign.md)); Holomatch plays every
 game type with bots and plays with retail and Lilium as client and server,
 pure and not, downloads included (gate matrix, Interoperability).
+
+## Gate sign-off
+
+The ledger had status values but no rule for when a gate passes. Asked
+whether to add one and mark the Elite Force gates that meet it, the
+maintainer said yes (2026-10-24). The
+[convention](COMPATIBILITY.md#gate-status-and-sign-off) passes a gate for a
+profile only with evidence at the level it needs over its whole scope on the
+shared Windows x86 build, damaged input included wherever it reads outside
+data; nothing open, unverified or not run in its row except differences
+accepted under invariant 12 and stated platform limits; and committed
+identities. A pass closes that gate alone.
+
+Elite Force had no damaged-input evidence for its traffic, demos, maps or
+saves: the corrupted-traffic, damaged-demo and damaged-map probes had run
+under Quake III, Quake Live and RTCW only. Each probe gained the Elite Force
+profiles, and `scripts/probe_stvef_save_faults.py` was written for single
+player's saves (a save fnTech3 writes of `voy2`, then fault variants each
+loaded in a fresh process). All ran this round's committed code, client
+`40ff7f30…` with dedicated server `a1a2dc82…` from commit `7f7b1f56`,
+windowed on private desktops:
+
+| Probe | Profile and input | Cases | Outcomes |
+| --- | --- | ---: | --- |
+| `scripts/probe_net_corruption.py` | `stvef-mp`, `hm_borg1`, one sequenced datagram in 8 for 15 s, both ways | 20 | 19 dropped, 1 connected |
+| `scripts/probe_demo_faults.py` | `stvef-mp`, `extreme.efdemo` from `pak2.pk3`, with 40 seeded body faults | 47 | 41 rejected, 6 completed |
+| `scripts/probe_bsp_faults.py` | `stvef-mp`, `hm_borg1`, with 17 seeded lump faults | 90 | 81 rejected, 9 loaded |
+| `scripts/probe_bsp_faults.py` | `stvef-sp`, `voy2`, with 17 seeded lump faults | 89 | 78 rejected, 11 loaded |
+| `scripts/probe_stvef_save_faults.py` | `stvef-sp`, a `voy2` save of 727,763 bytes in 3,407 chunks, with 20 seeded faults | 35 | 34 rejected, 1 loaded |
+
+None faulted, crashed or hung. Every run wrote only to its own home under
+`.tmp/stvef-faults`, and the damaged-demo probe also found the game folder
+it read, `.tmp/stvef-stock`, unchanged. A damaged
+save is refused by the chunk checks, which give retail's own messages
+(`Failed checksum check for chunk`, `Bad savegame magic for chunk COMM`);
+one with bytes after its last chunk loads, as retail reads a save chunk by
+chunk. A damaged demo ends in the demo reader's length checks or the
+message decoder's bounds, and a damaged map in the loader's lump checks or a
+level that still loads.
+
+Retail `stvoyHM.exe` 1.20 also plays a demo fnTech3 records: a listen-server
+session on `hm_borg1`, recorded with `g_synchronousClients 1`
+(`.tmp/stvef-faults/demo_interop.py`), plays to its end in retail, 288
+frames, as in fnTech3, with no error. fnTech3's recordings had been played in
+fnTech3 and Lilium Voyager only.
+
+| Gate | Status | Why |
+| --- | --- | --- |
+| Profile / identity / discovery | PARTIAL | other retail installations not probed |
+| Audio codecs | PARTIAL | listening checks not run |
+| Holomatch wire codec | PASS -- Interop | retail demos decode and re-encode; both protocols live both ways; corrupted traffic dropped cleanly |
+| Holomatch game module / server | PASS -- Live, Interop | the retail game module in every mode with bots; retail clients on it; it survives corrupted traffic and damaged maps |
+| Holomatch client framing / demos | PASS -- Interop | retail handshake; retail demos play; retail plays fnTech3's demo; damaged demos and traffic end cleanly |
+| Holomatch cgame / UI | PARTIAL | the menu's internet sources not driven through the menu |
+| Languages | PARTIAL | listening checks not run |
+| SP module host / savegames | PASS -- Live, Interop | the campaign on the retail module; saves cross both ways with retail; damaged saves and maps end cleanly |
+| SP menus / cgame | PASS -- Live | the retail menus and cgame on every level, saving and loading through the menus |
+| Renderer / cinematics | PASS -- Live | all three renderers and path tracing, effects compared with retail, movies, damaged maps; accepted differences recorded |
+| Interoperability | PASS -- Interop | retail and Lilium as client and server, both protocols, pure, downloads, loss |
+| Input / physical devices | PARTIAL | physical devices not run |
+| Optional services | PARTIAL | a public fnTech3 server's listing on the community master not verified |
+
+Neither mode is fully compatible: its other gates stay open, and the full
+sign-off on release artifacts is still to come.
 
 ## Not covered
 

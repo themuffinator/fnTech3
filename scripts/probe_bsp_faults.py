@@ -54,7 +54,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tests'))
 from windows_private_process import WindowsPrivateProcess
 
-GAMES = {'q3': 'baseq3', 'ql': 'baseq3', 'rtcw-sp': 'main', 'rtcw-mp': 'main'}
+GAMES = {'q3': 'baseq3', 'ql': 'baseq3', 'rtcw-sp': 'main', 'rtcw-mp': 'main', 'stvef-sp': 'baseEF',
+         'stvef-mp': 'baseEF'}
 # Record sizes of the Q3/RTCW lumps; QL's BSP 47 adds an 18th lump of 128-byte advertisements.
 RECORDS = [1, 72, 16, 36, 48, 4, 4, 40, 12, 8, 44, 4, 72, 104, 128 * 128 * 3, 8, 1]
 LOADED = 'BSP_FAULT_LOADED'
