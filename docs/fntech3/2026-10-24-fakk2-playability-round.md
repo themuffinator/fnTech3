@@ -328,7 +328,10 @@ leaves every pixel as it was. (A copy of the sidecar without that light,
 laid into the client's home, was not read: the engine's package supplies
 the map's sidecar ahead of the home.) That is fnTech3's static-light model for every profile with
 spot-light sidecars, not a F.A.K.K.2 contract, and it is recorded here, not
-changed by this round.
+changed by this round. The
+[static spot cone record](2026-10-24-static-spot-cones.md) has since lit
+every sidecar spot only inside its cone, and the passage now matches its view
+with the static lights off.
 
 ## Blended stages in fog: decided
 
@@ -371,13 +374,11 @@ the model rule's constant, and the A/B runs above are the evidence for Alice.
 - **`creeperpens` with no player** on retail's own dedicated server is still
   inferred **[I]**.
 - **Alice** beside retail Alice: no retail Alice can run here.
-- **Static spot lights** light all round their axis, so `cemetery`'s
-  black-fog passage takes light a 15-degree spot would not give it. That is
-  fnTech3's static-light model for every profile with spot-light sidecars.
-  Spot shadows do not limit it: with `r_spotShadows 1` the passage is as it
-  was. Drawing a spot's cone needs every renderer's per-pixel light
-  programs, Vulkan's compiled into `shader_data.c`, so it is a change of
-  its own.
+- **Static spot lights** lit all round their axis, so `cemetery`'s
+  black-fog passage took light a 15-degree spot would not give it, and spot
+  shadows did not limit it (`r_spotShadows 1`). Drawing a spot's cone needed
+  every renderer's per-pixel light programs, so it was a change of its own:
+  settled by the [static spot cone record](2026-10-24-static-spot-cones.md).
 - **RTX's path tracer** takes only part of an additive light's glow. Its
   traced lights take the surface's reflectance; an additive light would
   have to reach the frame as emission. Another session's work in that

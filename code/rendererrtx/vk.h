@@ -235,7 +235,11 @@ typedef struct vkUniform_s {
 	vec4_t depthFadeScale;
 	vec4_t depthFadeBias;
 	vec4_t dlightFactors;
-	vec4_t csmModelX;
+	union {
+		vec4_t csmModelX;
+		vec4_t spotCone;		// light pass: a static map spot's cone scale and
+								// bias, w 1 for a spot (tr_spot_cone.h)
+	};
 	vec4_t csmModelY;
 	vec4_t csmModelZ;
 	vec4_t csmAxisX;

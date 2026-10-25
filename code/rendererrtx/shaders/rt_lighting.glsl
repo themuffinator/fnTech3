@@ -95,11 +95,30 @@ bool rt_light_eval(uint index, vec3 P, vec3 N, uint exclude, inout uint seed, ou
 		// the raster light pass: colour * (1 - d^2 / r^2) * cos, its falloff
 		// eased toward smoothstep by r_dlightFalloff (light_frag.tmpl)
 		float r = light.position.w;
-		float falloff = 1.0 - (dist * dist) / (r * r);
+		float d2 = dist * dist;
+		float cone = 1.0;
+		if (light.dir.w > 0.0) {
+			// a static map spot (rt_backend.c RT_SpotDlight): raster's
+			// distance to its segment, lit from its origin and only inside
+			// its cone (renderercommon/tr_spot_cone.h)
+			vec3 toPoint = -d;
+			float along = dot(toPoint, light.dir.xyz);
+			vec3 off = toPoint - light.dir.xyz * clamp(along, 0.0, light.dir.w);
+			r = light.extra.z;
+			d2 = dot(off, off);
+			cone = along / dist * light.extra.x + light.extra.y;
+			if (cone <= 0.0) {
+				return false;
+			}
+			cone = min(cone, 1.0);
+			cone = cone * cone * (3.0 - 2.0 * cone);
+		}
+		float falloff = 1.0 - d2 / (r * r);
 		if (falloff <= 0.0) {
 			return false;
 		}
 		falloff = mix(falloff, falloff * falloff * (3.0 - 2.0 * falloff), clamp(u_frame.dlightShape.x, 0.0, 1.0));
+		falloff *= cone;
 		s.E = light.color.rgb * (falloff * cosR);
 		// Its shadow is cast from a point on the light's body, a sphere a
 		// twentieth of its reach (2 to 12 units: a muzzle flash, a torch's

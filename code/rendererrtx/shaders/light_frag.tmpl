@@ -16,6 +16,9 @@ layout(set = 0, binding = 0) uniform UBO {
 	vec4 depthFadeScale;		// fragment
 	vec4 depthFadeBias;			// fragment
 	vec4 dlightFactors;			// fragment
+#ifdef USE_LINE
+	vec4 spotCone;				// fragment: a static map spot's cone scale, bias, -, flag
+#endif
 };
 
 layout(set = 1, binding = 0) uniform sampler2D texture0;
@@ -255,6 +258,18 @@ void main() {
 		discard;
 	float smoothFactor = intensFactor * intensFactor * (3.0 - 2.0 * intensFactor);
 	intensFactor = mix(intensFactor, smoothFactor, clamp(dlightFactors.x, 0.0, 1.0));
+#ifdef USE_LINE
+	if (spotCone.w > 0.5) {
+		// a static map spot (renderercommon/tr_spot_cone.h): lit from its
+		// origin, and only inside its cone
+		nL = normalize(L.xyz);
+		float cone = dot(-nL, normalize(lightVector.xyz)) * spotCone.x + spotCone.y;
+		if (cone <= 0.0)
+			discard;
+		cone = min(cone, 1.0);
+		intensFactor *= cone * cone * (3.0 - 2.0 * cone);
+	}
+#endif
 	vec3 intens = lightColorRadius.rgb * intensFactor;
 	intens *= DlightShadowFactor();
 

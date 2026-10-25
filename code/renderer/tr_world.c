@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "tr_local.h"
 #include "tr_glx_compat.h"
 #include "../renderercommon/tr_ql_ad_debug.h"
+#include "../renderercommon/tr_spot_cone.h"
 
 #ifdef USE_LEGACY_DLIGHTS
 static void R_GLXRecordProjectedDlights( const dlight_t *dlights, int count )
@@ -248,6 +249,11 @@ qboolean R_LightCullBounds( const dlight_t* dl, const vec3_t mins, const vec3_t 
 		if (dl->transformed[2] - dl->radius > maxs[2] && dl->transformed2[2] - dl->radius > maxs[2] )
 			return qtrue;
 		if (dl->transformed[2] + dl->radius < mins[2] && dl->transformed2[2] + dl->radius < mins[2] )
+			return qtrue;
+
+		// a static map spot lights nothing outside its cone (tr_spot_cone.h)
+		if ( dl->spot && R_SpotConeCullBounds( dl->transformed, dl->transformed2,
+			dl->spotCosOuter, mins, maxs ) )
 			return qtrue;
 
 		return qfalse;

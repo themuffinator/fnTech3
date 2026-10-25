@@ -31,6 +31,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../renderercommon/tr_rtcw_corona_scene.h"
 #include "../renderercommon/tr_wolfet_decal_scene.h"
 #include "../renderercommon/tr_rtcw_engine_lights.h"
+#include "../renderercommon/tr_spot_cone.h"
 
 static int			r_firstSceneDrawSurf;
 #ifdef USE_PMLIGHT
@@ -550,6 +551,7 @@ static void RE_AddDynamicLightToSceneWithShadowEligibility( const vec3_t org,
 	dl->rtcwOverdraw = 0;
 	VectorCopy( org, dl->origin );
 	dl->radius = intensity;
+	dl->spot = qfalse;
 	dl->color[0] = r;
 	dl->color[1] = g;
 	dl->color[2] = b;
@@ -621,6 +623,7 @@ void RE_AddLinearLightToScene( const vec3_t start, const vec3_t end, float inten
 	VectorCopy( start, dl->origin );
 	VectorCopy( end, dl->origin2 );
 	dl->radius = intensity;
+	dl->spot = qfalse;
 	dl->color[0] = r;
 	dl->color[1] = g;
 	dl->color[2] = b;
@@ -929,6 +932,10 @@ static void R_AddStaticMapLightsToScene( const refdef_t *fd, int lightEnd )
 		if ( light->type == MAP_LIGHT_SPOT ) {
 			dl->shadowSpotSource = SHADOW_SPOT_SOURCE_STATIC_MAP;
 			dl->shadowSpotSourceIndex = bestIndex;
+			// lit from its origin and only inside its cone (tr_spot_cone.h)
+			dl->spot = dl->linear;
+			R_SpotConeCosines( light->innerAngle, light->outerAngle,
+				&dl->spotCosInner, &dl->spotCosOuter );
 		}
 		dl->shadowEligible = ( light->type == MAP_LIGHT_POINT &&
 			r_staticLightShadows && r_staticLightShadows->integer &&

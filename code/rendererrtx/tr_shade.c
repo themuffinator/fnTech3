@@ -33,6 +33,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../renderercommon/tr_jka_entity.h"
 #include "../renderercommon/tr_entity_refraction.h"
 #include "../renderercommon/tr_jedi_sprite_draw.h"
+#include "../renderercommon/tr_spot_cone.h"
 
 /*
 
@@ -1906,6 +1907,17 @@ static void VK_SetLightParams( vkUniform_t *uniformData, const dlight_t *dl ) {
 		VectorSubtract( dl->transformed2, dl->transformed, ab );
 		ab[3] = 1.0f / DotProduct( ab, ab );
 		Vector4Copy( ab, uniformData->light.vector );
+	}
+
+	// a static map spot's cone (tr_spot_cone.h); every other light clears
+	// it, as the uniform outlives each batch
+	if ( dl->spot ) {
+		R_SpotConeScaleBias( dl->spotCosInner, dl->spotCosOuter,
+			&uniformData->spotCone[0], &uniformData->spotCone[1] );
+		uniformData->spotCone[2] = 0.0f;
+		uniformData->spotCone[3] = 1.0f;
+	} else {
+		Vector4Set( uniformData->spotCone, 0.0f, 0.0f, 0.0f, 0.0f );
 	}
 }
 #endif

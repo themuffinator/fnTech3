@@ -289,6 +289,12 @@ historical upstream records, not fnTech3 release history. See the
   F.A.K.K.2's `creeperpens` is green and casts its green glow, as in the
   original
   ([record](docs/fntech3/2026-10-24-fakk2-playability-round.md)).
+- Light a map's spot lights only inside their cones, in every renderer, for
+  Return to Castle Wolfenstein, Alice, F.A.K.K.2 and Medal of Honor. A spot
+  lit everything round it, so a lamp brightened the walls behind and beside
+  it and a dark passage on F.A.K.K.2's `cemetery`; it now lights what it
+  points at
+  ([record](docs/fntech3/2026-10-24-static-spot-cones.md)).
 
 ## [0.1.0] - 2026-10-11
 
