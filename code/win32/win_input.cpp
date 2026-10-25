@@ -197,6 +197,8 @@ cvar_t	*in_joyVertViewDeadzone;
 cvar_t	*in_joyHorizMoveDeadzone;
 cvar_t	*in_joyVertMoveDeadzone;
 cvar_t	*joy_threshold;
+cvar_t	*joy_xbutton;
+cvar_t	*joy_ybutton;
 #endif
 
 // forward-referenced functions
@@ -1910,6 +1912,16 @@ void IN_Init( void ) {
 	joy_threshold = Cvar_Get( "joy_threshold", "0.15", CVAR_ARCHIVE );
 	Cvar_CheckRange( joy_threshold, "0", "1", CV_FLOAT );
 	Cvar_SetDescription( joy_threshold, "Threshold of joystick moving distance." );
+	if ( Com_GameIsSTVEF() ) {
+		// Elite Force's "X axis as button" and "Y axis as button" switches,
+		// which its IN_Init registers (stvoyHM.exe 0x43ece0/0x43ecf6, stvoy.exe
+		// 0x42d5a3/0x42d5bc). CL_Init registers them too, with the same
+		// defaults, so that builds without joystick input keep the menus'.
+		joy_xbutton = Cvar_Get( "joy_xbutton", "1", CVAR_ARCHIVE );
+		joy_ybutton = Cvar_Get( "joy_ybutton", "0", CVAR_ARCHIVE );
+		Cvar_SetDescription( joy_xbutton, "Elite Force: 1 makes the joystick's X axis two direction keys, 0 an analog turn (a strafe while +strafe is held)." );
+		Cvar_SetDescription( joy_ybutton, "Elite Force: 1 makes the joystick's Y axis two direction keys, 0 analog forward movement (a look while +mlook is held)." );
+	}
 	in_joyHorizViewSensitivity = Cvar_Get( "in_joyHorizViewSensitivity", "20.0", CVAR_ARCHIVE );
 	in_joyVertViewSensitivity = Cvar_Get( "in_joyVertViewSensitivity", "15.0", CVAR_ARCHIVE );
 	in_joyHorizViewDeadzone = Cvar_Get( "in_joyHorizViewDeadzone", "0.15", CVAR_ARCHIVE );
@@ -2282,6 +2294,42 @@ static qboolean IN_WinMMAxisPosition( winMMAxis_t axis, DWORD *position )
 	}
 }
 
+
+/*
+Elite Force's "X axis as button" and "Y axis as button" switches. Where one is
+off, retail's IN_JoyMove queues that stick axis as analog movement on axis 0
+(X) or 1 (Y) in place of its two direction keys (stvoyHM.exe 0x43f66f and
+0x43f6d1, stvoy.exe 0x42da67 and 0x42dad5); Z and R stay direction keys.
+Retail queues the axis every frame, which also gives it back to the client
+after a new gamestate clears the client's axes; a held stick is queued every
+frame here too, a resting one once. Retail stops queueing when the switch is
+turned back on, leaving a held stick's last value set; this queues a 0 once
+instead, so the axis is released.
+*/
+static void IN_JoyEliteForceAxes( float deadzone, DWORD *povstate )
+{
+	static constexpr winMMAxis_t kDeviceAxes[] = { WINMM_AXIS_X, WINMM_AXIS_Y };
+	static constexpr int kMoveAxes[] = { AXIS_SIDE, AXIS_FORWARD };
+	const cvar_t *const axisAsButton[] = { joy_xbutton, joy_ybutton };
+
+	for ( int i = 0; i < 2; ++i ) {
+		DWORD axisPosition;
+		if ( axisAsButton[i]->integer ||
+			!IN_WinMMAxisPosition( kDeviceAxes[i], &axisPosition ) ) {
+			IN_QueueRetailJoystickAxis( kMoveAxes[i], 0 );
+			continue;
+		}
+		*povstate &= ~( 3u << ( i * 2 ) );
+		const int axis = kMoveAxes[i];
+		const int value = fnql::input::EliteForceJoystickAxis(
+			JoyToF( axisPosition ), deadzone );
+		if ( value != 0 || joy.oldmoveaxisstate[axis] != 0 ) {
+			Sys_QueEvent( g_wv.sysMsgTime, SE_JOYSTICK_AXIS, axis, value, 0, NULL );
+			joy.oldmoveaxisstate[axis] = value;
+		}
+	}
+}
+
 /*
 ===========
 IN_JoyMove
@@ -2387,6 +2435,9 @@ void IN_JoyMove( void ) {
 		} else if ( fAxisValue > deadzone ) {
 			povstate |= ( 1u << ( i * 2 + 1 ) );
 		}
+	}
+	if ( !retailProfile && Com_GameIsSTVEF() ) {
+		IN_JoyEliteForceAxes( deadzone, &povstate );
 	}
 
 	// convert POV information from a direction into 4 button bits

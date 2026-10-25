@@ -73,7 +73,8 @@ are: the menus show, change and keep them. Only fnTech3's legacy mixer reads
 (`USE_JOYSTICK` is set only for Linux), so those settings otherwise change
 nothing here. Physical devices are not tested, as before. (Windows builds
 read joysticks since 2026-10-24, and `in_joystick` and `joy_threshold` now
-apply there; see the [joystick record](2026-10-24-windows-joystick.md).)
+apply there, as do `joy_xbutton` and `joy_ybutton` in the native WinMM
+backend; see the [joystick record](2026-10-24-windows-joystick.md).)
 
 ## Where the code changed
 

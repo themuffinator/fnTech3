@@ -1067,9 +1067,19 @@ static void CL_JoystickMove( usercmd_t *cmd ) {
 		anglespeed = 0.001 * cls.gameFrametime;
 	}
 
+	// Elite Force scales the key turning speeds by 0.01 for its -127..127
+	// stick axes, so a full stick turns at 1.27 times the keys' rate, in both
+	// modes (stvoyHM.exe 0x409f64/0x409faa, stvoy.exe 0x405694/0x4056da).
+	float yawspeed = cl_yawspeed->value;
+	float pitchspeed = cl_pitchspeed->value;
+	if ( Com_GameIsSTVEF() ) {
+		yawspeed *= 0.01f;
+		pitchspeed *= 0.01f;
+	}
+
 	if ( !in_strafe.active ) {
 		CL_AddViewAngleDelta( YAW,
-			anglespeed * cl_yawspeed->value *
+			anglespeed * yawspeed *
 			cl.joystickAxis[AXIS_SIDE] );
 	} else {
 		cmd->rightmove = clampMove( CL_SafeMoveValue(
@@ -1079,7 +1089,7 @@ static void CL_JoystickMove( usercmd_t *cmd ) {
 
 	if ( in_mlook.active ) {
 		CL_AddViewAngleDelta( PITCH,
-			anglespeed * cl_pitchspeed->value *
+			anglespeed * pitchspeed *
 			cl.joystickAxis[AXIS_FORWARD] );
 	} else {
 		cmd->forwardmove = clampMove( CL_SafeMoveValue(

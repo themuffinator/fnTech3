@@ -6,7 +6,10 @@ no controller and touch no real input device. They pin what the native Windows
 backend does now that it compiles its joystick support: nothing at all until
 in_joystick is set, a quiet start with no device, Quake III's key mapping for
 buttons, stick directions and the POV hat, Quake Live's opt-in analog profile,
-and recovery when the device is unplugged.
+and recovery when the device is unplugged. Elite Force's "X/Y axis as button"
+switches and its joystick turn scale are driven through the same producer and
+on into the client's own CL_JoystickEvent and CL_JoystickMove, cut out of
+code/client/cl_input.cpp.
 """
 from __future__ import annotations
 
@@ -46,6 +49,7 @@ PRELUDE = r'''
 #include <limits>
 #include <string>
 #include <vector>
+#include "code/client/alice_input.hpp"
 #include "code/client/input_compat.hpp"
 #include "code/client/keycodes.h"
 
@@ -56,7 +60,7 @@ STUBS = r'''
 struct cvar_t { int integer; float value; };
 static cvar_t joystickCvar, profileCvar, invertedCvar, ballScaleCvar, debugCvar,
 	horizViewSensCvar, vertViewSensCvar, horizViewDeadCvar, vertViewDeadCvar,
-	horizMoveDeadCvar, vertMoveDeadCvar, thresholdCvar;
+	horizMoveDeadCvar, vertMoveDeadCvar, thresholdCvar, xButtonCvar, yButtonCvar;
 cvar_t *in_joystick = &joystickCvar;
 cvar_t *in_joystickProfile = &profileCvar;
 cvar_t *in_joystickInverted = &invertedCvar;
@@ -69,6 +73,13 @@ cvar_t *in_joyVertViewDeadzone = &vertViewDeadCvar;
 cvar_t *in_joyHorizMoveDeadzone = &horizMoveDeadCvar;
 cvar_t *in_joyVertMoveDeadzone = &vertMoveDeadCvar;
 cvar_t *joy_threshold = &thresholdCvar;
+// Registered only for Elite Force; Com_GameIsSTVEF guards every read.
+cvar_t *joy_xbutton = &xButtonCvar;
+cvar_t *joy_ybutton = &yButtonCvar;
+
+static int eliteForce, ritual;
+static int Com_GameIsSTVEF( void ) { return eliteForce; }
+static int Com_GameIsRitual( void ) { return ritual; }
 
 static void Com_DPrintf( const char *, ... ) {}
 static void Com_Printf( const char *, ... ) {}
@@ -137,6 +148,22 @@ static MMRESULT Fake_joyGetDevCaps( UINT_PTR id, LPJOYCAPSA caps, UINT size ) {
 #define joyGetNumDevs Fake_joyGetNumDevs
 #define joyGetPosEx Fake_joyGetPosEx
 #define joyGetDevCaps Fake_joyGetDevCaps
+'''
+
+# What the client's CL_JoystickEvent and CL_JoystickMove read.
+CLIENT_STUBS = r'''
+enum { PITCH, YAW, ROLL };
+#define BUTTON_WALKING 16
+struct usercmd_t { int buttons; signed char forwardmove, rightmove, upmove; };
+struct kbutton_t { bool active; };
+static kbutton_t in_speed, in_strafe, in_mlook;
+static cvar_t runCvar, angleSpeedKeyCvar, yawSpeedCvar, pitchSpeedCvar;
+static cvar_t *cl_run = &runCvar;
+static cvar_t *cl_anglespeedkey = &angleSpeedKeyCvar;
+static cvar_t *cl_yawspeed = &yawSpeedCvar;
+static cvar_t *cl_pitchspeed = &pitchSpeedCvar;
+static struct { int joystickAxis[MAX_JOYSTICK_AXIS]; float viewangles[3]; } cl;
+static struct { int gameFrametime; } cls;
 '''
 
 CHECKS = r'''
@@ -377,6 +404,170 @@ int main() {
 	assert( turned );
 	profileCvar.integer = 0;
 
+	// Elite Force with retail's defaults: joy_xbutton 1 keeps X the arrow
+	// keys, joy_ybutton 0 makes Y analog forward movement on axis 1, -v * 127
+	// truncated, where the up and down arrows were.
+	eliteForce = 1;
+	xButtonCvar.integer = 1;
+	yButtonCvar.integer = 0;
+	PlugInPad( 2 );
+	ResetCounters();
+	IN_StartupJoystick();
+	assert( joy.avail );
+	Poll();
+	assert( events.empty() );
+	fakeState.dwXpos = 65535;
+	fakeState.dwYpos = 0;
+	Poll();
+	assert( events.size() == 2 );
+	assert( Has( SE_KEY, K_RIGHTARROW, qtrue ) && Has( SE_JOYSTICK_AXIS, AXIS_FORWARD, 127 ) );
+	// A held axis is queued every frame, as retail's is; the key is not.
+	Poll();
+	assert( events.size() == 1 && Has( SE_JOYSTICK_AXIS, AXIS_FORWARD, 127 ) );
+	fakeState.dwYpos = kCentre + 16384;	// half back: -63.5, truncated
+	Poll();
+	assert( events.size() == 1 && Has( SE_JOYSTICK_AXIS, AXIS_FORWARD, -63 ) );
+
+	// joy_threshold is inclusive: exactly at it the axis is at rest.
+	thresholdCvar.value = 0.5f;
+	Poll();
+	assert( events.size() == 1 && Has( SE_JOYSTICK_AXIS, AXIS_FORWARD, 0 ) );
+	fakeState.dwYpos = kCentre + 16385;
+	Poll();
+	assert( events.size() == 1 && Has( SE_JOYSTICK_AXIS, AXIS_FORWARD, -63 ) );
+	thresholdCvar.value = 0.15f;
+
+	// joy_xbutton 0: X turns on axis 0 and lets go of the right arrow.
+	xButtonCvar.integer = 0;
+	fakeState.dwYpos = kCentre;
+	Poll();
+	assert( events.size() == 3 && Has( SE_KEY, K_RIGHTARROW, qfalse ) );
+	assert( Has( SE_JOYSTICK_AXIS, AXIS_SIDE, -126 ) && Has( SE_JOYSTICK_AXIS, AXIS_FORWARD, 0 ) );
+	fakeState.dwXpos = 0;
+	Poll();
+	assert( events.size() == 1 && Has( SE_JOYSTICK_AXIS, AXIS_SIDE, 127 ) );
+
+	// Z and R stay direction keys whatever the switches say.
+	fakeState.dwXpos = kCentre;
+	fakeState.dwZpos = 0;
+	fakeState.dwRpos = 65535;
+	Poll();
+	assert( events.size() == 3 && Has( SE_JOYSTICK_AXIS, AXIS_SIDE, 0 ) );
+	assert( Has( SE_KEY, K_JOY16, qtrue ) && Has( SE_KEY, K_JOY19, qtrue ) );
+	fakeState.dwZpos = fakeState.dwRpos = kCentre;
+	Poll();
+	assert( events.size() == 2 && Has( SE_KEY, K_JOY16, qfalse ) && Has( SE_KEY, K_JOY19, qfalse ) );
+
+	// A switch turned back on while the stick is held releases the axis and
+	// presses the key; turned off again, the key is released.
+	fakeState.dwYpos = 0;
+	Poll();
+	assert( events.size() == 1 && Has( SE_JOYSTICK_AXIS, AXIS_FORWARD, 127 ) );
+	yButtonCvar.integer = 1;
+	Poll();
+	assert( events.size() == 2 && Has( SE_JOYSTICK_AXIS, AXIS_FORWARD, 0 ) && Has( SE_KEY, K_UPARROW, qtrue ) );
+	Poll();
+	assert( events.empty() );
+	yButtonCvar.integer = 0;
+	Poll();
+	assert( events.size() == 2 && Has( SE_KEY, K_UPARROW, qfalse ) && Has( SE_JOYSTICK_AXIS, AXIS_FORWARD, 127 ) );
+
+	// An input reset re-sends a held axis; a broken threshold rests it.
+	IN_ClearWinMMJoystickState( qfalse );
+	Poll();
+	assert( events.size() == 1 && Has( SE_JOYSTICK_AXIS, AXIS_FORWARD, 127 ) );
+	thresholdCvar.value = std::numeric_limits<float>::quiet_NaN();
+	Poll();
+	assert( events.size() == 1 && Has( SE_JOYSTICK_AXIS, AXIS_FORWARD, 0 ) );
+	thresholdCvar.value = 0.15f;
+	fakeState.dwYpos = kCentre;
+	Poll();
+	assert( events.empty() );
+
+	// A device with one axis never reports Y.
+	joy.jc.wNumAxes = 1;
+	fakeState.dwYpos = 0;
+	Poll();
+	assert( events.empty() );
+	joy.jc.wNumAxes = 5;
+	fakeState.dwYpos = kCentre;
+
+	// The Quake Live profile keeps its own lanes; the switches do not apply.
+	profileCvar.integer = 1;
+	ResetCounters();
+	IN_StartupJoystick();
+	fakeState.dwXpos = 65535;
+	fakeState.dwYpos = 0;
+	Poll();
+	assert( events.size() == 2 );
+	assert( Has( SE_JOYSTICK_AXIS, AXIS_SIDE, side ) && Has( SE_JOYSTICK_AXIS, AXIS_FORWARD, forward ) );
+	profileCvar.integer = 0;
+
+	// Every other profile ignores them too: Quake III's arrow keys.
+	eliteForce = 0;
+	CentreDevice();
+	ResetCounters();
+	IN_StartupJoystick();
+	fakeState.dwXpos = 65535;
+	fakeState.dwYpos = 0;
+	Poll();
+	assert( events.size() == 2 && Has( SE_KEY, K_RIGHTARROW, qtrue ) && Has( SE_KEY, K_UPARROW, qtrue ) );
+
+	// On into the client. Elite Force turns 0.01 of the key speed for each
+	// axis step, so a full stick at cl_yawspeed 140 turns 177.8 degrees a
+	// second; Quake III's form, which every other profile keeps, has no
+	// factor. With +strafe the X axis moves the player, and as in retail the
+	// stick's left (a positive axis) moves right.
+	const auto applyAxes = []() {
+		for ( const QueuedEvent &event : events ) {
+			if ( event.type == SE_JOYSTICK_AXIS ) {
+				CL_JoystickEvent( event.value, event.value2, 0 );
+			}
+		}
+	};
+	const auto nearly = []( float a, float b ) {
+		return std::fabs( a - b ) <= 1e-4f * std::fabs( b ) + 1e-4f;
+	};
+	yawSpeedCvar.value = pitchSpeedCvar.value = 140.0f;
+	angleSpeedKeyCvar.value = 1.5f;
+	cls.gameFrametime = 100;
+	eliteForce = 1;
+	xButtonCvar.integer = yButtonCvar.integer = 0;
+	CentreDevice();
+	ResetCounters();
+	IN_StartupJoystick();
+	fakeState.dwXpos = 0;
+	fakeState.dwYpos = 0;
+	Poll();
+	applyAxes();
+	assert( cl.joystickAxis[AXIS_SIDE] == 127 && cl.joystickAxis[AXIS_FORWARD] == 127 );
+	// A new gamestate clears the client's axes (CL_ClearState) with no input
+	// reset; the held stick is back on the next frame.
+	memset( cl.joystickAxis, 0, sizeof( cl.joystickAxis ) );
+	Poll();
+	applyAxes();
+	assert( cl.joystickAxis[AXIS_SIDE] == 127 && cl.joystickAxis[AXIS_FORWARD] == 127 );
+	usercmd_t cmd{};
+	CL_JoystickMove( &cmd );
+	assert( nearly( cl.viewangles[YAW], 17.78f ) && cl.viewangles[PITCH] == 0.0f );
+	assert( cmd.forwardmove == 127 && cmd.rightmove == 0 );
+	in_mlook.active = true;
+	cmd = {};
+	CL_JoystickMove( &cmd );
+	assert( nearly( cl.viewangles[PITCH], 17.78f ) && cmd.forwardmove == 0 );
+	in_mlook.active = false;
+	in_strafe.active = true;
+	cl.viewangles[YAW] = 0.0f;
+	cmd = {};
+	CL_JoystickMove( &cmd );
+	assert( cl.viewangles[YAW] == 0.0f && cmd.rightmove == 127 );
+	in_strafe.active = false;
+	eliteForce = 0;
+	cl.viewangles[YAW] = 0.0f;
+	cmd = {};
+	CL_JoystickMove( &cmd );
+	assert( nearly( cl.viewangles[YAW], 1778.0f ) );
+
 	puts( "winmm joystick checks passed" );
 	return 0;
 }
@@ -386,13 +577,24 @@ int main() {
 def build_source() -> str:
     common = (ROOT / 'code/qcommon/qcommon.h').read_text(encoding='utf-8')
     source = (ROOT / 'code/win32/win_input.cpp').read_text(encoding='utf-8')
+    client = (ROOT / 'code/client/cl_input.cpp').read_text(encoding='utf-8')
+    maths = (ROOT / 'code/qcommon/q_math.c').read_text(encoding='utf-8')
     parts = [
         PRELUDE,
         block(common, 'typedef enum {\n\tAXIS_SIDE,', '} joystickAxis_t;'),
         block(common, 'typedef enum {\n  // bk001129', '} sysEventType_t;'),
         STUBS,
-        block(source, '#define\tJOY_MAX_AXES', 'static\tjoystickInfo_t\tjoy;'),
+        CLIENT_STUBS,
+        function(maths, 'signed char ClampCharMove( int i ) {'),
     ]
+    for signature in (
+        'static int CL_SafeMoveValue( int current, float delta ) {',
+        'static void CL_AddViewAngleDelta( int axis, float delta ) {',
+        'void CL_JoystickEvent( int axis, int value, int time ) {',
+        'static void CL_JoystickMove( usercmd_t *cmd ) {',
+    ):
+        parts.append(function(client, signature))
+    parts.append(block(source, '#define\tJOY_MAX_AXES', 'static\tjoystickInfo_t\tjoy;'))
     for signature in (
         'static void IN_ClearWinMMJoystickState( qboolean disable )\n{',
         'void IN_StartupJoystick (void) {',
@@ -406,6 +608,9 @@ def build_source() -> str:
     parts.append(function(
         source,
         'static qboolean IN_WinMMAxisPosition( winMMAxis_t axis, DWORD *position )\n{'))
+    parts.append(function(
+        source,
+        'static void IN_JoyEliteForceAxes( float deadzone, DWORD *povstate )\n{'))
     parts.append(function(source, 'void IN_JoyMove( void ) {'))
     parts.append(CHECKS)
     return ''.join(parts)

@@ -240,6 +240,20 @@ void TestRetailJoystickMath()
 	CHECK( fnql::input::RetailJoystickMoveAxis( 1.0f, 0.5f, 1.0f ) == 127 );
 	CHECK( fnql::input::RetailJoystickMoveAxis( -1.0f, 0.5f, 2.0f ) == -127 );
 
+	// Elite Force: -axis * 127 truncated, at rest up to the threshold itself.
+	CHECK( fnql::input::EliteForceJoystickAxis( -1.0f, 0.15f ) == 127 );
+	CHECK( fnql::input::EliteForceJoystickAxis(
+		fnql::input::NormaliseJoystickAxis( 65535 ), 0.15f ) == -126 );
+	CHECK( fnql::input::EliteForceJoystickAxis( 0.5f, 0.15f ) == -63 );
+	CHECK( fnql::input::EliteForceJoystickAxis( 0.5f, 0.5f ) == 0 );
+	CHECK( fnql::input::EliteForceJoystickAxis( -0.5f, 0.5f ) == 0 );
+	CHECK( fnql::input::EliteForceJoystickAxis( 4.0f, 0.0f ) == -127 );
+	CHECK( fnql::input::EliteForceJoystickAxis(
+		std::numeric_limits<float>::quiet_NaN(), 0.0f ) == 0 );
+	CHECK( fnql::input::EliteForceJoystickAxis(
+		1.0f, std::numeric_limits<float>::quiet_NaN() ) == 0 );
+	CHECK( fnql::input::EliteForceJoystickAxis( 1.0f, -2.0f ) == -127 );
+
 	const int look = fnql::input::RetailJoystickLookDelta(
 		1.0f, 0.15f, 20.0f, 1.7f, false );
 	CHECK( look > 160 && look < 165 );

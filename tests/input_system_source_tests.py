@@ -3828,6 +3828,99 @@ class EliteForceInputSourceTests(unittest.TestCase):
         ready = function_body(self.client, "CL_ReadyToSendPacket")
         self.assertIn("if ( delta < 1000 / cl_maxpackets->integer ) {", ready)
 
+    def test_joystick_axis_switches_and_turn_scale(self) -> None:
+        # "X/Y axis as button": both engines' IN_JoyMove read joy_xbutton for
+        # X and joy_ybutton for Y (stvoyHM.exe 0x43f66f/0x43f6d1, stvoy.exe
+        # 0x42da67/0x42dad5); CL_JoystickMove scales the turning speeds by
+        # 0.01 (0x409f64/0x409faa, 0x405694/0x4056da). The WinMM producer
+        # honours them for Elite Force only and never in the Quake Live
+        # profile; the producer's behaviour is in tests/winmm_joystick_tests.py.
+        win_input = read_text("code/win32/win_input.cpp")
+        client_main = read_text("code/client/cl_main.cpp")
+
+        # IN_Init registers the switches with CL_Init's defaults and flags.
+        defaults = (
+            'Cvar_Get( "joy_xbutton", "1", CVAR_ARCHIVE );',
+            'Cvar_Get( "joy_ybutton", "0", CVAR_ARCHIVE );',
+        )
+        client_init = section(
+            client_main,
+            'Cvar_Get( "k_language", "american",',
+            "if ( Com_GameIsSTVEFSP() ) {",
+        )
+        input_init = section(
+            function_body(win_input, "IN_Init"),
+            "#ifdef USE_JOYSTICK",
+            "in_joyHorizViewSensitivity = ",
+        )
+        for registration in defaults:
+            with self.subTest(registration=registration):
+                self.assertIn(registration, client_init)
+                assert_order(
+                    self,
+                    input_init,
+                    "if ( Com_GameIsSTVEF() ) {",
+                    "joy_" + registration.split('"joy_')[1].split('"')[0]
+                    + " = " + registration,
+                )
+
+        # Only the Elite Force helper reads them, called after Quake III's
+        # direction bits and before the hat's, for the legacy profile only.
+        helper = function_body(win_input, "IN_JoyEliteForceAxes")
+        allowed = [
+            (start, start + len(body))
+            for body in (function_body(win_input, "IN_Init"), helper)
+            for start in (win_input.index(body),)
+        ]
+        for name in ("joy_xbutton", "joy_ybutton"):
+            declaration = win_input.index(f"cvar_t\t*{name};")
+            allowed.append((declaration, declaration + len(f"cvar_t\t*{name};")))
+            for use in re.finditer(rf"\b{name}\b", win_input):
+                with self.subTest(use=name, offset=use.start()):
+                    self.assertTrue(
+                        any(start <= use.start() < end for start, end in allowed)
+                    )
+        self.assertIn("{ joy_xbutton, joy_ybutton }", helper)
+        self.assertIn("{ AXIS_SIDE, AXIS_FORWARD }", helper)
+        # A held axis is queued every frame, as retail's is, so the client
+        # has it again after a new gamestate clears its axes.
+        assert_order(
+            self,
+            helper,
+            "if ( axisAsButton[i]->integer ||",
+            "IN_QueueRetailJoystickAxis( kMoveAxes[i], 0 );",
+            "*povstate &= ~( 3u << ( i * 2 ) );",
+            "fnql::input::EliteForceJoystickAxis(",
+            "if ( value != 0 || joy.oldmoveaxisstate[axis] != 0 ) {",
+            "Sys_QueEvent( g_wv.sysMsgTime, SE_JOYSTICK_AXIS, axis, value, 0, NULL );",
+            "joy.oldmoveaxisstate[axis] = value;",
+        )
+        move = function_body(win_input, "IN_JoyMove")
+        self.assertEqual(move.count("IN_JoyEliteForceAxes("), 1)
+        assert_order(
+            self,
+            move,
+            "for ( i = firstDirectionAxis; i < 4; ++i ) {",
+            "if ( !retailProfile && Com_GameIsSTVEF() ) {\n"
+            "\t\tIN_JoyEliteForceAxes( deadzone, &povstate );\n\t}",
+            "if ( joy.jc.wCaps & JOYCAPS_HASPOV ) {",
+        )
+
+        joystick = function_body(self.client, "CL_JoystickMove")
+        assert_order(
+            self,
+            joystick,
+            "float yawspeed = cl_yawspeed->value;",
+            "float pitchspeed = cl_pitchspeed->value;",
+            "if ( Com_GameIsSTVEF() ) {",
+            "yawspeed *= 0.01f;",
+            "pitchspeed *= 0.01f;",
+            "anglespeed * yawspeed *",
+            "anglespeed * pitchspeed *",
+        )
+        self.assertEqual(joystick.count("cl_yawspeed->value"), 1)
+        self.assertEqual(joystick.count("cl_pitchspeed->value"), 1)
+
 
 if __name__ == "__main__":
     unittest.main()

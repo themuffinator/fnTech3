@@ -237,18 +237,23 @@
     "in_joyBallScale": "0x6b491c",
     "in_debugjoystick": "0x6b4938",
     "joy_threshold": "0x6b4930",
-    "joy_xbutton": "0x6b4910 (default \"1\")",
-    "joy_ybutton": "0x6b4918 (default \"0\")"
+    "joy_xbutton": "0x6b4910 (default \"1\", Cvar_Get at 0x43ece0)",
+    "joy_ybutton": "0x6b4918 (default \"0\", Cvar_Get at 0x43ecf6)"
    },
-   "IN_JoyMove": "0x43f3a0; joy_xbutton read 0x43f66f (X), joy_ybutton 0x43f6d1 (Y); when 0, Sys_QueEvent(SE_JOYSTICK_AXIS, axis 0/1, ftol(-v*127)) at 0x43f6a0/0x43f715, 0 inside joy_threshold; when 1, Quake III direction bits; Z and R always direction bits",
-   "CL_JoystickMove": "0x409f10; yaw += cl_yawspeed * 0.01 (0x4b7430) * axis[AXIS_SIDE] * anglespeed unless +strafe; pitch likewise with +mlook; otherwise rightmove/forwardmove += axis"
+   "IN_JoyMove": "0x43f3a0; axes X, Y, Z, R up to wNumAxes; v = (pos - 32768) * (1/32768) held to [-1, 1]; joy_xbutton read 0x43f66f (X), joy_ybutton 0x43f6d1 (Y); when 0, Sys_QueEvent(SE_JOYSTICK_AXIS, axis 0/1, ftol(-(v*127))) every frame at 0x43f6a0/0x43f715 (ftol 0x4a8570 truncates), 0 for -joy_threshold <= v <= joy_threshold; when 1, Quake III direction bits for v < -joy_threshold and v > joy_threshold; Z and R always direction bits",
+   "CL_JoystickMove": "0x409f10; anglespeed = 0.001 * frametime (* cl_anglespeedkey with +speed); yaw += cl_yawspeed * 0.01f (0x4b7430, 0x3c23d70a, 0x409f64) * axis[0] * anglespeed unless +strafe, else rightmove = ClampChar(rightmove + axis[0]); pitch += cl_pitchspeed * 0.01f (0x409faa) * axis[1] * anglespeed with +mlook, else forwardmove = ClampChar(forwardmove + axis[1]); upmove = ClampChar(upmove + axis[2])"
   },
   "stvoy.exe": {
    "sha256": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74",
-   "IN_JoyMove": "joy_xbutton read 0x42da67, joy_ybutton 0x42dad5; axis events at 0x42dac3 and 0x42db40; same rule as Holomatch",
-   "CL_JoystickMove": "not traced"
+   "IN_JoyMove": "JoyToF 0x42d880 (same normalisation and clamp); joy_xbutton read 0x42da67, joy_ybutton 0x42dad5; axis events at 0x42dac3 and 0x42db40 with ftol 0x46db60 (truncates); same threshold and direction-bit rule as Holomatch",
+   "CL_JoystickMove": "0x405640; the same as Holomatch's, with its own 0.01f at 0x47e4a8 (0x405694 yaw, 0x4056da pitch)",
+   "IN_Init": {
+    "joy_xbutton": "0xa94ec8 (default \"1\", Cvar_Get at 0x42d5a3)",
+    "joy_ybutton": "0xa950b8 (default \"0\", Cvar_Get at 0x42d5bc)",
+    "joy_threshold": "0xa9524c (Cvar_Get at 0x42d577)"
+   }
   },
-  "readWith": "capstone and pefile; nothing patched or run",
+  "readWith": "capstone and pefile; nothing patched or run (cl_yawspeed/cl_pitchspeed readers located CL_JoystickMove in both executables)",
   "uiInRestart": "BaseEF pak0-pak2 vm/ui.qvm and efuix86.dll each contain the string in_restart"
  },
  "notRun": [
@@ -256,5 +261,147 @@
   "force feedback (no device)",
   "in_synthesize (it drives keys and the mouse, not a joystick)",
   "Linux and macOS SDL3 builds (still compiled without joystick input)"
- ]
+ ],
+ "eliteForceFollowUp": {
+  "profiles": [
+   "stvef-sp",
+   "stvef-mp"
+  ],
+  "base": "7f7b1f56 plus the uncommitted build change above, staged",
+  "sourceChanged": {
+   "code/win32/win_input.cpp": "joy_xbutton/joy_ybutton registered in IN_Init under Com_GameIsSTVEF() with CL_Init's defaults; IN_JoyEliteForceAxes called from IN_JoyMove when !retailProfile && Com_GameIsSTVEF(), after the X/Y/Z/R direction loop and before the hat",
+   "code/client/input_compat.hpp": "fnql::input::EliteForceJoystickAxis(axis, threshold): 0 inside the inclusive threshold, else (int)-(axis * 127.0f)",
+   "code/client/cl_input.cpp": "CL_JoystickMove: yaw and pitch speeds * 0.01f under Com_GameIsSTVEF()"
+  },
+  "departures": [
+   "a switch turned back on queues 0 once for its axis; retail leaves the last value set"
+  ],
+  "keptAsRetail": [
+   "+strafe: the stick's left adds +127 to rightmove (moves right)",
+   "+mlook: the stick pushed forward adds a positive pitch (looks down)"
+  ],
+  "unchanged": [
+   "every non-Elite Force profile",
+   "the producer for Elite Force with in_joystickProfile 1 (Quake Live lanes)",
+   "the SDL3 backend's producer (does not read the switches)"
+  ],
+  "unit": {
+   "test": "tests/winmm_joystick_tests.py",
+   "slicedFromWinInput": [
+    "IN_JoyEliteForceAxes"
+   ],
+   "slicedFromClient": [
+    "CL_SafeMoveValue",
+    "CL_AddViewAngleDelta",
+    "CL_JoystickEvent",
+    "CL_JoystickMove"
+   ],
+   "slicedFromQMath": [
+    "ClampCharMove"
+   ],
+   "checks": [
+    "defaults: X arrow keys, Y full forward -> axis 1 = 127 once",
+    "half back -> -63 (truncated; rounding gives -64)",
+    "a held axis is re-sent every poll; the key is not",
+    "v == threshold -> 0",
+    "joy_xbutton 0: right arrow released, full right -126, full left 127",
+    "Z and R stay keys",
+    "switch on while held -> axis 0 and key pressed; off again -> key released",
+    "input reset re-sends a held axis; NaN threshold rests it; one-axis device has no Y",
+    "Quake Live profile and Quake III profile ignore the switches",
+    "client: full stick, cl_yawspeed 140, 100 ms frame -> 17.78 degrees (Elite Force), 1778 (Quake III form); +mlook pitch 17.78; +strafe rightmove 127",
+    "client axes zeroed as CL_ClearState does -> next poll restores 127 on both axes"
+   ],
+   "mutationsCaught": [
+    "Elite Force gate dropped",
+    "Quake Live profile gate dropped",
+    "rounded instead of truncated",
+    "threshold exclusive",
+    "sign not inverted",
+    "no release when the switch turns on",
+    "held axis queued only on change",
+    "direction bits kept",
+    "turn scale dropped",
+    "turn scale for every profile"
+   ],
+   "helperChecks": "tests/input_compat_tests.cpp TestRetailJoystickMath"
+  },
+  "source": "tests/input_system_source_tests.py EliteForceInputSourceTests.test_joystick_axis_switches_and_turn_scale",
+  "notRun": [
+   "a physical device (none; the user declined hands-on device checks)",
+   "a live session that exercises the switches or the turn scale (without a device the producer never polls; the start-ups above show only the registrations)",
+   "a comparison with retail stvoy.exe or stvoyHM.exe at run time"
+  ],
+  "build": {
+   "dir": ".tmp/ef-joy/bn (worktree heuristic-joliot-d44014)",
+   "options": "-Dsdl=disabled -Drenderers=glx -Drenderer-default=glx -Drenderer-dlopen=true -Dstrict-warnings=true -Db_vscrt=static_from_buildtype -Dlauncher=disabled, debugoptimized",
+   "targets": "fntech3 fntech3.ded fnql_glx_x86 fntech3-pkg.fnz",
+   "fntech3.exe": "5004f4adc78bfe52a90fcfa28b3c46c4d79fc7804619f1ebe87880eb7754e1b0",
+   "fntech3.ded.exe": "2f8a046bdaf224acc784512437f8d8f64b44d51905e2a22059be13a5e193e503",
+   "strictWarnings": "win_input.cpp and cl_input.cpp compiled with /W4 /WX and -DUSE_JOYSTICK; no warnings",
+   "live": {
+    "harness": ".tmp/ef-joy/probe_startup.py (worktree): tests/windows_private_process.py private desktop, no input, no device, net_enabled 0, isolated fs_homepath with empty configs",
+    "runs": [
+     {
+      "profile": "stvef-mp",
+      "installation": "E:\\Games\\Star Trek Voyager Elite Force",
+      "commandLine": "fntech3.exe +set com_gameProfile stvef-mp +set fs_basepath E:\\Games\\Star Trek Voyager Elite Force +set fs_homepath .tmp\\ef-joy\\live-stvef-mp\\registrations\\home +set fs_game  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 640 +set r_customHeight 480 +set in_mouse 0 +set in_nograb 1 +set in_joystick 1 +set s_initsound 0 +set net_enabled 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set developer 1 +set logfile 2 +set com_introplayed 1 +set cl_motd 0 +exec joy-probe.cfg",
+      "action": "wait 60; echo PROBE cvars; cvarlist joy_*; wait 10; quit",
+      "exitedByItself": true,
+      "seconds": 18.7,
+      "errors": [],
+      "joystickLines": [
+       "^5joystick not found -- no valid joysticks (a5)",
+       "PROBE cvars",
+       "A    joy_threshold \"0.15\"",
+       "A    joy_xbutton \"1\"",
+       "A    joy_ybutton \"0\""
+      ],
+      "installationUnchanged": true,
+      "executableUnchanged": true
+     },
+     {
+      "profile": "stvef-sp",
+      "installation": "E:\\Games\\Star Trek Voyager Elite Force",
+      "commandLine": "fntech3.exe +set com_gameProfile stvef-sp +set fs_basepath E:\\Games\\Star Trek Voyager Elite Force +set fs_homepath .tmp\\ef-joy\\live-stvef-sp\\registrations\\home +set fs_game  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 640 +set r_customHeight 480 +set in_mouse 0 +set in_nograb 1 +set in_joystick 1 +set s_initsound 0 +set net_enabled 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set developer 1 +set logfile 2 +set com_introplayed 1 +set cl_motd 0 +exec joy-probe.cfg",
+      "action": "wait 60; echo PROBE cvars; cvarlist joy_*; wait 10; quit",
+      "exitedByItself": true,
+      "seconds": 3.3,
+      "errors": [],
+      "joystickLines": [
+       "^5joystick not found -- no valid joysticks (a5)",
+       "PROBE cvars",
+       "A    joy_threshold \"0.15\"",
+       "A    joy_xbutton \"1\"",
+       "A    joy_ybutton \"0\""
+      ],
+      "installationUnchanged": true,
+      "executableUnchanged": true
+     },
+     {
+      "profile": "quake3",
+      "installation": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena",
+      "commandLine": "fntech3.exe +set com_gameProfile quake3 +set fs_basepath C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena +set fs_homepath .tmp\\ef-joy\\live-quake3\\registrations\\home +set fs_game  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 640 +set r_customHeight 480 +set in_mouse 0 +set in_nograb 1 +set in_joystick 1 +set s_initsound 0 +set net_enabled 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set developer 1 +set logfile 2 +set com_introplayed 1 +set cl_motd 0 +exec joy-probe.cfg",
+      "action": "wait 60; echo PROBE cvars; cvarlist joy_*; wait 10; quit",
+      "exitedByItself": true,
+      "seconds": 3.0,
+      "errors": [],
+      "joystickLines": [
+       "^5joystick not found -- no valid joysticks (a5)",
+       "PROBE cvars",
+       "A    joy_threshold \"0.15\""
+      ],
+      "installationUnchanged": true,
+      "executableUnchanged": true
+     }
+    ]
+   },
+   "note": "rebuilt after the review fix; the start-ups below ran on this client"
+  },
+  "matchesRetail": [
+   "a held axis is queued every frame (a resting one once), so the client has it again after CL_ClearState zeroes cl.joystickAxis at a new gamestate"
+  ],
+  "turnFactorScope": "CL_JoystickMove, every Elite Force axis whichever producer queued it, as retail's: the Quake Live lane's full stick at cl_yawspeed 140 turns 177.8 deg/s (was 17,780) and SDL3 analog axes 1/100 of their old rate",
+  "review": "independent read of the diff: found the level-change gap (fixed, tested, mutation-checked) and an overstated record claim about in_joystickProfile 1 (corrected); no null dereference, other profiles unchanged, nothing held across switch changes, resets or device loss, no /W4 hazard"
+ }
 }

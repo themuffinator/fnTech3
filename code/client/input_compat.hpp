@@ -800,6 +800,23 @@ private:
 }
 
 /*
+Retail Elite Force queues a stick axis whose "axis as button" switch is off as
+-axis * 127 truncated toward zero, and 0 from -threshold to threshold
+inclusive (IN_JoyMove, stvoyHM.exe 0x43f67e..0x43f6aa, stvoy.exe
+0x42da78..0x42dab2). The product is exact in float for every WinMM position.
+*/
+[[nodiscard]] inline int EliteForceJoystickAxis(
+	float axis, float threshold ) noexcept
+{
+	axis = std::clamp( FiniteOr( axis, 0.0f ), -1.0f, 1.0f );
+	threshold = FiniteJoystickDeadzone( threshold );
+	if ( axis >= -threshold && axis <= threshold ) {
+		return 0;
+	}
+	return static_cast<int>( -( axis * 127.0f ) );
+}
+
+/*
 SDL gamepad axes smoothly ramp from the configured deadzone to full scale.
 A threshold of one has no non-dead region and is therefore neutral, avoiding
 the legacy division by zero. The -32768 endpoint remains representable.

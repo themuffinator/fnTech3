@@ -302,6 +302,11 @@ historical upstream records, not fnTech3 release history. See the
   through SDL3's gamepad support. Windows builds had compiled joystick input
   out since the code base began
   ([record](docs/fntech3/2026-10-24-windows-joystick.md)).
+- Honour Elite Force's "X axis as button" and "Y axis as button" settings
+  with a joystick in the Windows download: with one off, that direction of
+  the stick turns or moves the player smoothly, as in the original, and a
+  full stick turns at the original's 1.27 times the key speed in both modes
+  ([record](docs/fntech3/2026-10-24-windows-joystick.md#elite-forces-axis-switches-and-turn-scale)).
 
 ## [0.1.0] - 2026-10-11
 

@@ -228,8 +228,10 @@ and then `in_restart` in the console. It stays off until you do.
 
 In the Windows download, the buttons act as keys named `JOY1` onwards, which
 you bind like any other key, as in the original Quake III and the games
-built on it. The stick's left, right, up and down act as the arrow keys, and
-the hat as `JOY24` to `JOY27`. `joy_threshold` sets how far a stick must
+built on it. The stick's left, right, up and down act as the arrow keys
+(Elite Force's menus can make them smooth instead; see
+[its notes](#star-trek-voyager-elite-force-stvef-sp-stvef-mp)), and the hat
+as `JOY24` to `JOY27`. `joy_threshold` sets how far a stick must
 move before it counts. If you plug the controller in after the game has
 started, type `in_restart` in the console.
 
@@ -532,13 +534,17 @@ See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
   and keys, if they stop responding.
 - The controls menus keep their settings as the original does, turn speed
   included. Their joystick switch and threshold work
-  ([Joysticks and gamepads](#joysticks-and-gamepads)), but the "X axis as
-  button" and "Y axis as button" settings change nothing yet: the stick's
-  directions always act as the arrow keys. Single player walks unless you
-  hold Shift or switch on Always Run, as the original did. `+careful` can be
-  bound to a key, and `sv_cheats 1` in the console turns on cheats in the
-  middle of a level. The single-player voice volume slider does nothing, as
-  in the original.
+  ([Joysticks and gamepads](#joysticks-and-gamepads)). In the Windows
+  download, so do "X axis as button" and "Y axis as button": with the first
+  off, the stick's left and right turn you smoothly instead of acting as
+  arrow keys, and with the second off, its forward and back move you
+  smoothly. As in the original, the second starts off, and a full stick
+  turns a little faster than the turn keys. Hold strafe and the stick's left
+  moves you right; hold mouse look and pushing it forward looks down, both
+  as in the original. Single player walks unless you hold Shift or switch on
+  Always Run, as the original did. `+careful` can be bound to a key, and
+  `sv_cheats 1` in the console turns on cheats in the middle of a level. The
+  single-player voice volume slider does nothing, as in the original.
 - On a widescreen display the LCARS gauges keep their shape in the lower
   corners and the view widens, and the brackets single player draws around a
   target stay on it ([Widescreen guide](ASPECT_CORRECTION.md)).
