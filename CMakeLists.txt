@@ -1009,7 +1009,9 @@ ELSEIF(WIN32)
 ENDIF(UNIX)
 
 ADD_LIBRARY(q3ui OBJECT ${Q3_UI_SRCS})
-IF(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT USE_SDL)
+# Opt-in at run time through in_joystick: WinMM on Windows, /dev/input/js* on
+# native Linux. SDL3 builds outside Windows still leave joysticks out.
+IF(WIN32 OR (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT USE_SDL))
 	TARGET_COMPILE_DEFINITIONS(q3ui PRIVATE USE_JOYSTICK)
 ENDIF()
 

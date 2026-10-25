@@ -836,7 +836,8 @@ VIOLENCE drew unticked and the driver, speaker and quality fields blank. Its
 Windows input has no joystick layer, so the controls menu's joystick threshold
 slider sat at 0. It now registers all five for both titles. This engine's audio
 uses only `s_khz`, and that only in its legacy mixer. Its input reads
-`joy_threshold` only where it has joystick support.
+`joy_threshold` only where it has joystick support, which Windows builds
+gained on 2026-10-24 ([joystick record](2026-10-24-windows-joystick.md)).
 
 The 1.02 patch's `pak2.pk3` replaces `ui/advancedoptions.urc`, adding an
 OpenGL driver field (`r_glDriver`, `opengl32` here) and renaming Curve Detail to

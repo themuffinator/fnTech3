@@ -220,6 +220,26 @@ option you can choose, never as the default -- for example the original
 software sound mixer, `s_backend legacy`. Each guide notes which features
 apply to which game.
 
+## Joysticks and gamepads
+
+fnTech3 reads a joystick or gamepad in every game once you switch it on:
+turn on the joystick in the game's controls menu, or type `in_joystick 1`
+and then `in_restart` in the console. It stays off until you do.
+
+In the Windows download, the buttons act as keys named `JOY1` onwards, which
+you bind like any other key, as in the original Quake III and the games
+built on it. The stick's left, right, up and down act as the arrow keys, and
+the hat as `JOY24` to `JOY27`. `joy_threshold` sets how far a stick must
+move before it counts. If you plug the controller in after the game has
+started, type `in_restart` in the console.
+
+A copy of fnTech3 built with SDL3 on Windows names a gamepad's buttons
+instead (`PAD0_A` and so on), and notices a controller plugged in at any
+time. The games' own menus may not show those names, so bind them in the
+console, for example `bind PAD0_A +attack`. Linux builds read joysticks
+without SDL3 only; macOS builds do not read them yet
+([details](fntech3/2026-10-24-windows-joystick.md)).
+
 ## Playing online
 
 Multiplayer games play online the way the originals did: fnTech3 joins
@@ -511,12 +531,14 @@ See the [Elite Force details](fntech3/COMPATIBILITY.md#elite-force-gate-matrix).
   `inputstatus` in the console shows what currently has control of the mouse
   and keys, if they stop responding.
 - The controls menus keep their settings as the original does, turn speed
-  included. On Windows fnTech3 has no joystick support, so the joystick
-  settings change nothing there. Single player walks unless you hold Shift
-  or switch on Always Run, as the original did. `+careful` can be bound to
-  a key, and `sv_cheats 1` in the console turns on cheats in the middle of
-  a level. The single-player voice volume slider does nothing, as in the
-  original.
+  included. Their joystick switch and threshold work
+  ([Joysticks and gamepads](#joysticks-and-gamepads)), but the "X axis as
+  button" and "Y axis as button" settings change nothing yet: the stick's
+  directions always act as the arrow keys. Single player walks unless you
+  hold Shift or switch on Always Run, as the original did. `+careful` can be
+  bound to a key, and `sv_cheats 1` in the console turns on cheats in the
+  middle of a level. The single-player voice volume slider does nothing, as
+  in the original.
 - On a widescreen display the LCARS gauges keep their shape in the lower
   corners and the view widens, and the brackets single player draws around a
   target stay on it ([Widescreen guide](ASPECT_CORRECTION.md)).

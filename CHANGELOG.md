@@ -295,6 +295,13 @@ historical upstream records, not fnTech3 release history. See the
   it and a dark passage on F.A.K.K.2's `cemetery`; it now lights what it
   points at
   ([record](docs/fntech3/2026-10-24-static-spot-cones.md)).
+- Read joysticks and gamepads on Windows in every game, as most of the
+  originals did, once `in_joystick 1` or the game's controls menu switches
+  them on: the
+  Windows download through WinMM with Quake III's key mapping, SDL3 builds
+  through SDL3's gamepad support. Windows builds had compiled joystick input
+  out since the code base began
+  ([record](docs/fntech3/2026-10-24-windows-joystick.md)).
 
 ## [0.1.0] - 2026-10-11
 

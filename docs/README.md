@@ -77,6 +77,10 @@ Release packages include them as web pages in their `manual` folder, built by
   own colour to the world, the trainer's colour, saving and leaving on
   `creeperpens`, views inside the fog volumes, the static spot light in a
   dark passage, and retail's fade of blended stages in fog accepted.
+- [Joystick input on Windows](fntech3/2026-10-24-windows-joystick.md)
+  -- why Windows builds had none, WinMM and SDL3 joystick input switched on
+  behind `in_joystick`, a simulated WinMM device, and Elite Force's retail
+  axis switches still open.
 - [F.A.K.K.2 gap round](fntech3/2026-10-23-fakk2-gap-round.md)
   -- the canal water's colour and Ritual's fog volumes drawn by retail's
   rules, the whole campaign through its own exits, demos exchanged with

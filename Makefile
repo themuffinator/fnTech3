@@ -1476,6 +1476,8 @@ ifeq ($(USE_SDL),1)
         $(B)/client/sdl_gamma.o \
         $(B)/client/sdl_input.o \
         $(B)/client/sdl_snd.o
+    # Opt-in at run time through in_joystick, as in the native backend.
+    $(B)/client/sdl_input.o: CXXFLAGS += -DUSE_JOYSTICK
 else # !USE_SDL
     Q3OBJ += \
         $(B)/client/win_gamma.o \
@@ -1484,6 +1486,8 @@ else # !USE_SDL
         $(B)/client/win_minimize.o \
         $(B)/client/win_snd.o \
         $(B)/client/win_wndproc.o
+    # WinMM joystick input, opt-in at run time through in_joystick.
+    $(B)/client/win_input.o: CXXFLAGS += -DUSE_JOYSTICK
 
 ifeq ($(USE_OPENGL_API),1)
     Q3OBJ += \

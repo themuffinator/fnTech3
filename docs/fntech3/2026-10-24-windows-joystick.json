@@ -1,0 +1,260 @@
+{
+ "record": "2026-10-24-windows-joystick.md",
+ "date": "2026-10-24",
+ "profiles": [
+  "all; live runs under stvef-mp"
+ ],
+ "evidence": [
+  "Source",
+  "Unit",
+  "Build",
+  "Live (no device)"
+ ],
+ "gatesClosed": [],
+ "baseCommit": "1b11e9e84f11d9ac29e21d2e9587585fb9a535fb",
+ "platform": "Windows 11 Home 10.0.26200, MSVC x86 (VS 2022 developer shell), debugoptimized, strict-warnings",
+ "history": {
+  "quake3e": "E:/_SOURCE/_CODE/Quake3e-master: USE_JOYSTICK appears only in #ifdef lines and code/sdl/sdl_glw.h \"//#define USE_JOYSTICK\"",
+  "fnquake3": "7d8c9629cdc7979f09697266470359101ffd9eda: the same; no build file defines it",
+  "fnql": "fce44fe714564621e6ceb79e3da7c53089646af2: dd9618a \"Harden input/audio init across all backends\" adds -DUSE_JOYSTICK for native Linux without SDL only (meson.build, CMakeLists.txt, Makefile)",
+  "fntech3": "dd9618a1 carries the same condition; no later commit changed it before this one"
+ },
+ "buildChange": {
+  "meson.build": "if build_client and (win32 or (linux and not use_sdl)): client_cpp_args += ['-DUSE_JOYSTICK']",
+  "CMakeLists.txt": "IF(WIN32 OR (CMAKE_SYSTEM_NAME STREQUAL \"Linux\" AND NOT USE_SDL)) TARGET_COMPILE_DEFINITIONS(q3ui PRIVATE USE_JOYSTICK)",
+  "Makefile": "MinGW: $(B)/client/sdl_input.o (USE_SDL=1) or $(B)/client/win_input.o (USE_SDL=0): CXXFLAGS += -DUSE_JOYSTICK",
+  "sourceChanged": false
+ },
+ "builds": {
+  "native": {
+   "dir": ".tmp/joystick/bn (worktree)",
+   "options": "-Dsdl=disabled -Drenderers=glx -Drenderer-default=glx -Drenderer-dlopen=true -Dstrict-warnings=true -Db_vscrt=static_from_buildtype -Dlauncher=disabled --buildtype=debugoptimized --wrap-mode=nodownload",
+   "fntech3.exe": "e3dc9daa70bf05e32852862f5c437b28fd88f2a973e6431f76b97cc2fd1a5f82",
+   "win_input.cpp": "compiled with -DUSE_JOYSTICK, /W4 /WX"
+  },
+  "sdl3": {
+   "dir": ".tmp/joystick/bs (worktree)",
+   "options": "-Dsdl=enabled, otherwise as native",
+   "fntech3.exe": "309e1cc087348d2052e4b188edf14a585982dd37a21b8191984d606e5806d138",
+   "sdl_input.cpp": "compiled with -DUSE_JOYSTICK, /W4 /WX",
+   "sdl3Subproject": "SDL3 3.4.0 (wrapdb 3.4.0-2): SDL_JOYSTICK_XINPUT, SDL_JOYSTICK_WGI, SDL_JOYSTICK_GAMEINPUT, SDL_JOYSTICK_DINPUT, SDL_JOYSTICK_VIRTUAL defined; SDL_JOYSTICK_HIDAPI and SDL_JOYSTICK_RAWINPUT not"
+  }
+ },
+ "unit": {
+  "test": "tests/winmm_joystick_tests.py",
+  "compiler": "clang++ --target=i686-pc-windows-msvc -std=c++17 -Wall -Werror",
+  "slicedFromWinInput": [
+   "joystickInfo_t and joy",
+   "IN_ClearWinMMJoystickState",
+   "IN_StartupJoystick",
+   "JoyToF",
+   "JoyToI",
+   "IN_QueueRetailJoystickAxis",
+   "joyDirectionKeys",
+   "winMMAxis_t",
+   "IN_WinMMAxisPosition",
+   "IN_JoyMove"
+  ],
+  "mutationsCaught": [
+   "in_joystick gate removed",
+   "read-failure budget 1",
+   "hat forward bit moved",
+   "button cap dropped",
+   "input reset on loss dropped"
+  ]
+ },
+ "runtime": {
+  "installation": {
+   "path": "E:\\Games\\Star Trek Voyager Elite Force",
+   "stvoyHM.exe": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+   "readOnly": true
+  },
+  "harness": ".tmp/joystick/probe_joystick_startup.py (worktree): tests/windows_private_process.py private desktop, no input, isolated fs_homepath with empty hmconfig.cfg/efconfig.cfg/q3config.cfg, developer 1, logfile 2",
+  "native": {
+   "executableSha256": "e3dc9daa70bf05e32852862f5c437b28fd88f2a973e6431f76b97cc2fd1a5f82",
+   "executableUnchangedDuringRuns": true,
+   "installationUnchanged": true,
+   "runs": [
+    {
+     "scenario": "off-then-restart",
+     "profile": "stvef-mp",
+     "commandLine": "fntech3.exe +set com_gameProfile stvef-mp +set fs_basepath E:\\Games\\Star Trek Voyager Elite Force +set fs_homepath <home> +set fs_game  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 640 +set r_customHeight 480 +set in_mouse 0 +set in_nograb 1 +set in_joystick 0 +set s_initsound 0 +set net_enabled 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set developer 1 +set logfile 2 +set com_introplayed 1 +set cl_motd 0 +exec joy-probe.cfg",
+     "quitByItself": true,
+     "seconds": 4.3,
+     "errors": [],
+     "inputLines": [
+      "^5Joystick is not active.",
+      "PROBE cvars-off",
+      "          in_debugjoystick \"0\"",
+      "     A    in_joyBallScale \"0.02\"",
+      "     A    in_joyHorizMoveDeadzone \"0.50\"",
+      "     A    in_joyHorizViewDeadzone \"0.15\"",
+      "     A    in_joyHorizViewSensitivity \"20.0\"",
+      "     A    in_joyVertMoveDeadzone \"0.15\"",
+      "     A    in_joyVertViewDeadzone \"0.15\"",
+      "     A    in_joyVertViewSensitivity \"15.0\"",
+      "     AL   in_joystick \"0\"",
+      "     AL   in_joystickProfile \"0\"",
+      "     A    in_joystick_inverted \"0\"",
+      "     A    joy_threshold \"0.15\"",
+      "     A    joy_xbutton \"1\"",
+      "     A    joy_ybutton \"0\"",
+      "          ui_joyavail \"0\"",
+      "in_joystick will be changed upon restarting.",
+      "^5joystick not found -- no valid joysticks (a5)",
+      "PROBE cvars-on",
+      "          in_debugjoystick \"0\"",
+      "     A    in_joyBallScale \"0.02\"",
+      "     A    in_joyHorizMoveDeadzone \"0.50\"",
+      "     A    in_joyHorizViewDeadzone \"0.15\"",
+      "     A    in_joyHorizViewSensitivity \"20.0\"",
+      "     A    in_joyVertMoveDeadzone \"0.15\"",
+      "     A    in_joyVertViewDeadzone \"0.15\"",
+      "     A    in_joyVertViewSensitivity \"15.0\"",
+      "     AL   in_joystick \"1\"",
+      "     AL   in_joystickProfile \"0\"",
+      "     A    in_joystick_inverted \"0\"",
+      "     A    joy_threshold \"0.15\"",
+      "     A    joy_xbutton \"1\"",
+      "     A    joy_ybutton \"0\"",
+      "          ui_joyavail \"0\""
+     ]
+    },
+    {
+     "scenario": "on-at-start",
+     "profile": "stvef-mp",
+     "commandLine": "fntech3.exe +set com_gameProfile stvef-mp +set fs_basepath E:\\Games\\Star Trek Voyager Elite Force +set fs_homepath <home> +set fs_game  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 640 +set r_customHeight 480 +set in_mouse 0 +set in_nograb 1 +set in_joystick 1 +set s_initsound 0 +set net_enabled 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set developer 1 +set logfile 2 +set com_introplayed 1 +set cl_motd 0 +exec joy-probe.cfg",
+     "quitByItself": true,
+     "seconds": 3.8,
+     "errors": [],
+     "inputLines": [
+      "^5joystick not found -- no valid joysticks (a5)",
+      "PROBE cvars-on",
+      "          in_debugjoystick \"0\"",
+      "     A    in_joyBallScale \"0.02\"",
+      "     A    in_joyHorizMoveDeadzone \"0.50\"",
+      "     A    in_joyHorizViewDeadzone \"0.15\"",
+      "     A    in_joyHorizViewSensitivity \"20.0\"",
+      "     A    in_joyVertMoveDeadzone \"0.15\"",
+      "     A    in_joyVertViewDeadzone \"0.15\"",
+      "     A    in_joyVertViewSensitivity \"15.0\"",
+      "     AL   in_joystick \"1\"",
+      "     AL   in_joystickProfile \"0\"",
+      "     A    in_joystick_inverted \"0\"",
+      "     A    joy_threshold \"0.15\"",
+      "     A    joy_xbutton \"1\"",
+      "     A    joy_ybutton \"0\"",
+      "          ui_joyavail \"0\""
+     ]
+    }
+   ]
+  },
+  "sdl3": {
+   "executableSha256": "309e1cc087348d2052e4b188edf14a585982dd37a21b8191984d606e5806d138",
+   "executableUnchangedDuringRuns": true,
+   "installationUnchanged": true,
+   "runs": [
+    {
+     "scenario": "off-then-restart",
+     "profile": "stvef-mp",
+     "commandLine": "fntech3.exe +set com_gameProfile stvef-mp +set fs_basepath E:\\Games\\Star Trek Voyager Elite Force +set fs_homepath <home> +set fs_game  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 640 +set r_customHeight 480 +set in_mouse 0 +set in_nograb 1 +set in_joystick 0 +set s_initsound 0 +set net_enabled 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set developer 1 +set logfile 2 +set com_introplayed 1 +set cl_motd 0 +exec joy-probe.cfg",
+     "quitByItself": true,
+     "seconds": 5.7,
+     "errors": [],
+     "inputLines": [
+      "^5Calling SDL_InitSubSystem(SDL_INIT_JOYSTICK)...",
+      "^5SDL_InitSubSystem(SDL_INIT_JOYSTICK) passed.",
+      "^5Calling SDL_InitSubSystem(SDL_INIT_GAMEPAD)...",
+      "^5SDL_InitSubSystem(SDL_INIT_GAMEPAD) passed.",
+      "^50 possible joysticks",
+      "^5Joystick is not active.",
+      "PROBE cvars-off",
+      "   R      in_availableJoysticks \"\"",
+      "     AL   in_joystick \"0\"",
+      "     A    joy_threshold \"0.15\"",
+      "     A    joy_xbutton \"1\"",
+      "     A    joy_ybutton \"0\"",
+      "in_joystick will be changed upon restarting.",
+      "^5Calling SDL_InitSubSystem(SDL_INIT_JOYSTICK)...",
+      "^5SDL_InitSubSystem(SDL_INIT_JOYSTICK) passed.",
+      "^5Calling SDL_InitSubSystem(SDL_INIT_GAMEPAD)...",
+      "^5SDL_InitSubSystem(SDL_INIT_GAMEPAD) passed.",
+      "^50 possible joysticks",
+      "^5No joysticks found.",
+      "PROBE cvars-on",
+      "   R      in_availableJoysticks \"\"",
+      "     AL   in_joystick \"1\"",
+      "     A    in_joystickNo \"0\"",
+      "     AL   in_joystickUseAnalog \"0\"",
+      "     A    joy_threshold \"0.15\"",
+      "     A    joy_xbutton \"1\"",
+      "     A    joy_ybutton \"0\""
+     ]
+    },
+    {
+     "scenario": "on-at-start",
+     "profile": "stvef-mp",
+     "commandLine": "fntech3.exe +set com_gameProfile stvef-mp +set fs_basepath E:\\Games\\Star Trek Voyager Elite Force +set fs_homepath <home> +set fs_game  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 640 +set r_customHeight 480 +set in_mouse 0 +set in_nograb 1 +set in_joystick 1 +set s_initsound 0 +set net_enabled 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set developer 1 +set logfile 2 +set com_introplayed 1 +set cl_motd 0 +exec joy-probe.cfg",
+     "quitByItself": true,
+     "seconds": 3.7,
+     "errors": [],
+     "inputLines": [
+      "^5Calling SDL_InitSubSystem(SDL_INIT_JOYSTICK)...",
+      "^5SDL_InitSubSystem(SDL_INIT_JOYSTICK) passed.",
+      "^5Calling SDL_InitSubSystem(SDL_INIT_GAMEPAD)...",
+      "^5SDL_InitSubSystem(SDL_INIT_GAMEPAD) passed.",
+      "^50 possible joysticks",
+      "^5No joysticks found.",
+      "PROBE cvars-on",
+      "   R      in_availableJoysticks \"\"",
+      "     AL   in_joystick \"1\"",
+      "     A    in_joystickNo \"0\"",
+      "     AL   in_joystickUseAnalog \"0\"",
+      "     A    joy_threshold \"0.15\"",
+      "     A    joy_xbutton \"1\"",
+      "     A    joy_ybutton \"0\""
+     ]
+    }
+   ]
+  }
+ },
+ "retailJoystickReaders": {
+  "sources": "Quake-III-Arena, RTCW-SP, RTCW-MP and Enemy-Territory-original src/win32/win_input.c call joyGetPosEx; Q3 registers in_joystick \"0\" CVAR_ARCHIVE|CVAR_LATCH",
+  "importTables": {
+   "stvoy.exe, stvoyHM.exe": "joystick cvars registered and read in IN_JoyMove (below)",
+   "jamp.exe, jasp.exe (Jedi Academy 1.01)": "WINMM joyGetPosEx, joyGetDevCapsA, joyGetNumDevs",
+   "jk2mp.exe, jk2sp.exe (Jedi Outcast 1.02a)": "WINMM joyGetPosEx, joyGetDevCapsA, joyGetNumDevs",
+   "alice.exe": "WINMM joyGetPosEx, joyGetDevCapsA, joyGetNumDevs",
+   "MOHAA.exe": "SafeDisc-encrypted; its plain import table lists WINMM.dll but no joystick function, so unknown",
+   "fakk2.exe": "encrypted on disk; not read"
+  }
+ },
+ "retailEliteForce": {
+  "stvoyHM.exe": {
+   "sha256": "5b5b6e82ce7ac0d720a45ab1fa9df32930c846d6c51847fa0c158ebc86487dff",
+   "IN_Init": {
+    "in_joystick": "0x6b4914",
+    "in_joyBallScale": "0x6b491c",
+    "in_debugjoystick": "0x6b4938",
+    "joy_threshold": "0x6b4930",
+    "joy_xbutton": "0x6b4910 (default \"1\")",
+    "joy_ybutton": "0x6b4918 (default \"0\")"
+   },
+   "IN_JoyMove": "0x43f3a0; joy_xbutton read 0x43f66f (X), joy_ybutton 0x43f6d1 (Y); when 0, Sys_QueEvent(SE_JOYSTICK_AXIS, axis 0/1, ftol(-v*127)) at 0x43f6a0/0x43f715, 0 inside joy_threshold; when 1, Quake III direction bits; Z and R always direction bits",
+   "CL_JoystickMove": "0x409f10; yaw += cl_yawspeed * 0.01 (0x4b7430) * axis[AXIS_SIDE] * anglespeed unless +strafe; pitch likewise with +mlook; otherwise rightmove/forwardmove += axis"
+  },
+  "stvoy.exe": {
+   "sha256": "8f7ccadb52b4230689c5b3275177f7ec7060a30bfaa3ade4e7b3fb0cda0dff74",
+   "IN_JoyMove": "joy_xbutton read 0x42da67, joy_ybutton 0x42dad5; axis events at 0x42dac3 and 0x42db40; same rule as Holomatch",
+   "CL_JoystickMove": "not traced"
+  },
+  "readWith": "capstone and pefile; nothing patched or run",
+  "uiInRestart": "BaseEF pak0-pak2 vm/ui.qvm and efuix86.dll each contain the string in_restart"
+ },
+ "notRun": [
+  "any physical joystick or gamepad (none attached; the user declined hands-on device checks)",
+  "force feedback (no device)",
+  "in_synthesize (it drives keys and the mouse, not a joystick)",
+  "Linux and macOS SDL3 builds (still compiled without joystick input)"
+ ]
+}

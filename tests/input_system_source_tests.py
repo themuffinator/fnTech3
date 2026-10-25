@@ -2595,6 +2595,79 @@ class Win32InputProducerTests(unittest.TestCase):
             self.input,
         )
 
+    def test_windows_builds_compile_opt_in_joystick_support(self) -> None:
+        # Every Windows client backend compiles its joystick producer:
+        # WinMM natively, SDL3's gamepad API when SDL3 is the backend. SDL3
+        # builds elsewhere still leave it out, as the shared header says.
+        meson = read_text("meson.build")
+        cmake = read_text("CMakeLists.txt")
+        mingw = section(
+            read_text("Makefile"), "ifdef MINGW\n\n  Q3OBJ +=", "else # !MINGW"
+        )
+
+        self.assertIn(
+            "if build_client and (win32 or (linux and not use_sdl))\n"
+            "  client_cpp_args += ['-DUSE_JOYSTICK']",
+            meson,
+        )
+        client = section(meson, "  client_exe = executable(", "\n  )")
+        self.assertIn("q3_ui_src", client)
+        self.assertIn("cpp_args: client_cpp_args,", client)
+        windows_ui = section(
+            meson, "  if build_client and use_sdl\n    q3_ui_src = [", "\nelse\n"
+        )
+        self.assertIn("'code/sdl/sdl_input.cpp'", windows_ui)
+        self.assertIn("'code/win32/win_input.cpp'", windows_ui)
+        self.assertIn(
+            'IF(WIN32 OR (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT USE_SDL))\n'
+            "\tTARGET_COMPILE_DEFINITIONS(q3ui PRIVATE USE_JOYSTICK)",
+            cmake,
+        )
+        assert_order(
+            self,
+            mingw,
+            "ifeq ($(USE_SDL),1)",
+            "$(B)/client/sdl_input.o: CXXFLAGS += -DUSE_JOYSTICK",
+            "else # !USE_SDL",
+            "$(B)/client/win_input.o: CXXFLAGS += -DUSE_JOYSTICK",
+            "endif # !USE_SDL",
+        )
+        self.assertIn("//#define USE_JOYSTICK", read_text("code/sdl/sdl_glw.h"))
+
+    def test_joystick_stays_off_until_in_joystick_is_set(self) -> None:
+        # in_joystick keeps retail's default and latch on both backends, and
+        # the WinMM producer touches no device API while it is 0.
+        self.assertIn(
+            'in_joystick = Cvar_Get( "in_joystick", "0", CVAR_ARCHIVE | CVAR_LATCH );',
+            self.input,
+        )
+        self.assertIn(
+            'in_joystick = Cvar_Get( "in_joystick", "0", CVAR_ARCHIVE|CVAR_LATCH );',
+            read_text("code/sdl/sdl_input.cpp"),
+        )
+        startup = function_body(self.input, "IN_StartupJoystick")
+        assert_order(
+            self,
+            startup,
+            "IN_ClearWinMMJoystickState( qtrue );",
+            "if (! in_joystick->integer ) {",
+            "return;",
+            "joyGetNumDevs ()",
+            "joyGetPosEx (joy.id, &joy.ji)",
+            "joyGetDevCaps (joy.id, &joy.jc, sizeof(joy.jc))",
+            "joy.avail = qtrue;",
+        )
+        move = function_body(self.input, "IN_JoyMove")
+        assert_order(self, move, "if ( !joy.avail ) {", "joyGetPosEx(")
+        frame = function_body(self.input, "IN_Frame")
+        self.assertIn(
+            "#ifdef USE_JOYSTICK\n"
+            "\tif ( gw_active && WIN_WindowFocused() && !gw_minimized &&\n"
+            "\t\t!WIN_InputSuspended() ) {\n"
+            "\t\tIN_JoyMove();",
+            frame,
+        )
+
     def test_absolute_position_dedup_includes_overlay_consumer(self) -> None:
         identity = function_body(
             self.input, "IN_PointerConsumerIdentity"
@@ -2724,7 +2797,7 @@ class LinuxJoystickProducerTests(unittest.TestCase):
             glimp,
         )
 
-    def test_native_linux_builds_compile_the_joystick_only_without_sdl(
+    def test_native_linux_builds_compile_the_joystick_without_sdl(
         self,
     ) -> None:
         meson = read_text("meson.build")
@@ -2737,7 +2810,7 @@ class LinuxJoystickProducerTests(unittest.TestCase):
             meson,
         )
         self.assertIn(
-            "if linux and build_client and not use_sdl\n"
+            "if build_client and (win32 or (linux and not use_sdl))\n"
             "  client_cpp_args += ['-DUSE_JOYSTICK']",
             meson,
         )
@@ -2747,7 +2820,7 @@ class LinuxJoystickProducerTests(unittest.TestCase):
             cmake,
         )
         self.assertIn(
-            'IF(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT USE_SDL)\n'
+            'IF(WIN32 OR (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT USE_SDL))\n'
             "\tTARGET_COMPILE_DEFINITIONS(q3ui PRIVATE USE_JOYSTICK)",
             cmake,
         )
