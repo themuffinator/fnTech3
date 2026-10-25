@@ -221,17 +221,17 @@ In vertex mode with fnTech3's static lights off, since retail has none:
 | The wall box | 33.7, 51.8, 15.5 | 33.4, 52.5, 15.7 | 33.4, 52.5, 15.7 | 35.8, 41.1, 16.7 |
 | The pile | 17.8, 43.8, 7.0 | 17.5, 43.5, 7.0 | 17.7, 43.6, 7.1 | 17.8, 43.6, 7.2 |
 
-GL and Vulkan match retail to a level. RTX at its defaults lights the boards
-less, as in the per-pixel modes: its path tracer draws the world's light.
+GL and Vulkan match retail to a level. The RTX column is the path tracer
+before it took the light from white ([below](#the-path-tracer)).
 With the static lights on, GL and Vulkan agree again (102.9 and 102.7 green
 below the boards): the static lights, drawn after the green one with retail's
 modulating blend, `GL_DST_COLOR GL_ONE`, brighten the green they find as
 well as adding their own warm light. Before this round both renderers drew
 the view alike under Quake III's rule: with the static lights off, 64.3
 green below the boards in each.
-The floor to Julie's right and the far wall are unchanged to 0.1 of 255. RTX
-at its defaults traces the world's light in its path tracer, which takes only
-part of the change.
+The floor to Julie's right and the far wall are unchanged to 0.1 of 255. RTX's
+path tracer took only part of the change until it was given its own rule
+([below](#the-path-tracer)).
 
 **Other profiles and views.** In-run A/B with `r_diagNoAdditive`:
 `creeperpens` changed 7,930 pixels, `fakkhouse`, with no client game light,
@@ -248,6 +248,101 @@ other light do not. It checks that each renderer's light passes choose their
 texture through it. It also checks that the three renderers keep the game's
 radius, colour and shadow range alike, and that every other light starts with
 no Ritual radius.
+
+### The path tracer
+
+**Observed.** RTX's path tracer, at its defaults, took only part of the
+glow: green over red 5.1 on the wall in this round's build, where GL and
+Vulkan gave 17.6. It traces a dynamic light as irradiance, and the frame
+multiplies irradiance by the surface's reflectance, the wall's brown.
+
+**Change.** The tracer marks such a light `RT_LIGHT_ADDITIVE` when it uploads
+it: additive, and with a Ritual radius, the light's half of
+`RB_RitualAdditiveWorldLight` (`code/rendererrtx/rt/rt_backend.c`
+`RT_UploadLights`). On a world or brush-model surface its sample is radiance
+the reflectance does not scale: at the first hit it joins the specular
+signal, which the denoiser filters and the composite adds as it is, and at a
+bounce it joins the path's radiance (`code/rendererrtx/shaders/rt_path.glsl`
+`shade_direct`). A model keeps its reflectance, as in raster.
+
+That alone took the wall to 9.7. The tracer resamples one light at each
+point. On the wall the pile's light competes with dozens of the map's, so
+only the points that chose it took it, and the denoiser's neighbourhood
+clamps lost much of that sparse light. With `rtx_rt_debug_light` set to the
+pile's light alone, the wall took about as much as GL's light adds there.
+So a frame with such a light (`RT_FRAME_ADDITIVE_LIGHTS`) gives each world or
+brush-model point a second light sample, among the additive lights alone, and
+leaves them out of the first. The second sample's mask names the bit a light
+must carry (`RT_LIGHT_REQUIRE_SHIFT`, `rt_lighting.glsl` `rt_light_eval`).
+Both samples pass through the sampler's one call site, in a loop: a second
+inlined copy of the sampler made the compute trace too large for the 32-bit
+driver to compile (`rt_path.glsl`). A bounce's point, a surface the raster
+light pass skips, `rtx_rt_debug_light`, and a frame with no additive light
+sample as before. This keeps the tracer's own features: the light keeps its
+falloff and facing, its traced shadow from the light's body, and the
+denoiser. Retail's projected light has no shadow; fnTech3's keeps one.
+
+**Runs.** The change was built on `bd43efdc`, which holds this round and
+the static spot cones, configured like `win32-dev`. The client and its
+renderers were built from `bd43efdc` alone and with the change, and staged
+in `.tmp/runtime/fakk2-rtx-additive-before` and
+`.tmp/runtime/fakk2-rtx-additive`: the same executable and GL and Vulkan
+libraries, and two RTX libraries. The harness is
+`.tmp/fakk2-round/tools/poo_view.py` with `FN_RENDERER`, and the evidence is
+in `.tmp/fakk2-rtx-additive` (`views/1025` for these runs). This machine's
+32-bit driver offers no ray-tracing pipeline, so the tracer ran its compute
+backend, and the change's pipeline was created there.
+
+**Result.** On the record's boxes, at the defaults with `r_bloom 0`:
+
+| Box | Retail | GL | Vulkan | RTX before | RTX after |
+| --- | --- | --- | --- | --- | --- |
+| The wall box | 33.7, 51.8, 15.5 | 43.2, 64.6, 25.5 | 43.2, 64.6, 25.5 | 38.3, 43.5, 17.6 | 43.8, 64.0, 24.8 |
+| Its green over red | 18.1 | 21.4 | 21.4 | 5.2 (5.4 again) | 20.1 (20.3 again) |
+| Boards (x 10..40, y 320..420) | 33.2, 42.1, 15.2 | 41.5, 54.2, 24.0 | 41.5, 54.2, 24.1 | 38.0, 36.1, 17.1 | 42.9, 53.7, 23.3 |
+| Below them (x 40..80, y 380..440) | 31.8, 80.6, 18.5 | 40.8, 90.8, 27.7 | 40.8, 90.8, 27.7 | 35.3, 71.1, 20.5 | 41.4, 91.6, 27.6 |
+| The pile (a model) | 17.8, 43.8, 7.0 | 18.2, 44.9, 7.7 | 18.4, 45.0, 7.8 | 18.1, 43.9, 7.3 | 18.7, 45.7, 8.0 |
+
+The wall takes retail's green in the path tracer too, and its wall, boards
+and the floor below them come within about two levels of GL's and
+Vulkan's. GL's wall there is darker than this round's own build measured
+above (64.1, 81.7, 35.0): the static spot cones confined the map's spot
+lights. In vertex mode with the static lights off, the tracer's wall is
+43.8, 63.8, 24.8 and its boards 42.5, 53.2, 23.3, where they were 38.3,
+43.2, 17.5 and 37.2, 35.1, 16.7. In 50-pixel blocks, green changed by more
+than two levels in 13 of 192, all round the pile (x 0..200, y 300..500), by
+2.5 to 25.1; two runs of one build differ there by at most 2.3. In the
+specular view (`rtx_rt_debug_visualizer 5`) the wall's green reads 37.4 with
+the denoiser off and 36.4 with it on, where it read 12.0 and 9.9, the light's
+highlights alone, before. A first build on this round's tree, which only
+routed the existing sample, read 27.9 and 22.8 there, and 9.7 green over
+red on the wall.
+
+**Other profiles and cost.** Quake III's frozen demo frame
+(`scripts/probe_rtx_games.py`, `.tmp/q3-hud-align/before-219/record/hudtest.dm_68`)
+traced at 1.387 and 1.386 of its raster frame before and after. Its traced
+frames differ by 0.46 of 255 a pixel, its raster frames by 0.35: run to run.
+Alice's `fortress1` and `skool1` traced without error, and changed in 376
+and 69 pixels by more than 20 levels; two runs of one build differed on
+`fortress1` in 1,540 on this round's tree. The cost was timed on this
+round's tree with the machine otherwise idle: `creeperpens`' trace took 12.7
+to 13.7 ms before and 13.1 to 13.9 after, over three runs each at 800x600,
+each before-and-after pair 0.3 to 0.4 ms apart, and Quake III's demo frame
+20.1 to 21.1 ms before and 20.6 to 21.4 after. On `bd43efdc` other sessions'
+game clients were running, and single runs swung between 13.5 and 24.7 ms,
+so no timing is taken from them.
+
+**Tests.** `tests/rtx_ritual_additive_light_tests.py` runs the shader's
+receiver masks as C against its own lines. Split, every light the one sample
+would take is taken once, an additive one in the second sample, any other in
+the first. Without required bits, the test is the old one for every light
+word. It checks that the host and shader constants agree and that the light
+bits stay below the required ones. It checks that only an additive Ritual
+light is marked, and that world and brush-model surfaces take it without
+their reflectance at both hits while models keep theirs. It checks that the
+sampler and its shadow traversal each keep one call site, and that the
+embedded SPIR-V carries the change. `tests/rtx_emitter_lighting_tests.py` and
+`tests/rtx_renderer_contract_source_tests.py` follow the new sampler call.
 
 ## The trainer on training
 
@@ -379,12 +474,11 @@ the model rule's constant, and the A/B runs above are the evidence for Alice.
   shadows did not limit it (`r_spotShadows 1`). Drawing a spot's cone needed
   every renderer's per-pixel light programs, so it was a change of its own:
   settled by the [static spot cone record](2026-10-24-static-spot-cones.md).
-- **RTX's path tracer** takes only part of an additive light's glow. Its
-  traced lights take the surface's reflectance; an additive light would
-  have to reach the frame as emission. Another session's work in that
-  backend (`code/rendererrtx/rt/rt_backend.c`) was not yet committed when
-  this round ended, so the change was left to a task of its own, which
-  lands after this round.
+- **RTX's path tracer** took only part of an additive light's glow: its
+  traced lights took the surface's reflectance. Settled by its own change
+  after this round ([path tracer](#the-path-tracer)). Its ray-tracing
+  pipeline carries that change (`rt_main.rgen`) but has not run it: this
+  machine's 32-bit driver offers only the compute backend.
 - **Listening** and **other platforms**, as before.
 
 Accepted, under invariant 12: retail's CPU fade of blended stages in a fog
@@ -407,3 +501,12 @@ projection leaves the Ritual profiles to it. So did every test file that
 reads a changed source or names a changed function, 94 in all, in the shared
 tree: 89 under pytest, one file at a time, and five that run as scripts. The
 changelog and generated-docs tests passed too.
+
+The path tracer's change was validated on `bd43efdc`. The client and its
+three renderers compiled with strict warnings, and
+`code/rendererrtx/shaders/build_shaders.py` regenerated the 97 shader
+variants, which `--check` reports current. `tests/rtx_ritual_additive_light_tests.py`
+(6 tests) passed, and so did every test file that reads a changed tracer
+source or names a changed function: 35 under pytest, one file at a time,
+and `tests/shadow_projection_source_tests.py` as a script, with the
+changelog, generated-docs, release-workflow and release-packaging tests.

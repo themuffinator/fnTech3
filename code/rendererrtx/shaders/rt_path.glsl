@@ -175,6 +175,7 @@ struct ShadeResult {
 	float shadowReactive;
 	vec3 irradiance;	// diffuse, lightmap units
 	vec3 specular;		// radiance
+	vec3 additive;		// radiance: an additive light's, lit from white
 };
 
 // The reflectance model at a hit: the stages' colour and the material's
@@ -293,13 +294,19 @@ vec3 apply_min_light(RtMaterial material, vec3 irradiance)
 // specular radiance.
 // reflections: a glossy reflection ray is traced from P as well, so the
 // light sample shares its specular light with it (rt_light_weight).
+// worldOrBrush: a world or brush-model surface, which an additive Ritual
+// light (RT_LIGHT_ADDITIVE) lights from white: the raster light pass draws
+// it with a white image in place of the texture (tr_ritual_additive_light.h),
+// as retail adds such a light GL_ONE GL_ONE whatever the surface. Its sample
+// is kept apart, as radiance the surface's reflectance does not scale.
 ShadeResult shade_direct(RtMaterial material, RtSurface surf, RtShading sh, vec3 P, vec3 Ng, vec3 V,
-	uint candidates, bool bakedLighting, bool reflections, bool oneSample, inout uint seed)
+	uint candidates, bool bakedLighting, bool reflections, bool oneSample, bool worldOrBrush, inout uint seed)
 {
 	ShadeResult r;
 	r.shadowReactive = 0.0;
 	r.irradiance = vec3(0.0);
 	r.specular = vec3(0.0);
+	r.additive = vec3(0.0);
 	if (!surf.lit) {
 		return r;
 	}
@@ -350,17 +357,43 @@ ShadeResult shade_direct(RtMaterial material, RtSurface surf, RtShading sh, vec3
 		}
 		share = float(count);
 	}
-	vec3 L = vec3(0.0, 0.0, 1.0);
-	bool found = false;
 	RtLightChoice choice;
 	choice.index = ~0u;
-	// over a lightmap the dynamic lights alone
-	vec3 E = (pick & 1u) != 0u ?
-		rt_sample_lights(P, N, Ng, candidates, exclude, baked, seed, L, found, choice, r.shadowReactive) * share : vec3(0.0);
-	r.irradiance += E;
-	if (found && (u_frame.flags.x & RT_FRAME_SPECULAR) != 0u) {
-		float weight = (reflections && !baked) ? rt_light_weight(choice, N, Ng, V, L, roughness * roughness) : 1.0;
-		r.specular += E * specular_weight(N, V, L, roughness, F0) * weight;
+	// A world or brush-model surface takes a frame's additive lights in a
+	// second sample of their own, the other lights in the first: resampled
+	// among the cell's lights, an additive light would reach only the points
+	// that chose it, a sparse signal the denoiser's clamps dim. Both samples
+	// pass through the sampler's one call site, in this loop; a bounce's
+	// point keeps one sample.
+	bool split = worldOrBrush && !oneSample && (pick & 1u) != 0u && (exclude & RT_LIGHT_DYNAMIC) == 0u &&
+		(u_frame.flags.x & RT_FRAME_ADDITIVE_LIGHTS) != 0u && u_frame.materialLights.z == 0u;
+	[[dont_unroll]] for (uint pass = 0u; pass < (split ? 2u : 1u); pass++) {
+		vec3 L = vec3(0.0, 0.0, 1.0);
+		bool found = false;
+		float reactive = 0.0;
+		RtLightChoice passChoice;
+		passChoice.index = ~0u;
+		uint passExclude = !split ? exclude :
+			(pass == 0u ? exclude | RT_LIGHT_ADDITIVE : exclude | (RT_LIGHT_ADDITIVE << RT_LIGHT_REQUIRE_SHIFT));
+		// over a lightmap, and in the additive lights' sample, the dynamic
+		// lights alone
+		vec3 E = (pick & 1u) != 0u ? rt_sample_lights(P, N, Ng, candidates, passExclude, baked || pass == 1u, seed, L,
+			found, passChoice, reactive) * share : vec3(0.0);
+		r.shadowReactive = max(r.shadowReactive, reactive);
+		if (worldOrBrush && passChoice.index != ~0u &&
+			(uint(u_lights.lights[passChoice.index].color.w) & RT_LIGHT_ADDITIVE) != 0u) {
+			r.additive += E;
+		} else {
+			r.irradiance += E;
+		}
+		if (found && (u_frame.flags.x & RT_FRAME_SPECULAR) != 0u) {
+			float weight = (reflections && !baked) ? rt_light_weight(passChoice, N, Ng, V, L, roughness * roughness) : 1.0;
+			r.specular += E * specular_weight(N, V, L, roughness, F0) * weight;
+		}
+		// a reflection is weighed against the first sample, the map's lights'
+		if (pass == 0u) {
+			choice = passChoice;
+		}
 	}
 	if (baked) {
 		return r;
@@ -530,7 +563,8 @@ vec3 bounce_radiance(vec3 origin, vec3 dir, float coneWidthAtOrigin, bool bakedL
 			}
 		}
 		if (d == 0u) receiverReflectance = max(sh.diffuse + surf.emission, vec3(0.05));
-		ShadeResult direct = shade_direct(material, surf, sh, P, geometric, -dir, seen ? 16u : 4u, bakedLighting, false, !seen, seed);
+		ShadeResult direct = shade_direct(material, surf, sh, P, geometric, -dir, seen ? 16u : 4u, bakedLighting, false, !seen,
+			rt_world_or_brush(tri), seed);
 		bool baked = baked_light(material, surf, bakedLighting);
 		vec3 irradiance = baked ? direct.irradiance : apply_min_light(material, direct.irradiance);
 		// q3map's surface lights reach the scene through light sampling; their
@@ -544,7 +578,7 @@ vec3 bounce_radiance(vec3 origin, vec3 dir, float coneWidthAtOrigin, bool bakedL
 		if (seen && g_mis && (material.flags & RT_MF_SURFACE_LIGHT) != 0u && !tri.dynamic) {
 			lightSeen = rt_reflected_light(hit, origin, dir);
 		}
-		radiance += throughput * (sh.diffuse * irradiance + emission * u_frame.params0.y + lightSeen);
+		radiance += throughput * (sh.diffuse * irradiance + direct.additive + emission * u_frame.params0.y + lightSeen);
 		if (baked || !surf.lit || d + 1u >= depth) {
 			break;
 		}
@@ -647,12 +681,16 @@ void rt_path_main(ivec2 pixel, vec2 size)
 	bool mis = reflections && (u_frame.flags.x & RT_FRAME_MIS) != 0u;
 
 	g_lightReuseMaterial = tri.v0.materialIndex + 1u;
-	ShadeResult direct = shade_direct(material, surf, sh, P, geometric, V, 16u, bakedLighting, mis, false, seed);
+	ShadeResult direct = shade_direct(material, surf, sh, P, geometric, V, 16u, bakedLighting, mis, false,
+		rt_world_or_brush(tri), seed);
 	g_lightReuseMaterial = 0u;
 	float shadowReactive = direct.shadowReactive;
 	vec3 irradiance = direct.irradiance;
 	vec3 indirect = vec3(0.0);
-	vec3 specular = liquid ? vec3(0.0) : direct.specular;
+	// an additive light's radiance joins the specular signal, which the
+	// denoiser filters and the composite adds without the reflectance; the
+	// part of a liquid that reflects takes none, as it takes no diffuse light
+	vec3 specular = (liquid ? vec3(0.0) : direct.specular) + direct.additive * (1.0 - liquidF);
 
 	// one bounce of diffuse light; a baked lightmap already holds its own.
 	// As Q2RTX checkerboards its indirect light, a checkerboard of 8 x 8

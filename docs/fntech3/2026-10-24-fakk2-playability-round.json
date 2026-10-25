@@ -542,7 +542,21 @@
   "docs": [
    "tests/changelog_tests.py and tests/generate_docs_tests.py 9 passed"
   ],
-  "tests/ritual_projected_light_tests.py": "4 passed, 3 subtests"
+  "tests/ritual_projected_light_tests.py": "4 passed, 3 subtests",
+  "tests/rtx_ritual_additive_light_tests.py": "6 passed",
+  "pathTracerFiles": {
+   "selection": "tests/**/*.py naming rt_path.glsl, rt_lighting.glsl, rt_geometry.glsl, rt_common.glsl, rt_gpu.h, rt_backend.c, shader_data.c, shade_direct, rt_sample_lights, rt_light_eval, ShadeResult or RT_UploadLights, and the changelog, docs and release-workflow tests, and tests/static_spot_cone_tests.py",
+   "pytestPassed": 35,
+   "scriptRunPassed": [
+    "tests/shadow_projection_source_tests.py"
+   ],
+   "updatedPins": [
+    "tests/rtx_emitter_lighting_tests.py",
+    "tests/rtx_renderer_contract_source_tests.py"
+   ],
+   "shaderOutputs": "code/rendererrtx/shaders/build_shaders.py regenerated 97 variants; --check reports them current",
+   "log": ".tmp/fakk2-rtx-additive/tests-1025.log"
+  }
  },
  "gates": "none closed",
  "additiveLights": {
@@ -562,7 +576,7 @@
     "rendererrtx/tr_shade.c VK_LightingPass"
    ],
    "radius": "the game's own (RE_AddAliceLightToScene restores intensity; shadowProjectionFar for 1.0)",
-   "rtxPathTracer": "not changed: its traced dynamic lights take the surface's reflectance"
+   "rtxPathTracer": "RT_LIGHT_ADDITIVE on an additive light with a Ritual radius (rt_backend.c RT_UploadLights); a world or brush-model surface takes the frame's additive lights in a second light sample of their own and adds it without its reflectance (rt_path.glsl shade_direct): see pathTracer"
   },
   "wallBox": [
    0,
@@ -600,6 +614,40 @@
     38.1,
     43.2,
     17.7
+   ],
+   "rtxPathTracerFirstBuild": [
+    38.5,
+    48.2,
+    19.8
+   ],
+   "rtxPathTracerBeforeBd43efdc": [
+    [
+     38.3,
+     43.5,
+     17.6
+    ],
+    [
+     37.4,
+     42.8,
+     17.4
+    ]
+   ],
+   "rtxPathTracerAfterBd43efdc": [
+    [
+     43.8,
+     64.0,
+     24.8
+    ],
+    [
+     42.2,
+     62.5,
+     24.4
+    ]
+   ],
+   "glBd43efdc": [
+    43.2,
+    64.6,
+    25.5
    ]
   },
   "halfRadiusBuild": "with r_dlightScale's half radius the wall was unchanged, 54.3, 52.1, 25.2",
@@ -917,6 +965,252 @@
     "the GLX streamed draw",
     "r_dlightSaturation 1"
    ]
+  },
+  "pathTracer": {
+   "build": "bd43efdc (this round and the static spot cones) with the path tracer's change, built in a worktree configured like win32-dev; client and renderers built from bd43efdc alone and with the change",
+   "runtimes": {
+    "fakk2-rtx-additive": {
+     "fntech3.exe": "8696513ad6e10b26626698ce9db4351472a1c7e84704b5485cf331b6033ee04d",
+     "fnql_glx_x86.dll": "d7e9ba775b9cc1cdc5756d525d0943580018208a760284e48e7b5486433e5c19",
+     "fnql_vk_x86.dll": "198531a8b96532c2cf734892d44220f96e7694f39395eaddc8d8ae7a739da7bb",
+     "fnql_rtx_x86.dll": "70c31b26e7c65c1abf8e90b91ba8f429c4138c4740d40ef05d311620834dc93e"
+    },
+    "fakk2-rtx-additive-before": {
+     "fntech3.exe": "8696513ad6e10b26626698ce9db4351472a1c7e84704b5485cf331b6033ee04d",
+     "fnql_rtx_x86.dll": "a90653560a8205e03db2d699707d98d8aa48d08f8eb85fc8bf2055351e8095ab",
+     "note": "GL and Vulkan libraries identical to fakk2-rtx-additive's"
+    }
+   },
+   "backend": "compute: this machine's 32-bit driver offers no ray-tracing pipeline (VK_KHR_ray_tracing_pipeline missing); the compute pipeline was created with the change",
+   "spirvBytes": {
+    "rt_trace.comp": [
+     267856,
+     271304
+    ],
+    "rt_main.rgen": [
+     233720,
+     237184
+    ]
+   },
+   "mechanism": {
+    "flag": "RT_LIGHT_ADDITIVE (1 << 9) in the light word; RT_FRAME_ADDITIVE_LIGHTS (1 << 13) when any is uploaded",
+    "receivers": "rt_world_or_brush: !tri.dynamic || lightmapData.w > 0.5, the RTCW light materials' receivers",
+    "samples": "split: first sample excludes RT_LIGHT_ADDITIVE, second (dynamic lights only) requires it (exclude >> RT_LIGHT_REQUIRE_SHIFT 16); one rt_sample_lights call site in a [[dont_unroll]] loop",
+    "unsplit": "a bounce's point, an RT_MF_NODLIGHT surface, rtx_rt_debug_light, a frame with no additive light",
+    "output": "first hit: the specular signal (denoised, added without the reflectance); bounce: the path's radiance",
+    "firstBuild": "routing the one resampled sample alone: wall green over red 9.7; the light reached only the points that chose it, and the denoised specular view read 22.8 green against 27.9 undenoised"
+   },
+   "harness": ".tmp/fakk2-round/tools/poo_view.py with FN_RUNTIME and FN_RENDERER; .tmp/fakk2-rtx-additive/run_views.py, diag_views.py, boxes.py",
+   "evidence": ".tmp/fakk2-rtx-additive (views/1025, 1025-q3-*, alice/round1025, tests-1025.log)",
+   "boxes": {
+    "retail": {
+     "wall": [
+      33.7,
+      51.8,
+      15.5
+     ],
+     "boards": [
+      33.2,
+      42.1,
+      15.2
+     ],
+     "belowBoards": [
+      31.8,
+      80.6,
+      18.5
+     ],
+     "pile": [
+      17.8,
+      43.8,
+      7.0
+     ]
+    },
+    "gl": {
+     "wall": [
+      43.2,
+      64.6,
+      25.5
+     ],
+     "boards": [
+      41.5,
+      54.2,
+      24.0
+     ],
+     "belowBoards": [
+      40.8,
+      90.8,
+      27.7
+     ],
+     "pile": [
+      18.2,
+      44.9,
+      7.7
+     ]
+    },
+    "vulkan": {
+     "wall": [
+      43.2,
+      64.6,
+      25.5
+     ],
+     "boards": [
+      41.5,
+      54.2,
+      24.1
+     ],
+     "belowBoards": [
+      40.8,
+      90.8,
+      27.7
+     ],
+     "pile": [
+      18.4,
+      45.0,
+      7.8
+     ]
+    },
+    "rtxBefore": {
+     "wall": [
+      38.3,
+      43.5,
+      17.6
+     ],
+     "boards": [
+      38.0,
+      36.1,
+      17.1
+     ],
+     "belowBoards": [
+      35.3,
+      71.1,
+      20.5
+     ],
+     "pile": [
+      18.1,
+      43.9,
+      7.3
+     ]
+    },
+    "rtxAfter": {
+     "wall": [
+      43.8,
+      64.0,
+      24.8
+     ],
+     "boards": [
+      42.9,
+      53.7,
+      23.3
+     ],
+     "belowBoards": [
+      41.4,
+      91.6,
+      27.6
+     ],
+     "pile": [
+      18.7,
+      45.7,
+      8.0
+     ]
+    },
+    "greenOverRed": {
+     "retail": 18.1,
+     "gl": 21.4,
+     "vulkan": 21.4,
+     "rtxBefore": [
+      5.2,
+      5.4
+     ],
+     "rtxAfter": [
+      20.1,
+      20.3
+     ]
+    },
+    "vertexModeStaticOff": {
+     "before": {
+      "wall": [
+       38.3,
+       43.2,
+       17.5
+      ],
+      "boards": [
+       37.2,
+       35.1,
+       16.7
+      ]
+     },
+     "after": {
+      "wall": [
+       43.8,
+       63.8,
+       24.8
+      ],
+      "boards": [
+       42.5,
+       53.2,
+       23.3
+      ]
+     }
+    },
+    "firstBuildOnTheRoundTree": {
+     "wall": [
+      38.5,
+      48.2,
+      19.8
+     ],
+     "greenOverRed": 9.7
+    }
+   },
+   "blocks": "50-pixel blocks, mean of two runs each: green changed by more than 2 levels in 13 of 192, all in x 0..200, y 300..500, by 2.5 to 25.1; two runs of one build differ there by at most 2.3",
+   "traceMs": {
+    "quietOnTheRoundTree": {
+     "creeperpens800x600": {
+      "before": [
+       12.74,
+       13.67,
+       13.25
+      ],
+      "after": [
+       13.12,
+       13.89,
+       13.55
+      ]
+     },
+     "q3DemoFrame1280x720": {
+      "before": [
+       20.12,
+       21.07,
+       20.8
+      ],
+      "after": [
+       20.6,
+       20.7,
+       21.41
+      ]
+     }
+    },
+    "bd43efdc": "not taken: other sessions' openQ4 and Medal of Honor clients were running; single runs swung between 13.5 and 24.7 ms"
+   },
+   "otherProfiles": {
+    "q3": "frozen demo frame (.tmp/q3-hud-align/before-219/record/hudtest.dm_68): traced/raster 1.387 and 1.386; traced frames 0.46 apart a pixel, raster frames 0.35",
+    "alice": "fortress1 and skool1 traced without error, 376 and 69 pixels changed by more than 20 levels; on the round's tree two runs of one build differed on fortress1 in 1,540"
+   },
+   "notRun": "the ray-tracing pipeline backend (rt_main.rgen) carries the change but did not run here",
+   "specularViewWallGreen": {
+    "before": {
+     "denoiseOff": 12.0,
+     "denoiseOn": 9.9
+    },
+    "after": {
+     "denoiseOff": 37.4,
+     "denoiseOn": 36.4
+    },
+    "firstBuild": {
+     "denoiseOff": 27.9,
+     "denoiseOn": 22.8
+    }
+   },
+   "oneLightDebug": "on the round's tree, rtx_rt_debug_light 723 (the pile's light): wall 13.9, 40.7, 12.2 shadowed and 13.2, 38.3, 12.1 unshadowed, over about 3.0, 8.3, 2.5 from the rest"
   }
  },
  "alice": "alice.exe is SafeDisc-wrapped and cannot run here; both rules rest on its own code and the in-run A/B runs"

@@ -951,7 +951,8 @@ class RtxRendererContractSourceTests(unittest.TestCase):
         path = read("code/rendererrtx/shaders/rt_path.glsl")
         bounce = source_section(path, "vec3 bounce_radiance(", "\n}\n")
         self.assertIn("for (uint step = 0u; step < depth + 8u && d < depth; step++) {", bounce)
-        self.assertIn("radiance += throughput * (sh.diffuse * irradiance + emission * u_frame.params0.y + lightSeen);", bounce)
+        self.assertIn("radiance += throughput * (sh.diffuse * irradiance + direct.additive + emission * u_frame.params0.y + "
+                      "lightSeen);", bounce)
         self.assertIn("if (baked || !surf.lit || d + 1u >= depth) {", bounce)
         self.assertIn("throughput *= sh.diffuse;", bounce)
         # the reflection's MIS share belongs to its own hit
@@ -992,7 +993,8 @@ class RtxRendererContractSourceTests(unittest.TestCase):
         direct = source_section(path, "ShadeResult shade_direct(", "\n}\n")
         excluded = direct[direct.index("if ((material.flags & RT_MF_NODLIGHT) != 0u) {"):]
         self.assertIn("exclude |= RT_LIGHT_DYNAMIC;", excluded[:excluded.index("}")])
-        self.assertIn("light->color[3] = (float)( RT_LIGHT_DLIGHT | RT_LIGHT_DYNAMIC );", upload)
+        self.assertIn("light->color[3] = (float)( RT_LIGHT_DLIGHT | RT_LIGHT_DYNAMIC | ( additiveLight ? RT_LIGHT_ADDITIVE : 0u ) );",
+                      upload)
 
         # rtx_rt_lighting 1 traces the dynamic lights over a lightmapped
         # surface's lightmap, and only them (dynamicOnly is `baked`)
@@ -1003,7 +1005,8 @@ class RtxRendererContractSourceTests(unittest.TestCase):
         self.assertIn("uvec2 cell = dynamicOnly ? uvec2(0u) : rt_light_cell(P + Ng);", sample)
         # A flash must invalidate quiet history even without a moving blocker.
         self.assertIn("if (dynamicLight) reactive = 1.0;", sample)
-        self.assertIn("rt_sample_lights(P, N, Ng, candidates, exclude, baked, seed, L, found, choice, r.shadowReactive) * share",
+        self.assertIn("rt_sample_lights(P, N, Ng, candidates, passExclude, baked || pass == 1u, seed, L,\n"
+                      "\t\t\tfound, passChoice, reactive) * share",
                       direct)
 
         # raster's stand-ins for surface lights are lights the trace casts

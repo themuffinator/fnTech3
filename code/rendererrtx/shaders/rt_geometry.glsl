@@ -32,6 +32,13 @@ bool rt_casts_shadow(RtTriangle tri)
 	return !tri.dynamic || tri.v0.normal.w >= 0.0;
 }
 
+// A world surface or a brush model's (lightmapData.w 1), where the raster
+// passes draw the world entity or a brush model: not a model's
+bool rt_world_or_brush(RtTriangle tri)
+{
+	return !tri.dynamic || tri.v0.lightmapData.w > 0.5;
+}
+
 RtTriangle rt_fetch_triangle(uint customIndex, uint geometryIndex, uint primitive)
 {
 	RtTriangle tri;

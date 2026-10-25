@@ -447,14 +447,17 @@ class RtxEmitterLightingTests(unittest.TestCase):
         path = read('code/rendererrtx/shaders/rt_path.glsl')
         direct = function(path, 'ShadeResult shade_direct(')
         self.assertEqual(direct.count('rt_sample_lights('), 1)
-        self.assertIn('rt_sample_lights(P, N, Ng, candidates, exclude, baked, seed, L, found, choice, r.shadowReactive) * share', direct)
+        self.assertIn('rt_sample_lights(P, N, Ng, candidates, passExclude, baked || pass == 1u, seed, L,\n'
+                      '\t\t\tfound, passChoice, reactive) * share', direct)
+        # an additive Ritual light's own sample passes through it again
+        self.assertIn('[[dont_unroll]] for (uint pass = 0u; pass < (split ? 2u : 1u); pass++) {', direct)
         baked = direct[direct.index('if (baked) {'):direct.index('} else if (oneSample) {')]
         self.assertIn('r.irradiance = surf.baked;', baked)
         self.assertIn('pick = (u_frame.flags.w > 0u && (exclude & RT_LIGHT_DYNAMIC) == 0u) ? 1u : 0u;', baked)
         # a lightmapped surface takes no sun or sky sample of its own
         self.assertLess(direct.index('if (baked) {\n\t\treturn r;\n\t}'),
                         direct.index('rt_sample_sun(P, N, Ng, seed, Lsky)'))
-        self.assertIn('float weight = (reflections && !baked) ? rt_light_weight(choice, N, Ng, V, L, roughness * roughness) : 1.0;',
+        self.assertIn('float weight = (reflections && !baked) ? rt_light_weight(passChoice, N, Ng, V, L, roughness * roughness) : 1.0;',
                       direct)
 
     def test_the_light_can_be_seen_alone(self):

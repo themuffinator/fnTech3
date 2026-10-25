@@ -117,6 +117,9 @@ typedef enum {
 // whose textures are not already decoded)
 #define RT_FRAME_LINEAR_LIGHT	( 1u << 11 )
 #define RT_FRAME_LIGHT_REUSE	( 1u << 12 )
+// a dynamic light this frame is additive (RT_LIGHT_ADDITIVE): world and
+// brush-model surfaces sample those lights apart (rt_path.glsl shade_direct)
+#define RT_FRAME_ADDITIVE_LIGHTS	( 1u << 13 )
 
 // Sky flags (skyImages[1][3])
 #define RT_SKY_BOX				( 1u << 0 )
@@ -152,6 +155,12 @@ typedef enum {
 #define RT_LIGHT_SKY			( 1u << 7 )
 // a dynamic light, which an RT_MF_NODLIGHT surface skips
 #define RT_LIGHT_DYNAMIC		( 1u << 8 )
+// an additive Alice or F.A.K.K.2 client-game light, which a world or
+// brush-model surface takes from white, adding its own colour whatever the
+// surface reflects (tr_ritual_additive_light.h; rt_path.glsl shade_direct).
+// The light bits stay below 1 << 16: a sample's receiver mask names bits a
+// light must carry above that (rt_lighting.glsl rt_light_eval)
+#define RT_LIGHT_ADDITIVE		( 1u << 9 )
 
 typedef struct {
 	uint32_t	flags;

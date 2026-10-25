@@ -21,9 +21,10 @@ struct RtLightSample {
 };
 
 // Evaluate one light at P with shading normal N, unless it skips this kind
-// of receiver (exclude: RT_LIGHT_NO_SURFACES or RT_LIGHT_NO_MODELS). For a
-// triangle the sample point is drawn uniformly over its area; E is then that
-// sample's estimate.
+// of receiver (exclude: RT_LIGHT_NO_SURFACES or RT_LIGHT_NO_MODELS) or lacks
+// a bit exclude requires above RT_LIGHT_REQUIRE_SHIFT. For a triangle the
+// sample point is drawn uniformly over its area; E is then that sample's
+// estimate.
 bool rt_light_eval(uint index, vec3 P, vec3 N, uint exclude, inout uint seed, out RtLightSample s)
 {
 	RtLight light = u_lights.lights[index];
@@ -32,7 +33,7 @@ bool rt_light_eval(uint index, vec3 P, vec3 N, uint exclude, inout uint seed, ou
 	s.L = vec3(0.0, 0.0, 1.0);
 	s.dist = 0.0;
 	s.E = vec3(0.0);
-	if ((word & exclude) != 0u) {
+	if (((word & exclude) | (~word & (exclude >> RT_LIGHT_REQUIRE_SHIFT))) != 0u) {
 		return false;
 	}
 

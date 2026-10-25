@@ -1180,7 +1180,7 @@
       "source": "rt_trace.comp",
       "stage": "comp",
       "defines": [],
-      "byte_size": 267856,
+      "byte_size": 271304,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -1264,7 +1264,7 @@
             "descriptor_count": 1
           },
           {
-            "name": "id_1688",
+            "name": "id_1692",
             "set": 0,
             "binding": 10,
             "storage_class": "Uniform",
@@ -1392,7 +1392,7 @@
       "source": "rt_main.rgen",
       "stage": "rgen",
       "defines": [],
-      "byte_size": 233720,
+      "byte_size": 237184,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -1476,7 +1476,7 @@
             "descriptor_count": 1
           },
           {
-            "name": "id_1582",
+            "name": "id_1587",
             "set": 0,
             "binding": 10,
             "storage_class": "Uniform",

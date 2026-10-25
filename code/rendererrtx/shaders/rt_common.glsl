@@ -164,6 +164,10 @@ const uint RT_LIGHT_NO_MODELS = 1u << 5;	// nogrid: world surfaces only
 const uint RT_LIGHT_TRACED = 1u << 6;		// a triangle light a glossy reflection can meet
 const uint RT_LIGHT_SKY = 1u << 7;			// a sky surface's emitter
 const uint RT_LIGHT_DYNAMIC = 1u << 8;		// a dynamic light, which an RT_MF_NODLIGHT surface skips
+const uint RT_LIGHT_ADDITIVE = 1u << 9;		// a Ritual additive light: world and brush models take it from white
+// A light sample's receiver mask names the light bits it skips; shifted up
+// by this, the bits a light must carry (rt_light_eval)
+const uint RT_LIGHT_REQUIRE_SHIFT = 16u;
 
 // Frame flags (RtFrame.flags.x).
 const uint RT_FRAME_BAKED_LIGHTING = 1u << 0;	// lightmaps instead of traced direct light
@@ -179,6 +183,7 @@ const uint RT_FRAME_SKY_RADIANCE = 1u << 9;	// the sky lights with its own colou
 const uint RT_FRAME_CHECKERBOARD = 1u << 10;	// half the tiles bounce each frame
 const uint RT_FRAME_LINEAR_LIGHT = 1u << 11;	// colours decoded, light traced linear
 const uint RT_FRAME_LIGHT_REUSE = 1u << 12; // replay compatible primary light proposals
+const uint RT_FRAME_ADDITIVE_LIGHTS = 1u << 13;	// a dynamic light carries RT_LIGHT_ADDITIVE
 
 // Pixel information flags (u_info bits 0..7).
 const uint RT_PIXEL_OWNED = 1u << 0;		// the path tracer owns this pixel's colour

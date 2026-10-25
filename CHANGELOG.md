@@ -285,9 +285,9 @@ historical upstream records, not fnTech3 release history. See the
   ([record](docs/fntech3/2026-10-23-fakk2-gap-round.md)).
 - Light a model in Alice and F.A.K.K.2 from a light it holds as the originals
   do, and let an additive light add its own colour to the walls and floor
-  round it, in either dynamic-light mode, so the glowing dung pile on
-  F.A.K.K.2's `creeperpens` is green and casts its green glow, as in the
-  original
+  round it, in either dynamic-light mode and under RTX's ray tracing, so
+  the glowing dung pile on F.A.K.K.2's `creeperpens` is green and casts its
+  green glow, as in the original
   ([record](docs/fntech3/2026-10-24-fakk2-playability-round.md)).
 - Light a map's spot lights only inside their cones, in every renderer, for
   Return to Castle Wolfenstein, Alice, F.A.K.K.2 and Medal of Honor. A spot
