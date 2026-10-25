@@ -257,7 +257,7 @@
   "uiInRestart": "BaseEF pak0-pak2 vm/ui.qvm and efuix86.dll each contain the string in_restart"
  },
  "notRun": [
-  "any physical joystick or gamepad (none attached; the user declined hands-on device checks)",
+  "any physical joystick or gamepad, including one plugged in after start (none attached; the user declined hands-on device checks)",
   "force feedback (no device)",
   "in_synthesize (it drives keys and the mouse, not a joystick)",
   "Linux and macOS SDL3 builds (still compiled without joystick input)"
@@ -403,5 +403,178 @@
   ],
   "turnFactorScope": "CL_JoystickMove, every Elite Force axis whichever producer queued it, as retail's: the Quake Live lane's full stick at cl_yawspeed 140 turns 177.8 deg/s (was 17,780) and SDL3 analog axes 1/100 of their old rate",
   "review": "independent read of the diff: found the level-change gap (fixed, tested, mutation-checked) and an overstated record claim about in_joystickProfile 1 (corrected); no null dereference, other profiles unchanged, nothing held across switch changes, resets or device loss, no /W4 hazard"
+ },
+ "hotPlug": {
+  "added": "2026-10-24, after the build change; native backend only",
+  "baseCommit": "7f7b1f56869d0bd65b8812b12af831a076059263 plus the uncommitted build change above",
+  "source": {
+   "code/win32/win_wndproc.cpp": "MainWndProc: case WM_DEVICECHANGE, if ( wParam == DBT_DEVNODES_CHANGED ) IN_DeviceNodesChanged(); break (DefWindowProcW follows); #include <dbt.h>; not under USE_JOYSTICK",
+   "code/win32/win_local.h": "void IN_DeviceNodesChanged( void ); in the extern \"C\" block, unconditional",
+   "code/win32/win_input.cpp": {
+    "IN_DeviceNodesChanged": "body under USE_JOYSTICK; ignored while in_joystick is unregistered or 0; records Sys_Milliseconds() and changeProbesLeft = 2; no WinMM call",
+    "IN_ProbeChangedJoystick": "called from IN_Frame before the focus check; returns unless probes are owed, no device is open and in_joystick is 1; runs IN_StartupJoystick 300 ms after the last notice and again 2000 ms after it; a probe at or past 2000 ms is the last; the unsigned elapsed time survives the clock wrap; notices that arrive while a device is open stay owed until it closes (IN_JoyMove reads only a focused window, so a pad swapped in the background is handled on return)",
+    "IN_StartupJoystick": "changeProbesLeft = 0 when in_joystick is 0 and when a device opens"
+   },
+   "winmmCallsWithJoystickOff": "none: the notice is ignored and the frame step returns before any WinMM call"
+  },
+  "delaysReference": {
+   "source": "SDL2 src/joystick/windows/SDL_windowsjoystick.c (zlib licence), reference observation only",
+   "observed": "SetTimer IDT_SDL_DEVICE_CHANGE_TIMER_1 300 ms and IDT_SDL_DEVICE_CHANGE_TIMER_2 2000 ms after DBT_DEVICEARRIVAL or DBT_DEVICEREMOVECOMPLETE for GUID_DEVINTERFACE_HID, \"to ensure all APIs have updated status\"",
+   "url": "https://skia.googlesource.com/third_party/sdl/+/master/src/joystick/windows/SDL_windowsjoystick.c"
+  },
+  "probeCost": {
+   "platform": "Windows 11 Home 10.0.26200, no controller; 32-bit clang program calling joyGetNumDevs and joyGetPosEx (JOY_RETURNCENTERED) on every slot",
+   "slots": 16,
+   "emptySlotResult": "0xa5 (JOYERR_PARMS)",
+   "firstProbeInProcessMs": [
+    227.2,
+    119.2,
+    167.8
+   ],
+   "laterProbesIdleMs": {
+    "median": [
+     0.228,
+     0.191
+    ],
+    "min": [
+     0.196,
+     0.188
+    ]
+   },
+   "laterProbesUnderBuildLoadMs": {
+    "mean": 1.257,
+    "worst": 7.72,
+    "probes": 1435,
+    "seconds": 45
+   },
+   "winmmLoadsDirectInput": "C:/Windows/SysWOW64/winmm.dll strings: DINPUT.DLL, DirectInputCreateW, DINPUTWINMM (static read)",
+   "otherWindowsVersions": "slower empty-slot queries reported to this task, not measured here",
+   "programs": ".tmp/joystick-hotplug/probecost: probe_cost.cpp (40 probes back to back), probe_loop.cpp (12 s at 16 ms), probe_slots.cpp (45 s, per-slot times, under build load); clang++ --target=i686-pc-windows-msvc -O1 -lwinmm"
+  },
+  "unit": {
+   "test": "tests/winmm_joystick_tests.py",
+   "addedSlices": [
+    "IN_DeviceNodesChanged",
+    "IN_ProbeChangedJoystick"
+   ],
+   "fakeClock": "Sys_Milliseconds stub",
+   "scenarios": [
+    "in_joystick 0: a notice and 10 s of frames call no WinMM; switching it on owes nothing for that notice",
+    "no device: a burst of three notices probes 16 slots 300 ms after the last and again at 2000 ms, then none for 27 s",
+    "a pad listed only by the second probe opens then and reads at once; no third probe",
+    "a pad found by the first probe leaves nothing owed; closed later by three failing reads, with no notice since, it is not probed for",
+    "notices probe nothing while a device is open but stay owed: closed by three failing reads 10 s later, it is probed for once, at once (both delays passed), and not again after failing again",
+    "unplugging closes the pad and the removal notice opens a second pad in another slot",
+    "a frame past 2000 ms probes once",
+    "a start with in_joystick 0 drops owed probes",
+    "the frame step checks in_joystick itself",
+    "delays hold across the millisecond clock wrap",
+    "nothing happens before in_joystick is registered"
+   ],
+   "mutationsCaught": [
+    "notice ignores in_joystick",
+    "probe ignores in_joystick",
+    "probe ignores an open device",
+    "notices dropped while a device is open",
+    "first delay 0",
+    "last delay 300",
+    "no late-frame rule",
+    "one probe only",
+    "owed probes kept when a device opens",
+    "owed probes kept by a start with in_joystick 0",
+    "a burst does not restart the clock",
+    "64-bit time difference (breaks at the wrap)"
+   ],
+   "mutationHarness": ".tmp/joystick-hotplug/mutate.py (compiles each mutation of the sliced source)"
+  },
+  "sourceTests": "tests/input_system_source_tests.py: Win32InputProducerTests.test_winmm_joystick_is_looked_for_after_device_changes, and the IN_Frame fragment in test_joystick_stays_off_until_in_joystick_is_set",
+  "build": {
+   "dir": ".tmp/joystick-hotplug/bn (worktree modest-mccarthy-d5c777)",
+   "options": "-Dsdl=disabled -Drenderers=glx -Drenderer-default=glx -Drenderer-dlopen=true -Dstrict-warnings=true -Db_vscrt=static_from_buildtype -Dlauncher=disabled --buildtype=debugoptimized --wrap-mode=nodownload",
+   "fntech3.exe": "951e77426ffd486b25c66b3c3276f7679c863bc89b3bc600cb7a8e3ea2188976",
+   "win_input.cpp and win_wndproc.cpp": "compiled with -DUSE_JOYSTICK, /W4 /WX",
+   "mingw": "MSYS2 MINGW32 i686 g++ 15.2 with the Makefile release flags (from make -n) plus -Wextra: win_input.cpp with -DUSE_JOYSTICK and without, win_wndproc.cpp without (as the Makefile builds it); exit 0, no warning from the new lines; nm shows IN_DeviceNodesChanged defined (T) in both win_input objects and undefined (U) in win_wndproc.o"
+  },
+  "live": {
+   "harness": ".tmp/joystick-hotplug/probe_device_change.py: tests/windows_private_process.py private desktop, never focused, isolated fs_homepath with empty configs, developer 1, logfile 2; notices sent with SendMessageTimeoutW (SMTO_ABORTIFHUNG, 2000 ms) from a thread attached to that desktop, to the probe process's own top-level windows only; no keyboard, mouse or controller input",
+   "installation": "E:\\Games\\Star Trek Voyager Elite Force (read only)",
+   "executableUnchanged": true,
+   "installationUnchanged": true,
+   "runs": [
+    {
+     "in_joystick": "1",
+     "profile": "stvef-mp",
+     "commandLine": "fntech3.exe +set com_gameProfile stvef-mp +set fs_basepath E:\\Games\\Star Trek Voyager Elite Force +set fs_homepath <home> +set fs_game  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 640 +set r_customHeight 480 +set in_mouse 0 +set in_nograb 1 +set in_joystick 1 +set s_initsound 0 +set net_enabled 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set developer 1 +set logfile 2 +set com_introplayed 1 +set cl_motd 0 +exec joy-probe.cfg",
+     "notices": "three WM_DEVICECHANGE DBT_DEVNODES_CHANGED, 100 and 150 ms apart, after a 3 s quiet period",
+     "windowsSentTo": [
+      "CicLoaderWndClass",
+      "CiceroUIWndFrame",
+      "IME",
+      "MSCTFIME UI",
+      "NVOpenGLPbuffer",
+      "Q3 WinConsole",
+      "Touch Tooltip Window",
+      "UAC Input Indicator",
+      "UAC_InputIndicatorOverlayWnd",
+      "fnTech3"
+     ],
+     "allDelivered": true,
+     "linesBeforeQuiet": [
+      "^5joystick not found -- no valid joysticks (a5)"
+     ],
+     "linesDuringQuiet": [],
+     "linesAfterBurst": [
+      {
+       "line": "^5Devices changed; looking for a joystick.",
+       "msAfterLastNotice": 328
+      },
+      {
+       "line": "^5joystick not found -- no valid joysticks (a5)",
+       "msAfterLastNotice": 328
+      },
+      {
+       "line": "^5Devices changed; looking for a joystick.",
+       "msAfterLastNotice": 2016
+      },
+      {
+       "line": "^5joystick not found -- no valid joysticks (a5)",
+       "msAfterLastNotice": 2016
+      }
+     ],
+     "errors": [],
+     "stoppedByHarness": true,
+     "seconds": 13.2
+    },
+    {
+     "in_joystick": "0",
+     "profile": "stvef-mp",
+     "commandLine": "fntech3.exe +set com_gameProfile stvef-mp +set fs_basepath E:\\Games\\Star Trek Voyager Elite Force +set fs_homepath <home> +set fs_game  +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 640 +set r_customHeight 480 +set in_mouse 0 +set in_nograb 1 +set in_joystick 0 +set s_initsound 0 +set net_enabled 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer glx +set developer 1 +set logfile 2 +set com_introplayed 1 +set cl_motd 0 +exec joy-probe.cfg",
+     "notices": "three WM_DEVICECHANGE DBT_DEVNODES_CHANGED, 100 and 150 ms apart, after a 3 s quiet period",
+     "windowsSentTo": [
+      "CicLoaderWndClass",
+      "CiceroUIWndFrame",
+      "IME",
+      "MSCTFIME UI",
+      "NVOpenGLPbuffer",
+      "Q3 WinConsole",
+      "Touch Tooltip Window",
+      "UAC Input Indicator",
+      "UAC_InputIndicatorOverlayWnd",
+      "fnTech3"
+     ],
+     "allDelivered": true,
+     "linesBeforeQuiet": [
+      "^5Joystick is not active."
+     ],
+     "linesDuringQuiet": [],
+     "linesAfterBurst": [],
+     "errors": [],
+     "stoppedByHarness": true,
+     "seconds": 11.4
+    }
+   ]
+  },
+  "open": "no controller was plugged in: that WinMM lists a device connected after its first call is not observed; the probes call what in_restart calls, in the same process",
+  "review": "independent read of the diff (subagent, 2026-10-25): no correctness bug; one wording finding, that owed probes from a notice while a device is open outlive it, kept as intended and now stated in the record and pinned by the unit test"
  }
 }

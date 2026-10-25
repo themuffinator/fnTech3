@@ -232,12 +232,14 @@ built on it. The stick's left, right, up and down act as the arrow keys
 (Elite Force's menus can make them smooth instead; see
 [its notes](#star-trek-voyager-elite-force-stvef-sp-stvef-mp)), and the hat
 as `JOY24` to `JOY27`. `joy_threshold` sets how far a stick must
-move before it counts. If you plug the controller in after the game has
-started, type `in_restart` in the console.
+move before it counts. You can plug the controller in after the game has
+started: fnTech3 looks for it again when Windows reports a new device, and
+it should work within about two seconds. If it does not, type `in_restart`
+in the console. If you unplug it, any button it held is let go.
 
 A copy of fnTech3 built with SDL3 on Windows names a gamepad's buttons
-instead (`PAD0_A` and so on), and notices a controller plugged in at any
-time. The games' own menus may not show those names, so bind them in the
+instead (`PAD0_A` and so on), and also notices a controller plugged in at
+any time. The games' own menus may not show those names, so bind them in the
 console, for example `bind PAD0_A +attack`. Linux builds read joysticks
 without SDL3 only; macOS builds do not read them yet
 ([details](fntech3/2026-10-24-windows-joystick.md)).

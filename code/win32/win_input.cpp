@@ -163,6 +163,10 @@ typedef struct {
 	int			oldmoveaxisstate[MAX_JOYSTICK_AXIS];
 	int			consecutiveReadFailures;
 
+	// probes still owed to the last burst of device changes, and its time
+	unsigned int	deviceChangeTime;
+	int			changeProbesLeft;
+
 	JOYINFOEX	ji;
 } joystickInfo_t;
 
@@ -206,6 +210,7 @@ cvar_t	*joy_ybutton;
 void IN_StartupJoystick (void);
 void IN_JoyMove(void);
 static void IN_ClearWinMMJoystickState( qboolean disable );
+static void IN_ProbeChangedJoystick( void );
 #endif
 
 #ifdef USE_MIDI
@@ -2010,6 +2015,7 @@ void IN_Frame( void ) {
 
 	// post joystick events
 #ifdef USE_JOYSTICK
+	IN_ProbeChangedJoystick();
 	if ( gw_active && WIN_WindowFocused() && !gw_minimized &&
 		!WIN_InputSuspended() ) {
 		IN_JoyMove();
@@ -2120,6 +2126,27 @@ JOYSTICK
 =========================================================================
 */
 
+/*
+===============
+IN_DeviceNodesChanged
+
+Windows sends DBT_DEVNODES_CHANGED to every top-level window, several times
+while one device arrives or leaves. Each notice restarts the probes that
+IN_ProbeChangedJoystick owes; nothing here calls WinMM.
+===============
+*/
+void IN_DeviceNodesChanged( void )
+{
+#ifdef USE_JOYSTICK
+	if ( !in_joystick || !in_joystick->integer ) {
+		return;
+	}
+	joy.deviceChangeTime = static_cast<unsigned int>( Sys_Milliseconds() );
+	joy.changeProbesLeft = 2;
+#endif
+}
+
+
 #ifdef USE_JOYSTICK
 /* 
 =============== 
@@ -2150,6 +2177,7 @@ void IN_StartupJoystick (void) {
 	IN_ClearWinMMJoystickState( qtrue );
 
 	if (! in_joystick->integer ) {
+		joy.changeProbesLeft = 0;
 		Com_DPrintf ("Joystick is not active.\n");
 		return;
 	}
@@ -2205,7 +2233,44 @@ void IN_StartupJoystick (void) {
 
 	// mark the joystick as available
 	joy.avail = qtrue; 
+	joy.changeProbesLeft = 0;
 	Cvar_Set( "ui_joyavail", "1" );
+}
+
+
+/*
+===============
+IN_ProbeChangedJoystick
+
+Looks for a joystick again after the devices changed, so one plugged in
+after start, or a second one left when the open one is unplugged, is found
+without in_restart. A new device may reach WinMM only once its drivers
+settle, so the slots are probed 300 ms and again 2 s after the last notice,
+the delays SDL2's Windows joystick detection uses. Nothing probes while
+in_joystick is 0 or a device is open, and nothing probes every frame: a
+WinMM query of an empty slot can be slow.
+===============
+*/
+static void IN_ProbeChangedJoystick( void )
+{
+	static constexpr unsigned int kFirstProbeDelay = 300;
+	static constexpr unsigned int kLastProbeDelay = 2000;
+
+	if ( joy.changeProbesLeft <= 0 || joy.avail ||
+		!in_joystick || !in_joystick->integer ) {
+		return;
+	}
+
+	const unsigned int elapsed =
+		static_cast<unsigned int>( Sys_Milliseconds() ) - joy.deviceChangeTime;
+	if ( elapsed < ( joy.changeProbesLeft > 1 ? kFirstProbeDelay : kLastProbeDelay ) ) {
+		return;
+	}
+
+	// a late frame past the last delay makes this probe the last one
+	joy.changeProbesLeft = elapsed >= kLastProbeDelay ? 0 : joy.changeProbesLeft - 1;
+	Com_DPrintf( "Devices changed; looking for a joystick.\n" );
+	IN_StartupJoystick();
 }
 
 /*

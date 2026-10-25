@@ -299,8 +299,10 @@ historical upstream records, not fnTech3 release history. See the
   originals did, once `in_joystick 1` or the game's controls menu switches
   them on: the
   Windows download through WinMM with Quake III's key mapping, SDL3 builds
-  through SDL3's gamepad support. Windows builds had compiled joystick input
-  out since the code base began
+  through SDL3's gamepad support. Both look for a controller plugged in
+  after the game starts; the Windows download does so when Windows reports
+  a new device, never every frame. Windows builds had compiled joystick
+  input out since the code base began
   ([record](docs/fntech3/2026-10-24-windows-joystick.md)).
 - Honour Elite Force's "X axis as button" and "Y axis as button" settings
   with a joystick in the Windows download: with one off, that direction of

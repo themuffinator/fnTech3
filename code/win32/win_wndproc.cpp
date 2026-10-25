@@ -27,6 +27,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "glw_win.h"
 #include "win_raii.h"
 
+#include <dbt.h>
 #include <vector>
 
 #ifndef WM_MOUSEWHEEL
@@ -1684,6 +1685,14 @@ LRESULT WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM  wParam, LPARAM lParam 
 	case WM_INPUT_DEVICE_CHANGE:
 		IN_RawInputDeviceChange( wParam, lParam );
 		return 0;
+
+	case WM_DEVICECHANGE:
+		// Windows sends this to every top-level window when a device is
+		// added or removed; a joystick plugged in after start is looked for.
+		if ( wParam == DBT_DEVNODES_CHANGED ) {
+			IN_DeviceNodesChanged();
+		}
+		break;
 
 	case WM_SYSCOMMAND:
 		// Prevent Alt+Letter commands from hanging the application temporarily

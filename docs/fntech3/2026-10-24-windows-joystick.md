@@ -73,24 +73,26 @@ leaves out HIDAPI and raw input.
 | Makefile, MinGW | none | `sdl_input.o` with SDL3, `win_input.o` without it, each `CXXFLAGS += -DUSE_JOYSTICK` |
 | Linux and macOS with SDL3 | none | still none |
 
-The build change touched no source; the Elite Force follow-up below changes
-the WinMM producer and `CL_JoystickMove` for Elite Force alone. The behaviour
-is the producers' own:
+The build change touched no source. Two follow-ups below, both added
+afterwards, do: the native backend's hot-plug, and a change to the WinMM
+producer and `CL_JoystickMove` for Elite Force alone. Otherwise the
+behaviour is the producers' own:
 
 - With `in_joystick 0`, the native backend makes no WinMM call, at start or
   per frame. An SDL3 build starts SDL3's joystick and gamepad subsystems to
   list devices in `in_availableJoysticks`, as FnQL's SDL3 backend and
   ioquake3 do, and opens none.
-- With `in_joystick 1`, the native backend probes WinMM's sixteen slots once
+- With `in_joystick 1`, the native backend probes WinMM's sixteen slots
   when input starts, takes the first device found, and reads it each frame
   while the window has focus and is neither minimized nor suspended.
   Quake III's controls menu runs `in_restart` when it saves its settings
   (`q3_ui/ui_controls2.c`), and Elite Force's menus carry the same command
   (Holomatch `vm/ui.qvm`, single player `efuix86.dll`); otherwise
-  `in_restart` in the console applies the latched switch. A device plugged
-  in later is found at the next `in_restart`; one unplugged is closed with an
-  input reset, which releases what it held. The SDL3 backend reopens on
-  SDL3's hot-plug events.
+  `in_restart` in the console applies the latched switch. A device
+  unplugged is closed with an input reset, which releases what it held. A
+  device plugged in later is looked for again once Windows reports the
+  change ([hot-plug](#hot-plug-in-the-native-backend)); the SDL3 backend
+  reopens on SDL3's hot-plug events.
 - The native mapping is Quake III's. Buttons are `JOY1` onwards, up to
   sixteen. The X and Y stick directions are the arrow keys, Z is `JOY16` and
   `JOY17`, R is `JOY18` and `JOY19`, and the hat's four directions are
@@ -111,6 +113,118 @@ is the producers' own:
 Invariant 11 applies to input presentation. This change adds no mapping of
 its own: the WinMM path keeps FnQ3's, the SDL3 path FnQL's, and both are the
 FnQ3/FnQL systems the profiles adopt.
+
+## Hot-plug in the native backend
+
+Added later the same day. Until then the native backend probed WinMM's
+slots only when input started, so a controller plugged in after that needed
+`in_restart`, while SDL3 builds reopened on SDL3's own hot-plug events. The
+README promises controllers that can be plugged in at any time, and the
+release packages are native builds (`-Dsdl=disabled` in
+`.github/workflows/release.yml`).
+
+- Windows sends `WM_DEVICECHANGE` with `DBT_DEVNODES_CHANGED` to every
+  top-level window when a device is added or removed; no registration is
+  needed. `MainWndProc` (`code/win32/win_wndproc.cpp`) passes it to
+  `IN_DeviceNodesChanged` and then on to `DefWindowProcW`, as before. The
+  call is outside `USE_JOYSTICK`, because the Makefile defines that for
+  `win_input.o` alone; the function's body is inside it.
+- `IN_DeviceNodesChanged` only notes the time and that two probes are owed.
+  It makes no WinMM call. While `in_joystick` is 0, or not yet registered,
+  it ignores the notice.
+- `IN_Frame` calls `IN_ProbeChangedJoystick` every frame, ahead of the focus
+  check, so a pad plugged in while the window is in the background is open
+  when the player returns. That step reruns `IN_StartupJoystick`, the same
+  sixteen-slot probe `in_restart` runs, 300 ms after the last notice of a
+  burst and again 2 s after it, and then stops. A new notice restarts both.
+  It probes nothing while `in_joystick` is 0 or a device is open. A frame
+  that arrives after the 2 s mark, after a map load say, makes its probe the
+  last. Opening a device, or a start with `in_joystick` 0, drops any probes
+  still owed.
+- An unplugged pad, which `IN_JoyMove` already closes at once, is followed
+  by the two probes its removal notice owes, which open a second pad still
+  connected, if there is one. Notices that arrive while a device is open
+  stay owed until it closes. `IN_JoyMove` reads only a focused window, so a
+  pad swapped while the game is in the background is closed, and the new
+  one looked for, when the player returns; if the delays have passed by
+  then, the probe runs at once. A device closed after three failing reads
+  is looked for again only when a notice has come since the last probe, at
+  most twice per notice, so a faulty device cannot keep the slots probed.
+- The delays are those of SDL2's Windows joystick detection
+  (`src/joystick/windows/SDL_windowsjoystick.c`), which sets timers at
+  300 ms and 2 s after a HID arrival or removal "to ensure all APIs have
+  updated status". That is reference observation; no SDL text is used. SDL
+  registers for HID interface notices on a hidden window instead.
+  `DBT_DEVNODES_CHANGED` needs no registration but also follows unrelated
+  devices, such as a USB drive, so such a change costs at most two probes,
+  and only while a joystick is wanted and none is open.
+- Probing every frame would cost this every frame. Measured on this machine
+  (Windows 11 26200, no controller, a 32-bit program calling WinMM
+  directly): the first sixteen-slot probe in a process took 119 to 227 ms,
+  while `winmm.dll` loads DirectInput (its strings name `DINPUT.DLL`,
+  `DirectInputCreateW` and a `DINPUTWINMM` key); later ones took about
+  0.2 ms idle, and 1.3 ms on average, up to 7 ms, while a build ran. The
+  first probe is the one input start already makes. Slower empty slots on
+  other Windows versions were reported to this task but not checked here.
+
+Open: no controller was plugged in, so it is not observed that WinMM lists
+one connected after its first call. The new probes call exactly what
+`in_restart` calls, in the same process, so they find a late device
+whenever `in_restart` would; the guide still names `in_restart` if one is
+not found. If WinMM turns out to keep the list it made at its first call,
+`joyConfigChanged(0)` before the probe is the call to try. Microsoft
+documents that it makes Windows send a message to every top-level window,
+so it is not used without that evidence.
+
+The evidence:
+
+- **Source.** `tests/input_system_source_tests.py` checks the window
+  procedure's case, its `<dbt.h>` include and that no `#if` surrounds it;
+  the declaration in `win_local.h`; that the notice calls no WinMM and checks
+  `in_joystick` first; the probe step's delays, its gates and its call of
+  `IN_StartupJoystick`; that a start with `in_joystick` 0 and an opened
+  device drop owed probes; and that `IN_Frame` calls the step before the
+  focus check and queries WinMM nowhere itself.
+- **Unit.** `tests/winmm_joystick_tests.py` now also cuts out
+  `IN_DeviceNodesChanged` and `IN_ProbeChangedJoystick` and drives them with
+  a fake clock. With `in_joystick` 0 a notice leads to no WinMM call, and
+  switching it on owes nothing for it. With no device, a burst of three
+  notices gives one sixteen-slot probe 300 ms after the last and one at 2 s,
+  and none in the 27 s after. A pad WinMM lists only by the second probe
+  opens then and reads at once. One found by the first probe leaves nothing
+  owed; closed later by failing reads, with no notice since, it is not
+  probed for. Notices probe nothing while a device is open but stay owed:
+  closed by failing reads 10 s later, it is probed for once, at once, and
+  not again. Unplugging it is followed by a probe that opens a second pad. A late frame probes once, a start with `in_joystick` 0
+  drops owed probes, the frame step checks `in_joystick` itself, the delays
+  hold across the millisecond clock's wrap, and nothing happens before
+  `in_joystick` is registered. Twelve mutations were each caught: either
+  `in_joystick` check dropped, the open-device check dropped, notices
+  dropped while a device is open, a first delay of 0, a last delay of
+  300 ms, no late-frame rule, a single probe, owed probes kept on opening or
+  on a start with 0, a burst that does not restart the clock, and a 64-bit
+  time difference that breaks at the wrap.
+- **Build.** The native client (`-Dsdl=disabled`, MSVC x86 debugoptimized,
+  `/W4 /WX`) built with both changed files compiled with `USE_JOYSTICK`.
+  MSYS2's i686 GCC 15.2 compiled them with the Makefile's MinGW flags plus
+  `-Wextra`, `win_input.cpp` with and without `USE_JOYSTICK`, with no
+  warning from the new code; without it `IN_DeviceNodesChanged` is still
+  defined, unmangled, for the window procedure to call.
+- **Live, no device.** `.tmp/joystick-hotplug/probe_device_change.py` starts
+  `stvef-mp` as the start-up runs below do, windowed on a private desktop that
+  never had focus, with an isolated home and empty configs, once with
+  `in_joystick` 1 and once with 0. After `PROBE ready` it watched the log for
+  3 s, then sent three `WM_DEVICECHANGE` `DBT_DEVNODES_CHANGED` notices, 100
+  and 150 ms apart, with `SendMessageTimeoutW`, from a thread attached to that
+  desktop, to the client's own top-level windows only: the game window, its
+  console, and the helper windows the graphics driver and Windows' text input
+  make in the process. That is the message Windows broadcasts; it carries no
+  keyboard, mouse or controller input, and none was sent. With 1: no probe in
+  the quiet 3 s; `Devices changed; looking for a joystick.` and `joystick not
+  found -- no valid joysticks (a5)` at 328 ms and again at 2,016 ms after the
+  last notice; none in the 4 s after. With 0: `Joystick is not active.` at
+  start and nothing after the notices. The harness then stopped both clients.
+  No errors; the executable and installation were unchanged.
 
 ## Elite Force's axis switches and turn scale
 
@@ -288,9 +402,11 @@ lane's values are retail's.
 The user chose not to run hands-on device checks, and this machine has no
 controller or force-feedback device. Nothing here reads a real device:
 mapping, dead zones, hot-plug and loss are covered only by the simulated
-WinMM device and the producers' existing tests. The engine's synthetic input
-(`in_synthesize`) drives keys and the mouse, not a joystick, so it was not
-used. Linux and macOS builds with SDL3 still have no joystick input. Elite
-Force's switches and turn scale were not run against retail or in a live
-fnTech3 session; their evidence is the static reads and the unit checks
-above. The SDL3 backend does not read the switches.
+WinMM device, the producers' existing tests and the device-change notice
+run; no controller plugged in after start was seen to open. The engine's
+synthetic input (`in_synthesize`) drives keys and the mouse, not a
+joystick, so it was not used. Linux and macOS builds with SDL3 still have
+no joystick input. Elite Force's switches and turn scale were not run
+against retail or in a live fnTech3 session; their evidence is the static
+reads and the unit checks above. The SDL3 backend does not read the
+switches.

@@ -2662,11 +2662,91 @@ class Win32InputProducerTests(unittest.TestCase):
         frame = function_body(self.input, "IN_Frame")
         self.assertIn(
             "#ifdef USE_JOYSTICK\n"
+            "\tIN_ProbeChangedJoystick();\n"
             "\tif ( gw_active && WIN_WindowFocused() && !gw_minimized &&\n"
             "\t\t!WIN_InputSuspended() ) {\n"
             "\t\tIN_JoyMove();",
             frame,
         )
+
+    def test_winmm_joystick_is_looked_for_after_device_changes(self) -> None:
+        # Windows sends DBT_DEVNODES_CHANGED to every top-level window when a
+        # device arrives or leaves. The window procedure forwards it whatever
+        # the build defines (the Makefile sets USE_JOYSTICK for win_input.o
+        # alone), the notice only schedules, and the frame step probes the
+        # slots only while in_joystick is on and no device is open.
+        self.assertIn("#include <dbt.h>", self.wndproc)
+        device_messages = section(
+            self.wndproc, "case WM_INPUT_DEVICE_CHANGE:", "case WM_SYSCOMMAND:"
+        )
+        assert_order(
+            self,
+            device_messages,
+            "case WM_DEVICECHANGE:",
+            "if ( wParam == DBT_DEVNODES_CHANGED ) {",
+            "IN_DeviceNodesChanged();",
+            "break;",
+        )
+        self.assertNotIn("#if", device_messages)
+        local = read_text("code/win32/win_local.h")
+        assert_order(
+            self,
+            local,
+            'extern "C" {',
+            "void\tIN_DeviceNodesChanged( void );",
+            "#ifdef USE_MIDI",
+        )
+
+        notice = function_body(self.input, "IN_DeviceNodesChanged")
+        assert_order(
+            self,
+            notice,
+            "#ifdef USE_JOYSTICK",
+            "if ( !in_joystick || !in_joystick->integer ) {",
+            "return;",
+            "joy.deviceChangeTime =",
+            "joy.changeProbesLeft = 2;",
+            "#endif",
+        )
+        self.assertNotIn("joyGet", notice)
+
+        probe = function_body(self.input, "IN_ProbeChangedJoystick")
+        assert_order(
+            self,
+            probe,
+            "kFirstProbeDelay = 300;",
+            "kLastProbeDelay = 2000;",
+            "if ( joy.changeProbesLeft <= 0 || joy.avail ||",
+            "!in_joystick || !in_joystick->integer ) {",
+            "return;",
+            "static_cast<unsigned int>( Sys_Milliseconds() ) - joy.deviceChangeTime;",
+            "return;",
+            "joy.changeProbesLeft = elapsed >= kLastProbeDelay ? 0 :",
+            "IN_StartupJoystick();",
+        )
+        self.assertNotIn("joyGet", probe)
+
+        startup = function_body(self.input, "IN_StartupJoystick")
+        assert_order(
+            self,
+            startup,
+            "if (! in_joystick->integer ) {",
+            "joy.changeProbesLeft = 0;",
+            "return;",
+            "joy.avail = qtrue;",
+            "joy.changeProbesLeft = 0;",
+        )
+        # Probing runs even unfocused, so it is ahead of the focus gate, and
+        # nothing in the frame queries WinMM itself.
+        frame = function_body(self.input, "IN_Frame")
+        assert_order(
+            self,
+            frame,
+            "IN_ProbeChangedJoystick();",
+            "if ( gw_active && WIN_WindowFocused() && !gw_minimized &&",
+            "IN_JoyMove();",
+        )
+        self.assertNotIn("joyGet", frame)
 
     def test_absolute_position_dedup_includes_overlay_consumer(self) -> None:
         identity = function_body(

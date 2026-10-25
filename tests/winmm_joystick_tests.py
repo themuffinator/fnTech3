@@ -6,10 +6,11 @@ no controller and touch no real input device. They pin what the native Windows
 backend does now that it compiles its joystick support: nothing at all until
 in_joystick is set, a quiet start with no device, Quake III's key mapping for
 buttons, stick directions and the POV hat, Quake Live's opt-in analog profile,
-and recovery when the device is unplugged. Elite Force's "X/Y axis as button"
-switches and its joystick turn scale are driven through the same producer and
-on into the client's own CL_JoystickEvent and CL_JoystickMove, cut out of
-code/client/cl_input.cpp.
+recovery when the device is unplugged, and the two bounded probes that a
+Windows device-change notice schedules, which find a controller plugged in
+after start. Elite Force's "X/Y axis as button" switches and its joystick
+turn scale are driven through the same producer and on into the client's
+own CL_JoystickEvent and CL_JoystickMove, cut out of code/client/cl_input.cpp.
 """
 from __future__ import annotations
 
@@ -38,6 +39,7 @@ def block(text: str, start_marker: str, end_marker: str) -> str:
 
 PRELUDE = r'''
 #define _CRT_SECURE_NO_WARNINGS 1
+#define USE_JOYSTICK 1
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <mmsystem.h>
@@ -105,6 +107,8 @@ static void WIN_QueueInputReset( qboolean rebuildModifiers ) {
 	assert( rebuildModifiers );
 	++inputResets;
 }
+static int fakeNow;
+static int Sys_Milliseconds( void ) { return fakeNow; }
 
 // The simulated device. An id with no controller behind it answers an
 // error; Windows 11 answered JOYERR_PARMS (0xa5) for every slot of a machine
@@ -202,6 +206,14 @@ static bool Has( int type, int value, int value2 ) {
 }
 
 static void Poll() { events.clear(); IN_JoyMove(); }
+
+// IN_Frame's device-change step, once per millisecond from now up to, not
+// including, end.
+static void FramesUntil( int end ) {
+	for ( ; fakeNow < end; ++fakeNow ) {
+		IN_ProbeChangedJoystick();
+	}
+}
 
 int main() {
 	thresholdCvar.value = 0.15f;
@@ -568,6 +580,195 @@ int main() {
 	CL_JoystickMove( &cmd );
 	assert( nearly( cl.viewangles[YAW], 1778.0f ) );
 
+	// Device-change notices. With in_joystick 0 they are ignored and nothing
+	// calls WinMM, however long the frames run.
+	joystickCvar.integer = 0;
+	IN_StartupJoystick();
+	assert( !joy.avail );
+	ResetCounters();
+	fakeNow = 10000;
+	IN_DeviceNodesChanged();
+	FramesUntil( 20000 );
+	assert( numDevsCalls == 0 && posCalls == 0 && capsCalls == 0 );
+	// Switched on afterwards, it probes once at start and owes nothing for
+	// the notice it ignored.
+	joystickCvar.integer = 1;
+	fakeDeviceId = -1;
+	IN_StartupJoystick();
+	assert( !joy.avail && numDevsCalls == 1 );
+	FramesUntil( 25000 );
+	assert( numDevsCalls == 1 );
+
+	// With in_joystick 1 and no device, a burst of three notices calls no WinMM
+	// itself, then gives one probe of the sixteen slots 300 ms after its last
+	// notice, a second 2 s after it, and none after that.
+	ResetCounters();
+	fakeNow = 30000;
+	IN_DeviceNodesChanged();
+	fakeNow = 30100;
+	IN_DeviceNodesChanged();
+	fakeNow = 30250;
+	IN_DeviceNodesChanged();
+	FramesUntil( 30550 );
+	assert( numDevsCalls == 0 && posCalls == 0 && capsCalls == 0 );
+	FramesUntil( 30551 );
+	assert( numDevsCalls == 1 && posCalls == 16 && capsCalls == 0 );
+	FramesUntil( 32250 );
+	assert( numDevsCalls == 1 );
+	FramesUntil( 32251 );
+	assert( numDevsCalls == 2 && posCalls == 32 );
+	FramesUntil( 60000 );
+	assert( numDevsCalls == 2 && posCalls == 32 );
+	assert( !joy.avail && uiJoyAvail == "0" && events.empty() && inputResets == 0 );
+
+	// A pad plugged in after start that WinMM lists only by the second probe
+	// is opened then and reads at once; no third probe follows.
+	ResetCounters();
+	fakeNow = 70000;
+	IN_DeviceNodesChanged();
+	FramesUntil( 70301 );
+	assert( numDevsCalls == 1 && !joy.avail );
+	PlugInPad( 5 );
+	FramesUntil( 72000 );
+	assert( numDevsCalls == 1 && !joy.avail );
+	FramesUntil( 72001 );
+	assert( joy.avail && joy.id == 5 && uiJoyAvail == "1" );
+	assert( numDevsCalls == 2 && capsCalls == 1 );
+	fakeState.dwButtons = 1;
+	Poll();
+	assert( events.size() == 1 && Has( SE_KEY, K_JOY1, qtrue ) );
+	fakeState.dwButtons = 0;
+	Poll();
+	FramesUntil( 80000 );
+	assert( numDevsCalls == 2 );
+
+	// Found by the first probe, a pad leaves no second probe owed.
+	fakeDeviceId = -1;
+	IN_StartupJoystick();
+	assert( !joy.avail );
+	PlugInPad( 3 );
+	ResetCounters();
+	IN_DeviceNodesChanged();
+	FramesUntil( 80301 );
+	assert( joy.avail && joy.id == 3 && numDevsCalls == 1 );
+	FramesUntil( 85000 );
+	assert( numDevsCalls == 1 );
+	// Closed later by three failing reads, with no notice since its probe, it
+	// is not looked for again, so a faulty device cannot keep the slots probed.
+	fakeFailures = 3;
+	Poll();
+	Poll();
+	Poll();
+	assert( !joy.avail && inputResets == 1 );
+	PlugInPad( 3 );
+	FramesUntil( 90000 );
+	assert( numDevsCalls == 1 && !joy.avail );
+	IN_StartupJoystick();
+	assert( joy.avail && joy.id == 3 );
+
+	// While a device is open, notices probe nothing.
+	ResetCounters();
+	IN_DeviceNodesChanged();
+	FramesUntil( 100000 );
+	assert( numDevsCalls == 0 && posCalls == 0 );
+	// They stay owed until it closes, as a pad swapped while the window is in
+	// the background needs. Closed by failing reads long after, it is looked
+	// for once, at once, since both delays have passed, and then not again.
+	fakeFailures = 3;
+	Poll();
+	Poll();
+	Poll();
+	assert( !joy.avail && inputResets == 1 );
+	FramesUntil( 100001 );
+	assert( joy.avail && joy.id == 3 && numDevsCalls == 1 );
+	fakeFailures = 3;
+	Poll();
+	Poll();
+	Poll();
+	assert( !joy.avail && inputResets == 2 );
+	FramesUntil( 110000 );
+	assert( numDevsCalls == 1 && !joy.avail );
+	IN_StartupJoystick();
+	assert( joy.avail && joy.id == 3 );
+
+	// Unplugging the open pad closes it at once, and the notice for its
+	// removal finds the second pad still connected in another slot.
+	fakeFailures = 1;
+	fakeFailure = JOYERR_UNPLUGGED;
+	ResetCounters();
+	IN_DeviceNodesChanged();
+	Poll();
+	assert( !joy.avail && inputResets == 1 && events.empty() );
+	fakeFailure = JOYERR_PARMS;
+	PlugInPad( 9 );
+	FramesUntil( 110300 );
+	assert( numDevsCalls == 0 && !joy.avail );
+	FramesUntil( 110301 );
+	assert( joy.avail && joy.id == 9 && numDevsCalls == 1 );
+	FramesUntil( 120000 );
+	assert( numDevsCalls == 1 );
+
+	// A frame that arrives past the 2 s mark, after a map load say, probes
+	// once and owes nothing more.
+	fakeDeviceId = -1;
+	IN_StartupJoystick();
+	assert( !joy.avail );
+	ResetCounters();
+	IN_DeviceNodesChanged();
+	fakeNow += 2500;
+	FramesUntil( fakeNow + 1 );
+	assert( numDevsCalls == 1 );
+	FramesUntil( fakeNow + 10000 );
+	assert( numDevsCalls == 1 );
+
+	// A start with in_joystick 0, as in_restart gives, drops the probes owed;
+	// switching it back on probes once at start and owes none.
+	ResetCounters();
+	IN_DeviceNodesChanged();
+	joystickCvar.integer = 0;
+	IN_StartupJoystick();
+	FramesUntil( fakeNow + 5000 );
+	assert( numDevsCalls == 0 );
+	joystickCvar.integer = 1;
+	IN_StartupJoystick();
+	assert( numDevsCalls == 1 && !joy.avail );
+	FramesUntil( fakeNow + 5000 );
+	assert( numDevsCalls == 1 );
+
+	// The frame step reads the switch itself as well: owed probes wait while
+	// it is 0.
+	ResetCounters();
+	IN_DeviceNodesChanged();
+	joystickCvar.integer = 0;
+	FramesUntil( fakeNow + 5000 );
+	assert( numDevsCalls == 0 );
+	joystickCvar.integer = 1;
+	FramesUntil( fakeNow + 1 );
+	assert( numDevsCalls == 1 );
+
+	// The delays hold across the millisecond clock wrapping.
+	ResetCounters();
+	fakeNow = ( std::numeric_limits<int>::max )() - 100;
+	IN_DeviceNodesChanged();
+	fakeNow = ( std::numeric_limits<int>::min )() + 198;	// 299 ms later
+	IN_ProbeChangedJoystick();
+	assert( numDevsCalls == 0 );
+	fakeNow = ( std::numeric_limits<int>::min )() + 199;	// 300 ms later
+	IN_ProbeChangedJoystick();
+	assert( numDevsCalls == 1 );
+
+	// Before IN_Init registers in_joystick, notices and frames do nothing,
+	// even with probes owed.
+	fakeNow = 200000;
+	ResetCounters();
+	IN_DeviceNodesChanged();
+	cvar_t *const registered = in_joystick;
+	in_joystick = nullptr;
+	IN_DeviceNodesChanged();
+	FramesUntil( 205000 );
+	in_joystick = registered;
+	assert( numDevsCalls == 0 && posCalls == 0 );
+
 	puts( "winmm joystick checks passed" );
 	return 0;
 }
@@ -596,8 +797,10 @@ def build_source() -> str:
         parts.append(function(client, signature))
     parts.append(block(source, '#define\tJOY_MAX_AXES', 'static\tjoystickInfo_t\tjoy;'))
     for signature in (
+        'void IN_DeviceNodesChanged( void )\n{',
         'static void IN_ClearWinMMJoystickState( qboolean disable )\n{',
         'void IN_StartupJoystick (void) {',
+        'static void IN_ProbeChangedJoystick( void )\n{',
         'float JoyToF( int value ) {',
         'int JoyToI( int value ) {',
         'static void IN_QueueRetailJoystickAxis( int axis, int value ) {',

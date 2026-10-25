@@ -118,6 +118,7 @@ void	WIN_QueueInputReset( qboolean rebuildModifiers );
 void	IN_Win32MouseEvent( int x, int y, int mstate );
 void	IN_RawMouseEvent( LPARAM lParam );
 void	IN_RawInputDeviceChange( WPARAM change, LPARAM device );
+void	IN_DeviceNodesChanged( void );
 #ifdef USE_MIDI
 void	IN_MIDIMessage( HMIDIIN device, DWORD packedMessage );
 #endif
