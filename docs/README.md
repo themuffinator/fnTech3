@@ -80,7 +80,8 @@ Release packages include them as web pages in their `manual` folder, built by
 - [Joystick input on Windows](fntech3/2026-10-24-windows-joystick.md)
   -- why Windows builds had none, WinMM and SDL3 joystick input switched on
   behind `in_joystick`, WinMM hot-plug on Windows' device-change notice, a
-  simulated WinMM device, and Elite Force's retail axis switches still open.
+  simulated WinMM device, and Elite Force's retail axis switches and turn
+  scale.
 - [Joystick input in SDL3 builds](fntech3/2026-10-25-sdl3-joystick.md)
   -- SDL3 joystick input on Linux and macOS, SDL3 start-up deferred until
   `in_joystick` is set, and the `JOY` keys a recognised gamepad gives every

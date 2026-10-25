@@ -312,8 +312,8 @@ lane's values are retail's.
 
 - **Source.** `tests/input_system_source_tests.py` checks the three build
   files' conditions and that SDL3 builds elsewhere still leave the define
-  out (the SDL3 record's change replaced that check). It checks that both backends register `in_joystick` as `"0"`,
-  archived and latched. It checks that WinMM is untouched before that cvar
+  out (the SDL3 record's change replaced that check). It checks that both
+  backends register `in_joystick` as `"0"`, archived and latched. It checks that WinMM is untouched before that cvar
   is read, and that the frame update polls only a focused, unminimized,
   unsuspended window.
 - **Unit.** `tests/winmm_joystick_tests.py` cuts `IN_StartupJoystick`,
