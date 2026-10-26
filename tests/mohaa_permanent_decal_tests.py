@@ -616,8 +616,10 @@ class MohaaPermanentDecalTests(unittest.TestCase):
                 self.assertIn('tr.viewParms.or.origin, tr.refdef.fovXAuthored > 0.0f ? tr.refdef.fovXAuthored '
                               ': tr.viewParms.fovX );', add)
                 surface = function(model, 'void RB_SurfaceMOHAATiki( void *data ) {')
-                self.assertIn('ent->e.mohaa.lod, ( ent->e.renderfx & RF_DEPTHHACK ) ? MOHAA_LOD_VIEWMODEL : 0,',
+                self.assertIn('const int lodFlags = ( ent->e.renderfx & RF_DEPTHHACK ) ? MOHAA_LOD_VIEWMODEL : 0;',
                               surface)
+                self.assertIn('verts = ri.MOHAARender->Skin( surface->model->mohaaTiki, surface->index, '
+                              'ent->e.mohaa.bones, scale,\n\t\t\tent->e.mohaa.lod, lodFlags,', surface)
         world = read('code/renderercommon/tr_mohaa_world.c')
         # a static model is built once, whole
         self.assertIn('engine->Skin( models[i].tiki, j, pose, scale, -1.0f, 0,', world)

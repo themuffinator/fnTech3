@@ -391,7 +391,10 @@ float off their objects: `r_dlightShadowBias` (default `4`),
 and `r_dlightShadowCasterNormalBias` (`0.25`). The defaults suit normal play;
 if a shadow lacks detail, lower `r_dlightShadowMaxLights` before changing
 these. `r_dlightShadowDebug 1`, or `r_speeds 4`, prints how much detail each
-shadow really gets.
+shadow really gets. `r_dlightShadowCasterReuse` (default `1`) builds what
+casts a light's shadow once for all six directions the light shines in,
+which is much faster; `0` builds it for each direction, only for comparison,
+and the shadows look the same either way.
 
 Walls, curved surfaces and every game's models cast shadows, from dynamic
 lights and from the sun: Enemy Territory's soldiers and the characters of

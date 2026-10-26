@@ -849,6 +849,10 @@ against the original game. See the
 - RTX path tracing includes the game's terrain and static scenery,
   correcting holes in the ground on `m1l1` and the same omission elsewhere
   ([terrain details](fntech3/2026-10-11-mohaa-rtx-world.md)).
+- Busy scenes with lit models, such as the truck ride at the start of
+  `m1l1`, draw several times faster than before 2026-10-25, which keeps the
+  mouse and movement responsive; Vulkan (`cl_renderer vk`) runs them
+  fastest ([details](fntech3/2026-10-25-mohaa-frame-time.md)).
 - The HUD grows with the screen's height; `ui_hudScale 0` draws it at the
   original's pixel sizes. On a widescreen display the view widens and keeps
   its 4:3 height ([Widescreen guide](ASPECT_CORRECTION.md)).

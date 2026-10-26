@@ -32,6 +32,7 @@ definition marks `nodraw`, or whose byte has bit 2 set, is hidden.
 
 #include "tr_local.h"
 #include "../renderercommon/tr_mohaa_render.h"
+#include "../renderercommon/tr_mohaa_skin_cache.h"
 
 /* 2015's render flag for a custom shader drawn over the skins. */
 #define MOHAA_RF_CUSTOMSHADERPASS	( 1 << 16 )
@@ -45,6 +46,10 @@ definition marks `nodraw`, or whose byte has bit 2 set, is hidden.
 static float	mohaaPosePool[MOHAA_POSE_POOL_FLOATS];
 static int		mohaaPosePoolUsed;
 static int		mohaaPosePoolFrame = -1;
+/* Counts the pool's starts, so the surfaces skinned by its poses
+ * (tr_mohaa_skin_cache.h) go when it starts over. */
+static unsigned int		mohaaPoseGeneration;
+static mohaaSkinCache_t	mohaaSkinCache;
 
 /*
 ==================
@@ -154,6 +159,7 @@ static const float *R_MOHAAPose( trRefEntity_t *ent, const model_t *mod ) {
 	if ( mohaaPosePoolFrame != tr.frameCount ) {
 		mohaaPosePoolFrame = tr.frameCount;
 		mohaaPosePoolUsed = 0;
+		mohaaPoseGeneration++;
 	}
 	floats = engine->PoseFloats( mod->mohaaTiki );
 	if ( floats <= 0 || floats > MOHAA_POSE_POOL_FLOATS - mohaaPosePoolUsed ) {
@@ -347,6 +353,7 @@ void RB_SurfaceMOHAATiki( void *data ) {
 	const mohaaSurface_t *surface = (const mohaaSurface_t *)data;
 	const trRefEntity_t *ent = backEnd.currentEntity;
 	const float scale = ent->e.mohaa.scale > 0.0f ? ent->e.mohaa.scale : 1.0f;
+	const int lodFlags = ( ent->e.renderfx & RF_DEPTHHACK ) ? MOHAA_LOD_VIEWMODEL : 0;
 	int verts, indexes = 0;
 
 	if ( !ri.MOHAARender || !ent->e.mohaa.bones ) {
@@ -359,12 +366,23 @@ void RB_SurfaceMOHAATiki( void *data ) {
 #ifdef USE_VBO
 	tess.surfType = SF_MOHAA_TIKI;
 #endif
-	verts = ri.MOHAARender->Skin( surface->model->mohaaTiki, surface->index, ent->e.mohaa.bones, scale,
-		ent->e.mohaa.lod, ( ent->e.renderfx & RF_DEPTHHACK ) ? MOHAA_LOD_VIEWMODEL : 0, tess.xyz + tess.numVertexes, tess.normal + tess.numVertexes, tess.texCoords[0] + tess.numVertexes,
-		tess.indexes + tess.numIndexes, (unsigned int)tess.numVertexes, SHADER_MAX_VERTEXES - tess.numVertexes,
-		SHADER_MAX_INDEXES - tess.numIndexes, &indexes );
+	/* skinned once a frame however many passes draw it */
+	verts = R_MOHAASkinCacheCopy( &mohaaSkinCache, mohaaPoseGeneration, ent->e.mohaa.bones, surface, scale,
+		ent->e.mohaa.lod, lodFlags, tess.xyz + tess.numVertexes, tess.normal + tess.numVertexes,
+		tess.texCoords[0] + tess.numVertexes, tess.indexes + tess.numIndexes, (unsigned int)tess.numVertexes,
+		SHADER_MAX_VERTEXES - tess.numVertexes, SHADER_MAX_INDEXES - tess.numIndexes, &indexes );
 	if ( verts <= 0 ) {
-		return;
+		verts = ri.MOHAARender->Skin( surface->model->mohaaTiki, surface->index, ent->e.mohaa.bones, scale,
+			ent->e.mohaa.lod, lodFlags, tess.xyz + tess.numVertexes, tess.normal + tess.numVertexes, tess.texCoords[0] + tess.numVertexes,
+			tess.indexes + tess.numIndexes, (unsigned int)tess.numVertexes, SHADER_MAX_VERTEXES - tess.numVertexes,
+			SHADER_MAX_INDEXES - tess.numIndexes, &indexes );
+		if ( verts <= 0 ) {
+			return;
+		}
+		R_MOHAASkinCacheKeep( &mohaaSkinCache, mohaaPoseGeneration, ent->e.mohaa.bones, surface, scale,
+			ent->e.mohaa.lod, lodFlags, tess.xyz + tess.numVertexes, tess.normal + tess.numVertexes,
+			tess.texCoords[0] + tess.numVertexes, tess.indexes + tess.numIndexes, (unsigned int)tess.numVertexes,
+			verts, indexes );
 	}
 	tess.numVertexes += verts;
 	tess.numIndexes += indexes;

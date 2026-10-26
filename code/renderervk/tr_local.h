@@ -2488,6 +2488,7 @@ extern cvar_t	*r_dlightShadowBias;		// 0.0 - 64.0
 extern cvar_t	*r_dlightShadowCasterDepthBias;	// 0.0 - 64.0
 extern cvar_t	*r_dlightShadowCasterSlopeBias;	// 0.0 - 8.0
 extern cvar_t	*r_dlightShadowCasterNormalBias;	// 0.0 - 8.0
+extern cvar_t	*r_dlightShadowCasterReuse;	// 0 - 1
 extern cvar_t	*r_dlightShadowFilter;		// 0 - 2
 extern cvar_t	*r_dlightShadowMaxLights;	// 0 - MAX_DLIGHTS
 extern cvar_t	*r_dlightShadowResolution;	// 64 - 1024

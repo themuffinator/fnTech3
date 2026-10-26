@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../renderercommon/tr_jka_entity.h"
 #include "../renderercommon/tr_entity_refraction.h"
 #include "../renderercommon/tr_rtcw_engine_lights.h"
+#include "../renderercommon/tr_dlight_caster_reuse.h"
 
 backEndData_t	*backEndData;
 backEndState_t	backEnd;
@@ -3239,6 +3240,8 @@ static void RB_SetDlightShadowCasterEntity( int entityNum, double originalTime )
 	vk_update_mvp( NULL );
 }
 
+static dlightCasterReuse_t rb_dlightCasterReuse;
+
 static int RB_RenderDlightShadowCasters( const dlight_t *dl )
 {
 	const litSurf_t *litSurf;
@@ -3252,6 +3255,10 @@ static int RB_RenderDlightShadowCasters( const dlight_t *dl )
 	double originalTime;
 	qboolean surfaceActive;
 	cullType_t currentCullType;
+	const qboolean reuse = r_dlightShadowCasterReuse && r_dlightShadowCasterReuse->integer ? qtrue : qfalse;
+	const float normalBias = R_ShadowClampCasterNormalBias(
+		r_dlightShadowCasterNormalBias ? r_dlightShadowCasterNormalBias->value : 0.25f );
+	qboolean reusable;
 
 	originalTime = backEnd.refdef.floatTime;
 	surfaces = 0;
@@ -3259,6 +3266,7 @@ static int RB_RenderDlightShadowCasters( const dlight_t *dl )
 	currentEntityNum = -1;
 	currentCullType = CT_TWO_SIDED;
 	chainIndex = -1;
+	rb_dlightCasterOffsetApplied = qfalse;
 
 	for ( litSurf = dl->head; litSurf; litSurf = litSurf->next ) {
 		chainIndex++;
@@ -3287,7 +3295,11 @@ static int RB_RenderDlightShadowCasters( const dlight_t *dl )
 			&backEnd.or, entityNum, chainIndex ) ) {
 			continue;
 		}
-		if ( surfaceActive && currentCullType != casterShader->cullType ) {
+		// a batch holds casters pushed here or casters the stage iterator
+		// pushes, never both (tr_dlight_caster_reuse.h)
+		reusable = reuse && R_DlightCasterReusable( *litSurf->surface ) ? qtrue : qfalse;
+		if ( surfaceActive && ( currentCullType != casterShader->cullType ||
+			reusable != rb_dlightCasterOffsetApplied ) ) {
 			RB_EndSurface();
 			backEnd.pc.c_dlightShadowAtlasBatches++;
 			backEnd.pc.c_dlightShadowAtlasDraws++;
@@ -3298,7 +3310,49 @@ static int RB_RenderDlightShadowCasters( const dlight_t *dl )
 			tess.allowVBO = qfalse;
 			tess.shadowCasterCullType = casterShader->cullType;
 			currentCullType = casterShader->cullType;
+			rb_dlightCasterOffsetApplied = reusable;
 			surfaceActive = qtrue;
+		}
+
+		if ( reusable ) {
+			const dlightCasterKept_t *kept = R_DlightCasterReuseKept( &rb_dlightCasterReuse, chainIndex );
+			unsigned int begins;
+			int firstVert, firstIndex;
+
+			if ( kept ) {
+				// an earlier face built it: copy it
+				if ( tess.numVertexes + kept->numVerts > SHADER_MAX_VERTEXES ||
+					tess.numIndexes + kept->numIndexes > SHADER_MAX_INDEXES ) {
+					RB_EndSurface();
+					backEnd.pc.c_dlightShadowAtlasBatches++;
+					backEnd.pc.c_dlightShadowAtlasDraws++;
+					RB_BeginSurface( tr.defaultShader, 0 );
+					tess.allowVBO = qfalse;
+					tess.shadowCasterCullType = casterShader->cullType;
+				}
+				R_DlightCasterReuseCopy( &rb_dlightCasterReuse, kept, tess.xyz, tess.indexes,
+					&tess.numVertexes, &tess.numIndexes );
+				surfaces++;
+				continue;
+			}
+			// built here, pushed here, and kept for the light's other faces;
+			// one that overflowed tess began a new batch before it wrote
+			begins = rb_surfaceBegins;
+			firstVert = tess.numVertexes;
+			firstIndex = tess.numIndexes;
+			rb_surfaceTable[ *litSurf->surface ]( litSurf->surface );
+			if ( rb_surfaceBegins != begins ) {
+				firstVert = 0;
+				firstIndex = 0;
+			}
+			if ( normalBias > 0.0f ) {
+				R_DlightShadowCasterOffset( tess.xyz, tess.normal, firstVert, tess.numVertexes, &backEnd.or,
+					backEnd.viewParms.or.origin, NULL, normalBias );
+			}
+			R_DlightCasterReuseKeep( &rb_dlightCasterReuse, chainIndex, tess.xyz, tess.indexes, firstVert,
+				tess.numVertexes - firstVert, firstIndex, tess.numIndexes - firstIndex );
+			surfaces++;
+			continue;
 		}
 
 		rb_surfaceTable[ *litSurf->surface ]( litSurf->surface );
@@ -3310,6 +3364,7 @@ static int RB_RenderDlightShadowCasters( const dlight_t *dl )
 		backEnd.pc.c_dlightShadowAtlasBatches++;
 		backEnd.pc.c_dlightShadowAtlasDraws++;
 	}
+	rb_dlightCasterOffsetApplied = qfalse;
 
 	RB_SetDlightShadowCasterEntity( REFENTITYNUM_WORLD, originalTime );
 	return surfaces;
@@ -3702,6 +3757,7 @@ static void RB_RenderDlightShadowAtlas( void )
 		}
 
 		RB_DlightShadowCasterBoundsMemoReset();
+		R_DlightCasterReuseBeginLight( &rb_dlightCasterReuse );
 		cacheSignature = 0;
 		cacheable = RB_DlightShadowCacheSignature( dl, plan, &cacheSignature );
 		lightRendered = qfalse;

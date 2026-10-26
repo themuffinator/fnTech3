@@ -1,0 +1,154 @@
+{
+ "record": "2026-10-25-mohaa-frame-time.md",
+ "date": "2026-10-25",
+ "profiles": [
+  "mohaa (measured)",
+  "all with dynamic-light shadows (caster reuse); q3 replayed for identity"
+ ],
+ "evidence": [
+  "Source",
+  "Unit",
+  "Build",
+  "Live"
+ ],
+ "gatesClosed": [],
+ "report": "Medal of Honor single player felt sluggish: mouse look lagged, movement felt heavy, actions answered late, frame rate low and uneven; default settings, user's VS Code MoHAA home uses cl_renderer vk",
+ "baseCommit": "25938652",
+ "baseNote": "git archive of 25938652 built like meson/build/win32-dev (debugoptimized, strict warnings, renderers glx,vk,rtx, every development option, build-server false); the change overlaid on that export. Commits after 25938652 up to 6b8abd32 touch none of the changed files.",
+ "platform": {
+  "os": "Windows 11 Home 10.0.26200",
+  "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU (r_lastValidRenderer)",
+  "toolchain": "MSVC 2022 x86, strict warnings",
+  "load": "other sessions' builds ran throughout; single timings vary by a few milliseconds"
+ },
+ "installation": {
+  "path": "E:\\Games\\Medal of Honor Allied Assault",
+  "version": "1.00 US",
+  "readOnly": true
+ },
+ "runtimes": {
+  "before": {
+   "dir": ".tmp/runtime/mohaa-skin-before",
+   "fntech3.exe": "a5d41a1ec341d2e3214cbe13499c3da3935edf782ebe8ed4ad345c65ada132d2",
+   "fnql_glx_x86.dll": "2423fb245d234de90eb2c09a132182b72daa09830b92d47c969b96b1dc686764",
+   "fnql_vk_x86.dll": "01b0e699b6e26b2b4745dce229da87f8cb41d1efce0c87ec3ea12be16b528f49"
+  },
+  "skinStoreOnly": {
+   "dir": ".tmp/runtime/mohaa-skin-after",
+   "fntech3.exe": "a5d41a1ec341d2e3214cbe13499c3da3935edf782ebe8ed4ad345c65ada132d2",
+   "fnql_glx_x86.dll": "fd5dc7370077bc340935eb31fee435472030552b646be07d19836c0720e7c940",
+   "fnql_vk_x86.dll": "75df6c2822ebab8677fb1916938685c61a5495bf1f78207afa7957bc0d44b417"
+  },
+  "after": {
+   "dir": ".tmp/runtime/mohaa-reuse-after",
+   "fntech3.exe": "a5d41a1ec341d2e3214cbe13499c3da3935edf782ebe8ed4ad345c65ada132d2",
+   "fnql_glx_x86.dll": "0883b8b9020e0260bfcd1fe34005e19249c1a84f1062f6b0f17549677444e5fc",
+   "fnql_vk_x86.dll": "e581538e0aa5f80d677cad71e8c3e17ca1013fb5a236cbef3092bf480e88f65b"
+  },
+  "october14": {
+   "dir": ".tmp/runtime/round-1014-before",
+   "fntech3.exe": "75cd694c1ba5f4fdc06c188041571b85cb100741d1cb0350f9949edfd6206430",
+   "fnql_glx_x86.dll": "275c1905d942cc118e9226509a2260a9689d12681a2ebb035419c2c1d0baecd5"
+  }
+ },
+ "commonCommandLine": "+set fs_basepath <installation> +set fs_homepath <isolated home> +set logfile 2 +set developer 0 +set r_fullscreen 0 +set r_mode -1 +set r_customwidth 1280 +set r_customheight 720 +set net_enabled 1 +set net_ip 127.0.0.1 +set net_port 12391 +set rconPassword probe +set sv_pure 0 +set g_gametype 0 +set s_volume 0 +set s_musicvolume 0 +set thereisnomonkey 1 +set com_maxfpsUnfocused 0 [+set com_maxfps 0] [+set cl_renderer vk|glx] +devmap <map>; private desktop (tests/windows_private_process.py); steps by rcon",
+ "ruledOut": {
+  "localPingMs": 7,
+  "snapshotsPerSecond": 20,
+  "cg_nopredict": 0,
+  "g_synchronousClients": 0,
+  "m2l1UncappedFps": {
+   "2026-10-14": 102.7,
+   "2026-10-17": 105.4,
+   "2026-10-23": 99.5,
+   "2026-10-25": 105.8
+  },
+  "m5l1aSyntheticPlayMeanMs": {
+   "2026-10-14": 2.59,
+   "2026-10-17": 2.34,
+   "2026-10-25": 2.69
+  },
+  "m1l1October14MeanMs": {
+   "truckRide": 26.48,
+   "play": 30.08
+  },
+  "note": "a first m5l1a run of the 2026-10-25 build showed 60-160 ms client hitches; its repeat showed none (machine load)"
+ },
+ "profile": {
+  "method": "cdb -pv main-thread stack samples during a frozen (timescale 0) m1l1 frame, GL",
+  "beforeSamples": 19,
+  "shadowPass": 12,
+  "shadowPassBreakdown": {
+   "RB_SurfaceMOHAATiki (skinning, PoseBone, Rotate)": 6,
+   "RB_ApplyDlightShadowCasterNormalBias": 4,
+   "drawing": 2
+  },
+  "vulkanAfterSkinStore": {
+   "samples": 52,
+   "RB_ApplyDlightShadowCasterNormalBias": 23
+  },
+  "shadowDebug": "dlight shadows plan:2/9 render lights:2 faces:12 batches:278 draws:278 surfs:417"
+ },
+ "frozenFrameMs": {
+  "gl": {
+   "noDynamicLights": 5.2,
+   "dynamicLights": "12.2-14.4",
+   "noDlightShadows": 6.1
+  },
+  "glVbo": {
+   "r_vbo0": 11.21,
+   "r_vbo1": 8.69,
+   "r_vbo1NoDynamicLights": 3.48
+  },
+  "skinStoreAB": {
+   "gl": {"before": [10.75, 12.09], "after": [9.25, 8.44], "beforeNoLights": [5.12, 4.70], "afterNoLights": [5.68, 5.68]},
+   "vk": {"before": [12.30, 16.80], "after": [11.15, 9.19], "beforeNoLights": [2.27, 4.42], "afterNoLights": [3.29, 3.41]}
+  },
+  "reuseInRun": {
+   "vk": {"reuse1": 2.77, "reuse0": 4.69, "reuse1Again": 3.02, "noDynamicLights": 1.05},
+   "gl": {"reuse1": 5.31, "reuse0": 7.65, "reuse1Again": 5.46, "noDynamicLights": 3.16}
+  }
+ },
+ "m1l1SyntheticPlayMs": {
+  "note": "two runs per build, uncapped; truck ride is the 4 s before the inputs, play is +attackprimary, +forward and in_synthesize motion (user-approved 2026-10-25)",
+  "vk": {
+   "before": [{"truckMean": 13.04, "truckP95": 16, "playMean": 3.47, "playP95": 10, "playMax": 179}, {"truckMean": 7.31, "truckP95": 11, "playMean": 2.56, "playP95": 7, "playMax": 19}],
+   "after": [{"truckMean": 4.52, "truckP95": 7, "playMean": 2.23, "playP95": 4, "playMax": 15}, {"truckMean": 3.43, "truckP95": 5, "playMean": 2.24, "playP95": 4, "playMax": 17}]
+  },
+  "gl": {
+   "before": [{"truckMean": 10.05, "truckP95": 13, "playMean": 7.35, "playP95": 13, "playMax": 31}, {"truckMean": 12.52, "truckP95": 18, "playMean": 5.88, "playP95": 10, "playMax": 27}],
+   "skinStoreOnly": [{"truckMean": 11.96, "truckP95": 15, "playMean": 6.36, "playP95": 12, "playMax": 22}, {"truckMean": 14.51, "truckP95": 17, "playMean": 7.29, "playP95": 15, "playMax": 39}],
+   "after": [{"truckMean": 7.44, "truckP95": 12, "playMean": 4.90, "playP95": 8, "playMax": 20}, {"truckMean": 10.32, "truckP95": 15, "playMean": 7.79, "playP95": 16, "playMax": 25}]
+  }
+ },
+ "identity": {
+  "unit": [
+   "tests/dlight_caster_reuse_tests.py: shared push bit-identical to the former loop over 512 vertices (turned, moved entity; a vertex on the light; a zero normal), point light and sun direction, biases 0.25, 1 and 8; store rules",
+   "tests/mohaa_skin_cache_tests.py: key, rebasing, generation, room and probe overflow"
+  ],
+  "q3Replay": {
+   "demo": "baseq3/pak8.pk3 demos/four.dm_68 (Quake III 1.32)",
+   "settings": "timedemo 1, con_notifytime -1, cg_lagometer 0, 800x600",
+   "framesWithShadowedLights": 591,
+   "framesReplayed": 778,
+   "captures": "20, frames 60..1200",
+   "vk": "20/20 identical: reuse on, off, on again, and the build before both changes",
+   "rtx": "20/20 identical: reuse on, off, on again (raster, rtx_rt_mode 0)",
+   "gl": "19/20 identical; frame 420 differs between every pair of runs, the before build against itself with reuse off included, by up to 4 levels in a 50x20 HUD corner (132..185, 579..600)"
+  },
+  "mohaaFrozenFrame": "m1l1 frozen frame identical with reuse on, off and on again in Vulkan and GL; the frame shows no light from the dynamic lights (identical with r_dynamiclight 0 too)"
+ },
+ "tests": {
+  "new": ["tests/mohaa_skin_cache_tests.py", "tests/dlight_caster_reuse_tests.py"],
+  "updated": ["tests/mohaa_permanent_decal_tests.py", "tests/dlight_shadow_bias_tests.py"],
+  "affectedFilesRun": 116,
+  "affectedFilesFailed": 0,
+  "selection": "every tests/**/*_tests.py naming tr_backend.c, tr_shade.c, tr_mohaa.c, tr_init.c, tr_local.h, RB_BeginSurface or the dlight shadow cvars"
+ },
+ "notRun": [
+  "the full pytest suite and the native meson tests",
+  "Linux and MinGW builds",
+  "a scene whose shadowed dynamic light visibly lights a TIKI caster (Alice, F.A.K.K.2 or Medal of Honor)",
+  "the cost of the user's cppvsdbg debugger launch"
+ ]
+}

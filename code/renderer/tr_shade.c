@@ -29,6 +29,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../renderercommon/tr_jka_entity.h"
 #include "../renderercommon/tr_entity_refraction.h"
 #include "../renderercommon/tr_jedi_sprite_draw.h"
+#include "../renderercommon/tr_dlight_caster_reuse.h"
 #include "tr_glx_compat.h"
 
 #ifndef GL_COMBINE
@@ -844,6 +845,9 @@ because a surface may be forced to perform a RB_End due
 to overflow.
 ==============
 */
+qboolean rb_dlightCasterOffsetApplied;
+unsigned int rb_surfaceBegins;
+
 void RB_BeginSurface( shader_t *shader, int fogNum ) {
 
 	shader_t *state;
@@ -851,6 +855,7 @@ void RB_BeginSurface( shader_t *shader, int fogNum ) {
 	qboolean liquidNeedsNormal;
 #endif
 
+	rb_surfaceBegins++;
 	fogNum = RB_RitualSurfaceFogNum( shader, fogNum );
 
 	if ( shader->remappedShader ) {
@@ -952,9 +957,13 @@ void RB_BeginSurface( shader_t *shader, int fogNum ) {
 static void RB_ApplyDlightShadowCasterNormalBias( void )
 {
 	float normalBias;
-	int i;
+	vec3_t towardVertex;
 
 	if ( !( backEnd.viewParms.passFlags & VPF_DLIGHT_SHADOW ) ) {
+		return;
+	}
+	// the caster pass pushed these itself (tr_dlight_caster_reuse.h)
+	if ( rb_dlightCasterOffsetApplied && !tess.csmCasterPass ) {
 		return;
 	}
 
@@ -968,59 +977,11 @@ static void RB_ApplyDlightShadowCasterNormalBias( void )
 		return;
 	}
 
-	for ( i = 0; i < tess.numVertexes; i++ ) {
-		vec3_t world;
-		vec3_t normalWorld;
-		vec3_t lightToVertex;
-		float normalLength;
-		float lightSide;
-		float normalScale;
-		float scale;
-
-		normalWorld[0] = tess.normal[i][0] * backEnd.or.axis[0][0] +
-			tess.normal[i][1] * backEnd.or.axis[1][0] +
-			tess.normal[i][2] * backEnd.or.axis[2][0];
-		normalWorld[1] = tess.normal[i][0] * backEnd.or.axis[0][1] +
-			tess.normal[i][1] * backEnd.or.axis[1][1] +
-			tess.normal[i][2] * backEnd.or.axis[2][1];
-		normalWorld[2] = tess.normal[i][0] * backEnd.or.axis[0][2] +
-			tess.normal[i][1] * backEnd.or.axis[1][2] +
-			tess.normal[i][2] * backEnd.or.axis[2][2];
-
-		normalLength = VectorNormalize( normalWorld );
-		if ( normalLength <= 0.0f ) {
-			continue;
-		}
-
-		if ( tess.csmCasterPass ) {
-			VectorScale( tr.csm.lightDirection, -1.0f, lightToVertex );
-		} else {
-			world[0] = backEnd.or.origin[0] +
-				tess.xyz[i][0] * backEnd.or.axis[0][0] +
-				tess.xyz[i][1] * backEnd.or.axis[1][0] +
-				tess.xyz[i][2] * backEnd.or.axis[2][0];
-			world[1] = backEnd.or.origin[1] +
-				tess.xyz[i][0] * backEnd.or.axis[0][1] +
-				tess.xyz[i][1] * backEnd.or.axis[1][1] +
-				tess.xyz[i][2] * backEnd.or.axis[2][1];
-			world[2] = backEnd.or.origin[2] +
-				tess.xyz[i][0] * backEnd.or.axis[0][2] +
-				tess.xyz[i][1] * backEnd.or.axis[1][2] +
-				tess.xyz[i][2] * backEnd.or.axis[2][2];
-
-			VectorSubtract( world, backEnd.viewParms.or.origin, lightToVertex );
-			if ( VectorNormalize( lightToVertex ) <= 0.0f ) {
-				continue;
-			}
-		}
-		lightSide = DotProduct( normalWorld, lightToVertex );
-		normalScale = 0.25f + 0.50f * ( 1.0f - Com_Clamp( 0.0f, 1.0f, fabsf( lightSide ) ) );
-		scale = ( normalBias * normalScale ) / normalLength;
-		if ( lightSide < 0.0f ) {
-			scale = -scale;
-		}
-		VectorMA( tess.xyz[i], scale, tess.normal[i], tess.xyz[i] );
+	if ( tess.csmCasterPass ) {
+		VectorScale( tr.csm.lightDirection, -1.0f, towardVertex );
 	}
+	R_DlightShadowCasterOffset( tess.xyz, tess.normal, 0, tess.numVertexes, &backEnd.or,
+		backEnd.viewParms.or.origin, tess.csmCasterPass ? towardVertex : NULL, normalBias );
 }
 #endif
 

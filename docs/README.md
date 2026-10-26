@@ -86,6 +86,10 @@ Release packages include them as web pages in their `manual` folder, built by
   -- SDL3 joystick input on Linux and macOS, SDL3 start-up deferred until
   `in_joystick` is set, and the `JOY` keys a recognised gamepad gives every
   game but Quake Live.
+- [Medal of Honor's frame time](fntech3/2026-10-25-mohaa-frame-time.md)
+  -- why the campaign felt sluggish, Medal of Honor's models skinned once a
+  frame, every game's dynamic-light shadow casters built once for six faces,
+  and byte-identical replays.
 - [F.A.K.K.2 gap round](fntech3/2026-10-23-fakk2-gap-round.md)
   -- the canal water's colour and Ritual's fog volumes drawn by retail's
   rules, the whole campaign through its own exits, demos exchanged with

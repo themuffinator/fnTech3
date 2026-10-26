@@ -144,6 +144,10 @@ class DlightShadowBiasTests(unittest.TestCase):
             "normalScale = 0.25f + 0.50f * ( 1.0f - "
             "Com_Clamp( 0.0f, 1.0f, fabsf( lightSide ) ) );"
         )
+        # the three renderers share the push (tr_dlight_caster_reuse.h)
+        helper = read_text("code/renderercommon/tr_dlight_caster_reuse.h")
+        self.assertEqual(helper.count(expected_normal_scale), 1)
+        self.assertIn("VectorSubtract( world, lightOrigin, lightToVertex );", helper)
         for path in (
             "code/renderer/tr_shade.c",
             "code/renderervk/tr_shade.c",
@@ -152,13 +156,18 @@ class DlightShadowBiasTests(unittest.TestCase):
             with self.subTest(path=path):
                 source = read_text(path)
                 self.assertIn("r_dlightShadowCasterNormalBias->value : 0.25f", source)
-                self.assertIn(expected_normal_scale, source)
+                self.assertNotIn(expected_normal_scale, source)
                 self.assertIn(
-                    "VectorScale( tr.csm.lightDirection, -1.0f, lightToVertex );",
+                    "VectorScale( tr.csm.lightDirection, -1.0f, towardVertex );",
+                    source,
+                )
+                self.assertIn(
+                    "R_DlightShadowCasterOffset( tess.xyz, tess.normal, 0, tess.numVertexes, &backEnd.or,\n"
+                    "\t\tbackEnd.viewParms.or.origin, tess.csmCasterPass ? towardVertex : NULL, normalBias );",
                     source,
                 )
                 self.assertNotIn(
-                    "VectorCopy( tr.csm.lightDirection, lightToVertex );",
+                    "VectorCopy( tr.csm.lightDirection, towardVertex );",
                     source,
                 )
 

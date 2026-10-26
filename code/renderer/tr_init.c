@@ -141,6 +141,7 @@ cvar_t	*r_dlightShadowBias;
 cvar_t	*r_dlightShadowCasterDepthBias;
 cvar_t	*r_dlightShadowCasterSlopeBias;
 cvar_t	*r_dlightShadowCasterNormalBias;
+cvar_t	*r_dlightShadowCasterReuse;
 cvar_t	*r_dlightShadowFilter;
 cvar_t	*r_dlightShadowMaxLights;
 cvar_t	*r_dlightShadowResolution;
@@ -3046,6 +3047,10 @@ static void R_Register( void )
 	ri.Cvar_CheckRange( r_dlightShadowCasterNormalBias, "0", "8", CV_FLOAT );
 	ri.Cvar_SetDescription( r_dlightShadowCasterNormalBias, "Maximum light-aware normal offset in world units applied while rendering dynamic-light shadow casters." );
 	ri.Cvar_SetGroup( r_dlightShadowCasterNormalBias, CVG_RENDERER );
+	r_dlightShadowCasterReuse = ri.Cvar_Get( "r_dlightShadowCasterReuse", "1", CVAR_ARCHIVE_ND );
+	ri.Cvar_CheckRange( r_dlightShadowCasterReuse, "0", "1", CV_INTEGER );
+	ri.Cvar_SetDescription( r_dlightShadowCasterReuse, "Build each dynamic light's shadow casters once for all six of its cube faces. 0 builds them again for every face, for comparison; the shadows are the same either way." );
+	ri.Cvar_SetGroup( r_dlightShadowCasterReuse, CVG_RENDERER );
 	r_dlightShadowFilter = ri.Cvar_Get( "r_dlightShadowFilter", "2", CVAR_ARCHIVE_ND );
 	ri.Cvar_CheckRange( r_dlightShadowFilter, "0", va( "%i", SHADOW_FILTER_COUNT - 1 ), CV_INTEGER );
 	ri.Cvar_SetDescription( r_dlightShadowFilter, R_ShadowFilterModeDescription() );

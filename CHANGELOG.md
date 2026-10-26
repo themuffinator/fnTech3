@@ -315,6 +315,13 @@ historical upstream records, not fnTech3 release history. See the
   joystick. Quake Live keeps its named `PAD0_*` gamepad keys. SDL3 builds
   no longer start looking for controllers until joystick input is switched
   on ([record](docs/fntech3/2026-10-25-sdl3-joystick.md)).
+- Make Medal of Honor's campaign quick to respond. The truck ride that opens
+  `m1l1` ran at 60 to 75 frames a second at 1280x720, because each model was
+  skinned again for every pass that drew it and every face of a dynamic
+  light's shadow rebuilt its casters. Models are now skinned once a frame,
+  and every game's dynamic-light shadows build a caster once for all six
+  directions: the ride runs about three times as fast in Vulkan, with the
+  same picture ([record](docs/fntech3/2026-10-25-mohaa-frame-time.md)).
 
 ## [0.1.0] - 2026-10-11
 

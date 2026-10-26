@@ -130,6 +130,17 @@ lights, client-game lights and surface-light proxies keep their programs:
 Quake III replays drawing all three are identical before and after in all
 three renderers. No compatibility gate closes.
 
+The [Medal of Honor frame-time record](2026-10-25-mohaa-frame-time.md) finds
+why the campaign felt sluggish: the truck ride that opens `m1l1` took 13 to
+17 ms a frame at 1280x720, because every pass skinned each model surface
+again and each face of a dynamic light's shadow cube rebuilt and pushed
+every caster again. Medal of Honor's surfaces are now skinned once a frame,
+and every profile's dynamic lights build a face, triangle soup, MD3 or TIKI
+caster once for all six faces, so the ride takes 3.4 to 4.5 ms in Vulkan.
+Quake III's own `four` demo replays byte-identical to the build before in
+Vulkan and with the reuse switched off in RTX; GL's one differing capture
+differs between every pair of runs. No compatibility gate closes.
+
 The [completed branch integration](2026-10-23-recent-work-integration.md)
 combines the JKA model/surface work, profile-aware liquid feeds and completed
 RTX improvements with main's CSM baseline. Model removal now releases only
@@ -3837,6 +3848,16 @@ surface's own image, which 1.00's TIKI files never name (Source, Live
 subset). The branch that let such an image skip the filter now follows it
 under the `mohaa` profile as under the Ritual ones, changing no 1.00 image or
 report (Source, Unit, Live subset). No gate closes.
+
+The [2026-10-25 frame-time record](2026-10-25-mohaa-frame-time.md) measures
+the single-player campaign's frame time. Input, prediction and the local
+clock were sound; the frames were slow, and `m1l1` had been since before
+2026-10-14. Skinning each surface once a frame and building each dynamic
+light's casters once for its six faces take the truck ride from 13.0 and
+7.3 ms to 4.5 and 3.4 ms a frame in Vulkan, and its worst frame from 179 to
+15 ms (Live, Unit). Medal of Honor's frozen `m1l1` frame is byte-identical
+with the reuse on and off, though its headlights light nothing it shows.
+GL's default `r_vbo 0` keeps the world on the CPU, and no gate closes.
 
 Medal of Honor: Allied Assault is the tenth title and the fifteenth profile,
 `mohaa`, over one `main/` installation. It runs 2015's engine, a descendant of
