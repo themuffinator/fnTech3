@@ -154,6 +154,18 @@ class STVEFForcedAlphaTests(unittest.TestCase):
                 state = local[:local.index('} backEndState_t;')]
                 self.assertIn('int stvefForcedAlpha;', state[state.rindex('typedef struct'):])
 
+    def test_gl_world_buffer_never_draws_a_forced_alpha_entity(self):
+        # GL's static world buffer holds each stage's colours precomputed, so
+        # a brush model drawn with the alpha takes the CPU path, as Jedi
+        # Academy's overridden entities do.
+        backend = read('code/renderer/tr_backend.c')
+        body = function_body(backend, 'RB_RenderDrawSurfList( drawSurf_t *drawSurfs')
+        loop = body[:body.index('// draw the contents of the last shader batch')]
+        guard = loop.rindex('if ( tess.allowVBO && R_STVEFForcedAlpha( backEnd.currentEntity ) ) {')
+        self.assertIn('tess.allowVBO = qfalse;', loop[guard:guard + 120])
+        self.assertGreater(guard, loop.rindex('if ( entityNum != oldEntityNum ) {'))
+        self.assertLess(guard, loop.rindex('rb_surfaceTable[ *drawSurf->surface ]( drawSurf->surface );'))
+
     def test_stage_iterators_apply_it_to_single_texture_stages(self):
         shade = read('code/renderer/tr_shade.c')
         self.assertIn('#include "../renderercommon/tr_stvef_alpha.h"', shade)

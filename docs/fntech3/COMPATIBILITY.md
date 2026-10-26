@@ -141,6 +141,22 @@ Quake III's own `four` demo replays byte-identical to the build before in
 Vulkan and with the reuse switched off in RTX; GL's one differing capture
 differs between every pair of runs. No compatibility gate closes.
 
+The [GL world-buffer record](2026-10-26-glx-world-vbo-default.md) turns GL's
+`r_vbo` on by default, as Vulkan and RTX have it, after comparing `r_vbo 0`
+and `1` in all sixteen profiles: replays of Quake III's `four`, Q3Test's
+`q3demo1` and spawn-point tours of Quake Live, RTCW multiplayer, Enemy
+Territory, Holomatch, Jedi Academy multiplayer and Medal of Honor's `m1l1`
+ride, and frozen views elsewhere. Every difference is one the two paths are
+known to make: curved patches at full subdivision from the buffer (identical
+once the CPU path keeps every row too), one fog-blend step inside Quake III
+fog volumes, and a few levels on Quake Live's environment-mapped metal. RTCW
+single player, Alice and Medal of Honor's fogged views draw nothing from the
+buffer; Jedi Academy and Jedi Outcast single player draw no level yet. No
+profile is slower; Medal of Honor's ride replays at 197 frames a second
+against 143. A brush model drawn with Elite Force's forced alpha now takes
+the CPU path, as Jedi Academy's overridden entities did. No compatibility
+gate closes.
+
 The [completed branch integration](2026-10-23-recent-work-integration.md)
 combines the JKA model/surface work, profile-aware liquid feeds and completed
 RTX improvements with main's CSM baseline. Model removal now releases only

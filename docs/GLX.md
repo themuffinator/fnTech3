@@ -40,6 +40,12 @@ GLx: please report it, with the details below.
 `r_speeds 7` on to see how hard the renderer is working, and include it in a
 report.
 
+**Walls or floors look wrong in GLx but not in Vulkan.** GLx keeps the parts
+of a map that never change on the graphics card (`r_vbo 1`, the default). Try
+`r_vbo 0` and `vid_restart`, which builds the whole map again every frame
+instead. If that fixes it, please report it, with the map and a screenshot
+taken each way.
+
 **GLx crashes or misbehaves with your graphics driver.** Use Vulkan
 (`cl_renderer vk`, then `vid_restart`) until a fix arrives, and update your
 driver.

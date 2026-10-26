@@ -322,6 +322,13 @@ historical upstream records, not fnTech3 release history. See the
   and every game's dynamic-light shadows build a caster once for all six
   directions: the ride runs about three times as fast in Vulkan, with the
   same picture ([record](docs/fntech3/2026-10-25-mohaa-frame-time.md)).
+- Keep the map's unchanging surfaces on the graphics card in GLx too
+  (`r_vbo 1`), as Vulkan and RTX already do, instead of rebuilding the whole
+  map on the processor every frame. Checked in all sixteen games: busy scenes
+  run faster (Medal of Honor's opening truck ride by about a third), none
+  slower, and the picture is the same apart from curved surfaces staying
+  smooth at a distance. A brush model fading with Elite Force's forced alpha
+  keeps fading ([record](docs/fntech3/2026-10-26-glx-world-vbo-default.md)).
 
 ## [0.1.0] - 2026-10-11
 

@@ -883,11 +883,24 @@ that engine's defaults:
 | Quake III IHV Test | `r_lerpmodels` | `1` | Smooth model animation. |
 | Jedi Academy multiplayer | `r_entityRefraction` | `1` | How strongly the see-through shimmer round a newly spawned player bends what is behind it, from `0` (not drawn) to `4`. Turning it on from `0` needs `vid_restart`. The game's own `cg_renderToTextureFX 0` also leaves the shimmer out. |
 
+## Map Geometry On The Graphics Card
+
+`r_vbo` (default `1` in every renderer) keeps the parts of a map that never
+change -- most walls, floors and ceilings -- on the graphics card, so each
+frame only sends what moves. Busy scenes run faster; Medal of Honor's
+opening truck ride runs about a third faster in GLx. Curved surfaces stay
+smooth at any distance. It uses a little more memory, at most about 13 MB on
+the largest maps. Before 2026-10-26 GLx defaulted to `0`, which builds the
+whole map on the processor every frame; the picture is the same either way
+([details](fntech3/2026-10-26-glx-world-vbo-default.md)). If walls or floors
+look wrong in GLx, see the [GLx guide](GLX.md#troubleshooting). Restart.
+
 ## When To Use `vid_restart`
 
 Type `vid_restart` after changing any of these:
 
 - `cl_renderer`
+- `r_vbo`
 - `r_mode`, `r_modeFullscreen`, `r_fullscreen`
 - `r_customWidth`, `r_customHeight`, `r_customPixelAspect`
 - `r_displayRefresh`

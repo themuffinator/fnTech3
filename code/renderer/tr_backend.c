@@ -1207,6 +1207,10 @@ static qboolean RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs )
 		if ( tess.allowVBO && R_JKAEntityOverrides( backEnd.currentEntity ) ) {
 			tess.allowVBO = qfalse;
 		}
+		// and so does Elite Force's forced alpha (tr_stvef_alpha.h)
+		if ( tess.allowVBO && R_STVEFForcedAlpha( backEnd.currentEntity ) ) {
+			tess.allowVBO = qfalse;
+		}
 		if ( tess.allowVBO && R_EntityRefracts( backEnd.currentEntity ) ) {
 			tess.allowVBO = qfalse;
 		}
