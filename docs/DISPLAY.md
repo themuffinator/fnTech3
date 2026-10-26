@@ -878,6 +878,7 @@ that engine's defaults:
 | Alice and F.A.K.K.2 | `r_farplane`, `r_skyportal` | `0` | See [Alice And F.A.K.K.2 Far Plane](#alice-and-fakk2-far-plane). |
 | Alice and F.A.K.K.2 | `r_sunflare`, `r_lightcoronasize` | `0`, `0.1` | Sun flares and light coronas. |
 | Alice and F.A.K.K.2 | `r_ritualModelLights` | `1` | Lights characters and weapons from the map's lamps, as the originals did; `0` lights every model from the map's general lighting instead. `r_ritualModelLightsDebug` (a cheat) shows what each one uses. |
+| Alice and F.A.K.K.2 | `r_ritualModelReuse` | `1` | Builds each model's shape once a frame for everything that draws it -- the view, the dynamic lights on it and its shadows -- which is faster; `0` builds it again each time, only for comparison, and the picture is the same either way. |
 | Alice and F.A.K.K.2 | `r_ambientScale` | `0.5` | How much background light models get, as in the originals; `0.6` in other games. A cheat. |
 | Quake Live | `r_ambientScale` | `10` | The same, as a player option from `1` to `100`: the Video menu's Ambient Light Scale. Saved in `repconfig.cfg`. |
 | Quake III IHV Test | `r_lerpmodels` | `1` | Smooth model animation. |

@@ -322,6 +322,14 @@ historical upstream records, not fnTech3 release history. See the
   and every game's dynamic-light shadows build a caster once for all six
   directions: the ride runs about three times as fast in Vulkan, with the
   same picture ([record](docs/fntech3/2026-10-25-mohaa-frame-time.md)).
+- Build each of Alice's and F.A.K.K.2's model surfaces once a frame. The
+  renderers built a model's shape again for every pass that drew it -- the
+  view, each dynamic light on it, the sun's cascades and the lights'
+  shadows; now the frame's other passes copy the first build. In the
+  busiest views found, 110 to 200 model surfaces a frame, that saves 0.08
+  to 0.19 ms a frame of the 0.3 to 0.43 ms the models took, with the same
+  picture; `r_ritualModelReuse 0` builds them every time, for comparison
+  ([record](docs/fntech3/2026-10-26-ritual-model-frame-time.md)).
 
 ## [0.1.0] - 2026-10-11
 

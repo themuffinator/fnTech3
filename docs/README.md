@@ -90,6 +90,10 @@ Release packages include them as web pages in their `manual` folder, built by
   -- why the campaign felt sluggish, Medal of Honor's models skinned once a
   frame, every game's dynamic-light shadow casters built once for six faces,
   and byte-identical replays.
+- [Alice's and F.A.K.K.2's models built once a frame](fntech3/2026-10-26-ritual-model-frame-time.md)
+  -- how much of their frames the models take, a store that builds each
+  surface once a frame for every pass, its saving timed per frame, and
+  identical frames held with `timescale 0` and Alice's `pause`.
 - [F.A.K.K.2 gap round](fntech3/2026-10-23-fakk2-gap-round.md)
   -- the canal water's colour and Ritual's fog volumes drawn by retail's
   rules, the whole campaign through its own exits, demos exchanged with

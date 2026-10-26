@@ -1,0 +1,2415 @@
+{
+ "record": "2026-10-26-ritual-model-frame-time.md",
+ "date": "2026-10-26",
+ "profiles": [
+  "alice",
+  "fakk2"
+ ],
+ "evidence": [
+  "Source",
+  "Unit",
+  "Build",
+  "Live"
+ ],
+ "gatesClosed": [],
+ "baseCommit": "6894fe47",
+ "baseNote": "worktree at 6894fe47 built like meson/build/win32-dev (debugoptimized, strict warnings, renderers glx,vk,rtx, every development option, build-server false) in the worktree's .tmp/b; the before runtime is that build, the after runtime the same tree with the change",
+ "platform": {
+  "os": "Windows 11 Home 10.0.26200",
+  "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
+  "toolchain": "MSVC 2022 x86, strict warnings; GCC i686 -fsyntax-only -Wall -Wextra (WSL Ubuntu) on the changed files",
+  "load": "another session's Medal of Honor probes and builds ran throughout"
+ },
+ "installations": {
+  "alice": {
+   "path": "E:\\Games\\Alice",
+   "base/pak0.pk3": "6a63b59cd627902660bd4261461f904bf984e05891eb749d47bcc7fc8cedda62",
+   "readOnly": true,
+   "filesModifiedDuringProbes": 0
+  },
+  "fakk2": {
+   "path": ".tmp/fakk2-install/game (laid down from the retail disc)",
+   "fakk/pak0.pk3": "c9777e42a32853048d4cc11916d8a5785a56f3533aef41ed84a46916af8da414",
+   "readOnly": true,
+   "filesModifiedDuringProbes": 0
+  }
+ },
+ "runtimes": {
+  "before": {
+   "dir": ".tmp/runtime/alice-tiki-before",
+   "fntech3.exe": "d1854e854060de85286583455798da76d2c179d404fe6b2c1c150d7fc2c6b1f0",
+   "fnql_glx_x86.dll": "70b00a5450a5739f8c545115079cedd238a110580ae8ca8958fdf016c98ec120",
+   "fnql_vk_x86.dll": "04bac8eba773880efe8cf02bda67fe2c102f6b23769038aa8308433d37940713",
+   "fnql_rtx_x86.dll": "32757d9f1df4bc7047d668b1b78c06feb0669b84487d1fc556baf09a08a83549"
+  },
+  "after": {
+   "dir": ".tmp/runtime/alice-tiki-after",
+   "fntech3.exe": "d1854e854060de85286583455798da76d2c179d404fe6b2c1c150d7fc2c6b1f0",
+   "fnql_glx_x86.dll": "2e04f31432311a477c73ce61eeead6bd46baac8fbea1c7bf2b1b7ce6fd9bfa4d",
+   "fnql_vk_x86.dll": "faf5d833c90ac59a69b2db1382c00fcb41642a40e397e6b2caf38b68a9901756",
+   "fnql_rtx_x86.dll": "1b0f646a6631897d715996af391b4a459c678f5b909a37d03527ac7ebc236454"
+  },
+  "counting": {
+   "dir": ".tmp/runtime/alice-tiki-diag",
+   "fntech3.exe": "d1854e854060de85286583455798da76d2c179d404fe6b2c1c150d7fc2c6b1f0",
+   "fnql_glx_x86.dll": "088abd01b6fdfd1f9c22f527f98d1990c20fb29241b277e79283cbb6517b41cd",
+   "fnql_vk_x86.dll": "5650548d1172c71fcde458d4b23717b96985b65b96caab8a5f82539570118cfd",
+   "fnql_rtx_x86.dll": "72ca1a173795a84aeadce390d538b836df97f37c7054aff54913b25abfbc4027",
+   "note": "after plus .tmp/alice-tiki/diag_patch.py's counters (first version); never committed"
+  },
+  "timed": {
+   "dir": ".tmp/runtime/alice-tiki-diag-timed",
+   "fntech3.exe": "d1854e854060de85286583455798da76d2c179d404fe6b2c1c150d7fc2c6b1f0",
+   "fnql_glx_x86.dll": "ec13a284fa73e3cd368e53dfb6cd35d547287e591d38b9537f1f865942356f3f",
+   "fnql_vk_x86.dll": "d95fc7bf5fe406cd591c35b24dbffbc7acf4f2d9d328dad5ba4160e9095838f1",
+   "fnql_rtx_x86.dll": "5f1553ea5b135684075d631448cbcd8acb6cc91dd1484f927ef0b563f488bd60",
+   "note": "after plus diag_patch.py's counters and ri.Microseconds() timing of RB_SurfaceAliceTiki; never committed"
+  }
+ },
+ "commonCommandLine": "+set com_gameProfile <alice|fakk2> +set fs_basepath <installation> +set fs_homepath <isolated home> +set fs_game \"\" +set fs_cdpath \"\" +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 1280 +set r_customHeight 720 +set in_mouse 0 +set in_joystick 0 +set in_nograb 1 +set s_initsound 0 +set com_steamIntegration 0 +set fs_skipWorkshop 1 +set cl_webuiEnable 0 +set cl_renderer <glx|vk|rtx> +set logfile 2 +set net_enabled 1 +set net_ip 127.0.0.1 +set net_port 12397 +set rconPassword probe +set developer 1 +set con_notifytime -1 +set com_maxfpsUnfocused 0 +set com_maxfps 0 [+set rtx_rt_mode 0] +exec freeze-start.cfg (devmap <map>); private desktop (tests/windows_private_process.py); empty config.cfg, q3config.cfg and fakk2.cfg in the home; steps, freeze, switches and screenshotPNG by rcon (.tmp/alice-tiki/freeze.py)",
+ "freezing": {
+  "fakk2": "timescale 0 holds every pixel but the health gauge at (19,33)-(154,140), which animates in real time",
+  "alice": "timescale 0 does not hold: the third-person camera keeps moving in real time, and grounds1's opening script sets timescale back to 1 when its cinematic ends; Alice's pause (paused, cl_paused) holds every pixel, its pause watch included",
+  "rtx": "rtx_rt_mode 2 (default, path traced) never repeats a frame; identity is checked in the raster path, rtx_rt_mode 0"
+ },
+ "profileBefore": {
+  "prof-alice-glx-before": {
+   "run": ".tmp/alice-tiki/runs/prof-alice-glx-before",
+   "profile": "alice",
+   "map": "grounds1",
+   "renderer": "glx",
+   "rendererSha256": "70b00a5450a5739f8c545115079cedd238a110580ae8ca8958fdf016c98ec120",
+   "steps": "skipcinematic;god;notarget",
+   "extra": {},
+   "freeze": "timescale 0",
+   "binariesUnchanged": true,
+   "errors": [],
+   "cases": {
+    "hold": {
+     "clMeanMs": 3.57,
+     "fps": 182.1
+    },
+    "nodl": {
+     "clMeanMs": 2.65,
+     "fps": 342.9
+    },
+    "on": {
+     "clMeanMs": 5.44,
+     "fps": 169.2
+    }
+   },
+   "screenshots": {
+    "hold.png": "a6801b28b7298cfa6f16457238ccf0f727b46b3e74af17f117e223bb07e96f25",
+    "nodl.png": "7ff0592828f9f1ccc22e2b772d7a0f89801d820184b6a1eae940dc108bcffd5b",
+    "on.png": "aeafaf9b05d4abd47e19eb4e7e78f239cfaa5c1da7f1d09e8db498c99d894a47"
+   },
+   "samples": {
+    "taken": 20,
+    "inRA_TikiTessellateLod": 2,
+    "rendererSymbolsResolved": true
+   }
+  },
+  "prof-alice-vk-before": {
+   "run": ".tmp/alice-tiki/runs/prof-alice-vk-before",
+   "profile": "alice",
+   "map": "grounds1",
+   "renderer": "vk",
+   "rendererSha256": "04bac8eba773880efe8cf02bda67fe2c102f6b23769038aa8308433d37940713",
+   "steps": "skipcinematic;god;notarget",
+   "extra": {},
+   "freeze": "timescale 0",
+   "binariesUnchanged": true,
+   "errors": [],
+   "cases": {
+    "hold": {
+     "clMeanMs": 2.27,
+     "fps": 347.8
+    },
+    "nodl": {
+     "clMeanMs": 1.75,
+     "fps": 502.8
+    },
+    "on": {
+     "clMeanMs": 2.96,
+     "fps": 302.6
+    }
+   },
+   "screenshots": {
+    "hold.png": "dfa828a76478e8a68bcf4fc8b0156946e2adb9f9dc4c51f93d7d310e63ee61d4",
+    "nodl.png": "2e6055cf5ac966a05068ef0eeb11fe3fb9f35fc0d4aea4e130715e28f5043c22",
+    "on.png": "c7aa2740dcc3c6cfdcdd5d6d762a4f084d6907addece5064ce942268d71e28e1"
+   },
+   "samples": {
+    "taken": 27,
+    "inRA_TikiTessellateLod": 3,
+    "rendererSymbolsResolved": true
+   }
+  },
+  "prof-fakk2-glx-before": {
+   "run": ".tmp/alice-tiki/runs/prof-fakk2-glx-before",
+   "profile": "fakk2",
+   "map": "fakkhouse",
+   "renderer": "glx",
+   "rendererSha256": "70b00a5450a5739f8c545115079cedd238a110580ae8ca8958fdf016c98ec120",
+   "steps": "skipcinematic;god;notarget",
+   "extra": {},
+   "freeze": "timescale 0",
+   "binariesUnchanged": true,
+   "errors": [],
+   "cases": {
+    "hold": {
+     "clMeanMs": 4.5,
+     "fps": 198.4
+    },
+    "nodl": {
+     "clMeanMs": 4.03,
+     "fps": 234.1
+    },
+    "on": {
+     "clMeanMs": 3.64,
+     "fps": 259.6
+    }
+   },
+   "screenshots": {
+    "hold.png": "6018e72f2a9a4438ecb633ba9518f8a1699118bc66fac0d79717eb910941999b",
+    "nodl.png": "83b4440ac4d83d39107c0657f941d3787ddbd7da8d438a886a389bb93043d36f",
+    "on.png": "c00a38fcb6af7b2a078df3713d4c8b68f5e705e8268abf45bdc2ef73e262ae4a"
+   },
+   "samples": {
+    "taken": 16,
+    "inRA_TikiTessellateLod": 0,
+    "rendererSymbolsResolved": true
+   }
+  },
+  "prof-fakk2-vk-before": {
+   "run": ".tmp/alice-tiki/runs/prof-fakk2-vk-before",
+   "profile": "fakk2",
+   "map": "fakkhouse",
+   "renderer": "vk",
+   "rendererSha256": "04bac8eba773880efe8cf02bda67fe2c102f6b23769038aa8308433d37940713",
+   "steps": "skipcinematic;god;notarget",
+   "extra": {},
+   "freeze": "timescale 0",
+   "binariesUnchanged": true,
+   "errors": [],
+   "cases": {
+    "hold": {
+     "clMeanMs": 4.92,
+     "fps": 193.9
+    },
+    "nodl": {
+     "clMeanMs": 3.06,
+     "fps": 300.7
+    },
+    "on": {
+     "clMeanMs": 2.41,
+     "fps": 380.3
+    }
+   },
+   "screenshots": {
+    "hold.png": "91eccf42e0acbb48ad4b518fd30c4c62be66c11f992d81a8c6f3dcb8f4141341",
+    "nodl.png": "136b5a77756b535fc78aa81955a4eba4d69e223372cb5a940fe82cbb149d0462",
+    "on.png": "dc799bdff92379d0cda72df5f80efae2d76d62d6d0cfa7bf135d6731a584a24e"
+   },
+   "samples": {
+    "taken": 22,
+    "inRA_TikiTessellateLod": 2,
+    "rendererSymbolsResolved": true
+   }
+  }
+ },
+ "profileBeforeAfter": {
+  "prof2-alice-paused-vk-before": {
+   "run": ".tmp/alice-tiki/runs/prof2-alice-paused-vk-before",
+   "profile": "alice",
+   "map": "grounds1",
+   "renderer": "vk",
+   "rendererSha256": "04bac8eba773880efe8cf02bda67fe2c102f6b23769038aa8308433d37940713",
+   "steps": "skipcinematic;god;notarget",
+   "extra": {},
+   "freeze": "pause",
+   "binariesUnchanged": true,
+   "errors": [],
+   "cases": {
+    "hold": {
+     "clMeanMs": 1.68,
+     "fps": 558.9
+    }
+   },
+   "screenshots": {
+    "hold.png": "88bc4bf91d37d97330d82be6da6c7dadda5e377bbcb089afa206c8e3f2068cca"
+   },
+   "samples": {
+    "taken": 40,
+    "inRA_TikiTessellateLod": 8,
+    "rendererSymbolsResolved": true
+   }
+  },
+  "prof3-alice-paused-vk-after": {
+   "run": ".tmp/alice-tiki/runs/prof3-alice-paused-vk-after",
+   "profile": "alice",
+   "map": "grounds1",
+   "renderer": "vk",
+   "rendererSha256": "faf5d833c90ac59a69b2db1382c00fcb41642a40e397e6b2caf38b68a9901756",
+   "steps": "skipcinematic;god;notarget",
+   "extra": {},
+   "freeze": "pause",
+   "binariesUnchanged": true,
+   "errors": [],
+   "cases": {
+    "hold": {
+     "clMeanMs": 1.85,
+     "fps": 515.3
+    }
+   },
+   "screenshots": {
+    "hold.png": "5d929e6f2e9c0751c5a432b15445c7ef9b5e5dc60c9b28a3de94a95768d8336c"
+   },
+   "samples": {
+    "taken": 39,
+    "inRA_TikiTessellateLod": 3,
+    "rendererSymbolsResolved": true
+   }
+  },
+  "prof2-fakk2-creeper-vk-before": {
+   "run": ".tmp/alice-tiki/runs/prof2-fakk2-creeper-vk-before",
+   "profile": "fakk2",
+   "map": "creeperpens",
+   "renderer": "vk",
+   "rendererSha256": "04bac8eba773880efe8cf02bda67fe2c102f6b23769038aa8308433d37940713",
+   "steps": "skipcinematic;god;notarget",
+   "extra": {},
+   "freeze": "timescale 0",
+   "binariesUnchanged": true,
+   "errors": [],
+   "cases": {
+    "hold": {
+     "clMeanMs": 3.25,
+     "fps": 292.2
+    }
+   },
+   "screenshots": {
+    "hold.png": "6544ebfe84d6213e9c2d52505dabcfec2d1a9a905f2c4927811afb3aff2cd1d6"
+   },
+   "samples": {
+    "taken": 40,
+    "inRA_TikiTessellateLod": 4,
+    "rendererSymbolsResolved": true
+   }
+  },
+  "prof3-fakk2-creeper-vk-after": {
+   "run": ".tmp/alice-tiki/runs/prof3-fakk2-creeper-vk-after",
+   "profile": "fakk2",
+   "map": "creeperpens",
+   "renderer": "vk",
+   "rendererSha256": "faf5d833c90ac59a69b2db1382c00fcb41642a40e397e6b2caf38b68a9901756",
+   "steps": "skipcinematic;god;notarget",
+   "extra": {},
+   "freeze": "timescale 0",
+   "binariesUnchanged": true,
+   "errors": [],
+   "cases": {
+    "hold": {
+     "clMeanMs": 3.08,
+     "fps": 308.6
+    }
+   },
+   "screenshots": {
+    "hold.png": "fb8ba3f8d877543ff74fbe80252cf9c5ac59fd26a90b2e4863c43bed25bf569f"
+   },
+   "samples": {
+    "taken": 40,
+    "inRA_TikiTessellateLod": 0,
+    "rendererSymbolsResolved": true
+   }
+  }
+ },
+ "profileDiscarded": {
+  "prof2-alice-paused-vk-after": {
+   "run": ".tmp/alice-tiki/runs/prof2-alice-paused-vk-after",
+   "profile": "alice",
+   "map": "grounds1",
+   "renderer": "vk",
+   "rendererSha256": "faf5d833c90ac59a69b2db1382c00fcb41642a40e397e6b2caf38b68a9901756",
+   "steps": "skipcinematic;god;notarget",
+   "extra": {},
+   "freeze": "pause",
+   "binariesUnchanged": true,
+   "errors": [],
+   "cases": {
+    "hold": {
+     "clMeanMs": 3.67,
+     "fps": 262.7
+    }
+   },
+   "screenshots": {
+    "hold.png": "7f4ac153f68c79a5a3511907971fc17e93a325dff9e31b3fa7a46972ba3f2325"
+   },
+   "samples": {
+    "taken": 38,
+    "inRA_TikiTessellateLod": 0,
+    "rendererSymbolsResolved": false
+   },
+   "reason": "cdb resolved no renderer symbols: the DLL names the build directory's PDB, relinked since; re-run as prof3 with -y <runtime dir>"
+  },
+  "prof2-fakk2-creeper-vk-after": {
+   "run": ".tmp/alice-tiki/runs/prof2-fakk2-creeper-vk-after",
+   "profile": "fakk2",
+   "map": "creeperpens",
+   "renderer": "vk",
+   "rendererSha256": "faf5d833c90ac59a69b2db1382c00fcb41642a40e397e6b2caf38b68a9901756",
+   "steps": "skipcinematic;god;notarget",
+   "extra": {},
+   "freeze": "timescale 0",
+   "binariesUnchanged": true,
+   "errors": [],
+   "cases": {
+    "hold": {
+     "clMeanMs": 3.23,
+     "fps": 292.6
+    }
+   },
+   "screenshots": {
+    "hold.png": "68d641787dbf392c9c6cfc562a15a4cb58dc5186b2fc9614d5f2aede0ec9ff80"
+   },
+   "samples": {
+    "taken": 30,
+    "inRA_TikiTessellateLod": 0,
+    "rendererSymbolsResolved": false
+   },
+   "reason": "cdb resolved no renderer symbols: the DLL names the build directory's PDB, relinked since; re-run as prof3 with -y <runtime dir>"
+  }
+ },
+ "counts": {
+  "survey-alice-grounds1": {
+   "run": ".tmp/alice-tiki/runs/survey-alice-grounds1",
+   "profile": "alice",
+   "map": "grounds1",
+   "renderer": "vk",
+   "steps": "",
+   "cases": {
+    "t00": {
+     "draws": 56,
+     "copied": 40,
+     "built": 16,
+     "copiedVerts": 8649,
+     "builtVerts": 3186,
+     "clMeanMs": 2.56,
+     "png": "347099438993ed2901ae4cafa4578e4f1d4f223e5e73a1fdb884f468043c6801"
+    },
+    "t01": {
+     "draws": 17,
+     "copied": 9,
+     "built": 8,
+     "copiedVerts": 1827,
+     "builtVerts": 1821,
+     "clMeanMs": 1.13,
+     "png": "d2a68da7e70fe64a51205695bf4c3f4b286c27b750c4484b28e2ca9d9bddbe7c"
+    },
+    "t02": {
+     "draws": 99,
+     "copied": 64,
+     "built": 35,
+     "copiedVerts": 14382,
+     "builtVerts": 4095,
+     "clMeanMs": 2.56,
+     "png": "60a3f432b128b70ee91c64edd03ba6c407a3eb1c8e4e3e0b537b24ff6145f8be"
+    },
+    "t03": {
+     "draws": 121,
+     "copied": 79,
+     "built": 42,
+     "copiedVerts": 10225,
+     "builtVerts": 4123,
+     "clMeanMs": 4.15,
+     "png": "8a417a89aef6b18b0018b7fc1e02e6d2cd1bfd6dc7f402008d7bd33308970c87"
+    },
+    "t04": {
+     "draws": 128,
+     "copied": 86,
+     "built": 42,
+     "copiedVerts": 12040,
+     "builtVerts": 4123,
+     "clMeanMs": 4.36,
+     "png": "42718ab51b867d33fbf4769f2d64727f331186348b54f987e7edc1b892527dbf"
+    }
+   }
+  },
+  "survey-fakk2-fakkhouse": {
+   "run": ".tmp/alice-tiki/runs/survey-fakk2-fakkhouse",
+   "profile": "fakk2",
+   "map": "fakkhouse",
+   "renderer": "vk",
+   "steps": "",
+   "cases": {
+    "t00": {
+     "draws": 35,
+     "copied": 4,
+     "built": 31,
+     "copiedVerts": 138,
+     "builtVerts": 1987,
+     "clMeanMs": 3.28,
+     "png": "f00914ee79d3d935b416fc5b08eb0f15b46c682fde5d64caa0eb23b188930402"
+    },
+    "t01": {
+     "draws": 28,
+     "copied": 4,
+     "built": 24,
+     "copiedVerts": 138,
+     "builtVerts": 1144,
+     "clMeanMs": 2.96,
+     "png": "dc159f0ce23feb9a775535c01c16e20955a1e6eb2a1b448804c98080f350a84f"
+    },
+    "t02": {
+     "draws": 10,
+     "copied": 0,
+     "built": 10,
+     "copiedVerts": 0,
+     "builtVerts": 1116,
+     "clMeanMs": 2.06,
+     "png": "3fb282a4ee5c0763bd684f460bcc13e4a20cd5092e524340f3a775eafd8bc576"
+    },
+    "t03": {
+     "draws": 9,
+     "copied": 0,
+     "built": 9,
+     "copiedVerts": 0,
+     "builtVerts": 1038,
+     "clMeanMs": 2.06,
+     "png": "bbc703e49bd707baf70a1d196b0c1223cd9d34b688c6c0682d77f4f89a2dfb6d"
+    },
+    "t04": {
+     "draws": 33,
+     "copied": 5,
+     "built": 28,
+     "copiedVerts": 737,
+     "builtVerts": 2429,
+     "clMeanMs": 2.92,
+     "png": "32ddabb6102c48557e4b4f0349d161ce437e73dc422a3572bd2d73f1aee4de27"
+    },
+    "t05": {
+     "draws": 13,
+     "copied": 0,
+     "built": 13,
+     "copiedVerts": 0,
+     "builtVerts": 1529,
+     "clMeanMs": 2.16,
+     "png": "02b4e745d024b514f5be442c950a8f5f25cc48528a4c1a462f774bca7fdc8d22"
+    },
+    "t06": {
+     "draws": 28,
+     "copied": 9,
+     "built": 19,
+     "copiedVerts": 875,
+     "builtVerts": 1220,
+     "clMeanMs": 2.97,
+     "png": "4657ebb926d02effca707fc758d015226a892ea4950507855d8200aaf3d12a79"
+    },
+    "t07": {
+     "draws": 28,
+     "copied": 9,
+     "built": 19,
+     "copiedVerts": 875,
+     "builtVerts": 1220,
+     "clMeanMs": 2.81,
+     "png": "2fdb9e9ff423de1c5f085619b6f151c757d2c277c931208931938d90ef8d9015"
+    },
+    "t08": {
+     "draws": 29,
+     "copied": 9,
+     "built": 20,
+     "copiedVerts": 875,
+     "builtVerts": 1677,
+     "clMeanMs": 3.31,
+     "png": "ebc4c88ddd58d9ec17499292d791839a7f52cd09eab8b98479e3e9b8211c36a5"
+    },
+    "t09": {
+     "draws": 29,
+     "copied": 9,
+     "built": 20,
+     "copiedVerts": 875,
+     "builtVerts": 1677,
+     "clMeanMs": 3.01,
+     "png": "e933c0770039e40c9dc51b6fd305f59b26e44a95655d6f25ab7e97081d6de510"
+    }
+   }
+  },
+  "sweep-fakk2-towncenter_good": {
+   "run": ".tmp/alice-tiki/runs/sweep-fakk2-towncenter_good",
+   "profile": "fakk2",
+   "map": "towncenter_good",
+   "renderer": "vk",
+   "steps": "skipcinematic;god;notarget",
+   "cases": {
+    "t00": {
+     "draws": 31,
+     "copied": 15,
+     "built": 16,
+     "copiedVerts": 2211,
+     "builtVerts": 1047,
+     "clMeanMs": 2.52,
+     "png": "2d472cfa4b212fbfadcb712cc6cc8f0298c2ed22b2c04f2c77ed28b381723c65"
+    },
+    "t01": {
+     "draws": 31,
+     "copied": 15,
+     "built": 16,
+     "copiedVerts": 2211,
+     "builtVerts": 1047,
+     "clMeanMs": 2.47,
+     "png": "68a213d84a56f8961ef9543628f8ac950cd8a98fcb7437046922e202d56d12d6"
+    }
+   }
+  },
+  "sweep-fakk2-homes1": {
+   "run": ".tmp/alice-tiki/runs/sweep-fakk2-homes1",
+   "profile": "fakk2",
+   "map": "homes1",
+   "renderer": "vk",
+   "steps": "skipcinematic;god;notarget",
+   "cases": {
+    "t00": {
+     "draws": 133,
+     "copied": 56,
+     "built": 77,
+     "copiedVerts": 5537,
+     "builtVerts": 4764,
+     "clMeanMs": 4.35,
+     "png": "d17a24d966ced397b301bb4772f5ad21a6df263f29d9fbae863fb9f0dcdef5d1"
+    },
+    "t01": {
+     "draws": 133,
+     "copied": 56,
+     "built": 77,
+     "copiedVerts": 5411,
+     "builtVerts": 4638,
+     "clMeanMs": 4.32,
+     "png": "043ee4dc8e9e083ecdf88a26d696bf37a0879f0b2556a4c7bead207850203886"
+    }
+   }
+  },
+  "sweep-fakk2-creeperpens": {
+   "run": ".tmp/alice-tiki/runs/sweep-fakk2-creeperpens",
+   "profile": "fakk2",
+   "map": "creeperpens",
+   "renderer": "vk",
+   "steps": "skipcinematic;god;notarget",
+   "cases": {
+    "t00": {
+     "draws": 203,
+     "copied": 125,
+     "built": 78,
+     "copiedVerts": 6315,
+     "builtVerts": 2518,
+     "clMeanMs": 6.65,
+     "png": "675898401916371810f17c53ba93e692cafbe92dea512326ef7b427d853b11a1"
+    },
+    "t01": {
+     "draws": 202,
+     "copied": 124,
+     "built": 78,
+     "copiedVerts": 6284,
+     "builtVerts": 2518,
+     "clMeanMs": 5.86,
+     "png": "bc1273544e5defc8ef2322c74511b13668a821c7ed8ee66458b2ac5f1662e4fc"
+    }
+   }
+  },
+  "sweep-fakk2-cemetery": {
+   "run": ".tmp/alice-tiki/runs/sweep-fakk2-cemetery",
+   "profile": "fakk2",
+   "map": "cemetery",
+   "renderer": "vk",
+   "steps": "skipcinematic;god;notarget",
+   "cases": {
+    "t00": {
+     "draws": 26,
+     "copied": 5,
+     "built": 21,
+     "copiedVerts": 612,
+     "builtVerts": 1617,
+     "clMeanMs": 4.2,
+     "png": "77f2d39188050c46dee17ac82a535b21cbafa4e72f8427c242f6029a0b67fb7e"
+    },
+    "t01": {
+     "draws": 26,
+     "copied": 5,
+     "built": 21,
+     "copiedVerts": 612,
+     "builtVerts": 1617,
+     "clMeanMs": 4.35,
+     "png": "a0b0ae18cd3ad21b4a246ff9778ff05315011304a1af0f4bdbc340fe414ff4ce"
+    }
+   }
+  }
+ },
+ "timed": {
+  "timed-alice-paused-glx": {
+   "run": ".tmp/alice-tiki/runs/timed-alice-paused-glx",
+   "profile": "alice",
+   "map": "grounds1",
+   "renderer": "glx",
+   "rendererSha256": "ec13a284fa73e3cd368e53dfb6cd35d547287e591d38b9537f1f865942356f3f",
+   "steps": "skipcinematic;god;notarget",
+   "extra": {},
+   "freeze": "pause",
+   "binariesUnchanged": true,
+   "errors": [],
+   "timed": {
+    "on1": {
+     "reuse": 1,
+     "windows": 23,
+     "draws": 128,
+     "built": 42,
+     "copied": 86,
+     "builtVerts": 4123,
+     "copiedVerts": 12040,
+     "usPerFrameMean": 265.6,
+     "usPerFrameMin": 233.6,
+     "usPerFrameMax": 316.7,
+     "clMeanMs": 4.66,
+     "frames": 1654
+    },
+    "off1": {
+     "reuse": 0,
+     "windows": 23,
+     "draws": 128,
+     "built": 128,
+     "copied": 0,
+     "builtVerts": 16163,
+     "copiedVerts": 0,
+     "usPerFrameMean": 398.3,
+     "usPerFrameMin": 358.9,
+     "usPerFrameMax": 440.6,
+     "clMeanMs": 4.63,
+     "frames": 1665
+    },
+    "on2": {
+     "reuse": 1,
+     "windows": 19,
+     "draws": 128,
+     "built": 42,
+     "copied": 86,
+     "builtVerts": 4123,
+     "copiedVerts": 12040,
+     "usPerFrameMean": 243.9,
+     "usPerFrameMin": 201.4,
+     "usPerFrameMax": 279.0,
+     "clMeanMs": 4.2,
+     "frames": 1239
+    },
+    "off2": {
+     "reuse": 0,
+     "windows": 20,
+     "draws": 128,
+     "built": 128,
+     "copied": 0,
+     "builtVerts": 16163,
+     "copiedVerts": 0,
+     "usPerFrameMean": 426.5,
+     "usPerFrameMin": 384.9,
+     "usPerFrameMax": 463.0,
+     "clMeanMs": 5.24,
+     "frames": 1473
+    },
+    "on3": {
+     "reuse": 1,
+     "windows": 20,
+     "draws": 128,
+     "built": 42,
+     "copied": 86,
+     "builtVerts": 4123,
+     "copiedVerts": 12040,
+     "usPerFrameMean": 303.4,
+     "usPerFrameMin": 255.0,
+     "usPerFrameMax": 339.5,
+     "clMeanMs": 5.48,
+     "frames": 1404
+    }
+   }
+  },
+  "timed-alice-paused-vk": {
+   "run": ".tmp/alice-tiki/runs/timed-alice-paused-vk",
+   "profile": "alice",
+   "map": "grounds1",
+   "renderer": "vk",
+   "rendererSha256": "d95fc7bf5fe406cd591c35b24dbffbc7acf4f2d9d328dad5ba4160e9095838f1",
+   "steps": "skipcinematic;god;notarget",
+   "extra": {},
+   "freeze": "pause",
+   "binariesUnchanged": true,
+   "errors": [],
+   "timed": {
+    "on1": {
+     "reuse": 1,
+     "windows": 37,
+     "draws": 112,
+     "built": 42,
+     "copied": 70,
+     "builtVerts": 4122,
+     "copiedVerts": 8396,
+     "usPerFrameMean": 253.7,
+     "usPerFrameMin": 169.7,
+     "usPerFrameMax": 396.8,
+     "clMeanMs": 2.88,
+     "frames": 2628
+    },
+    "off1": {
+     "reuse": 0,
+     "windows": 39,
+     "draws": 112,
+     "built": 112,
+     "copied": 0,
+     "builtVerts": 12518,
+     "copiedVerts": 0,
+     "usPerFrameMean": 337.3,
+     "usPerFrameMin": 260.1,
+     "usPerFrameMax": 541.3,
+     "clMeanMs": 2.64,
+     "frames": 2868
+    },
+    "on2": {
+     "reuse": 1,
+     "windows": 54,
+     "draws": 112,
+     "built": 42,
+     "copied": 70,
+     "builtVerts": 4122,
+     "copiedVerts": 8396,
+     "usPerFrameMean": 171.8,
+     "usPerFrameMin": 117.1,
+     "usPerFrameMax": 270.2,
+     "clMeanMs": 2.09,
+     "frames": 3614
+    },
+    "off2": {
+     "reuse": 0,
+     "windows": 42,
+     "draws": 112,
+     "built": 112,
+     "copied": 0,
+     "builtVerts": 12518,
+     "copiedVerts": 0,
+     "usPerFrameMean": 300.7,
+     "usPerFrameMin": 193.7,
+     "usPerFrameMax": 463.5,
+     "clMeanMs": 2.51,
+     "frames": 2997
+    },
+    "on3": {
+     "reuse": 1,
+     "windows": 49,
+     "draws": 112,
+     "built": 42,
+     "copied": 70,
+     "builtVerts": 4122,
+     "copiedVerts": 8396,
+     "usPerFrameMean": 192.0,
+     "usPerFrameMin": 124.0,
+     "usPerFrameMax": 318.7,
+     "clMeanMs": 2.31,
+     "frames": 3292
+    }
+   }
+  },
+  "timed-alice-firepause-vk": {
+   "run": ".tmp/alice-tiki/runs/timed-alice-firepause-vk",
+   "profile": "alice",
+   "map": "grounds1",
+   "renderer": "vk",
+   "rendererSha256": "d95fc7bf5fe406cd591c35b24dbffbc7acf4f2d9d328dad5ba4160e9095838f1",
+   "steps": "god;notarget",
+   "extra": {},
+   "freeze": "pause",
+   "binariesUnchanged": true,
+   "errors": [],
+   "timed": {
+    "on1": {
+     "reuse": 1,
+     "windows": 72,
+     "draws": 49,
+     "built": 29,
+     "copied": 20,
+     "builtVerts": 3417,
+     "copiedVerts": 4466,
+     "usPerFrameMean": 89.0,
+     "usPerFrameMin": 67.7,
+     "usPerFrameMax": 135.8,
+     "clMeanMs": 1.48,
+     "frames": 5074
+    },
+    "off1": {
+     "reuse": 0,
+     "windows": 53,
+     "draws": 49,
+     "built": 49,
+     "copied": 0,
+     "builtVerts": 7883,
+     "copiedVerts": 0,
+     "usPerFrameMean": 142.1,
+     "usPerFrameMin": 110.4,
+     "usPerFrameMax": 232.6,
+     "clMeanMs": 2.03,
+     "frames": 3686
+    },
+    "on2": {
+     "reuse": 1,
+     "windows": 59,
+     "draws": 49,
+     "built": 29,
+     "copied": 20,
+     "builtVerts": 3417,
+     "copiedVerts": 4466,
+     "usPerFrameMean": 103.7,
+     "usPerFrameMin": 73.0,
+     "usPerFrameMax": 139.5,
+     "clMeanMs": 1.8,
+     "frames": 4188
+    },
+    "off2": {
+     "reuse": 0,
+     "windows": 71,
+     "draws": 49,
+     "built": 49,
+     "copied": 0,
+     "builtVerts": 7883,
+     "copiedVerts": 0,
+     "usPerFrameMean": 113.0,
+     "usPerFrameMin": 87.6,
+     "usPerFrameMax": 201.4,
+     "clMeanMs": 1.39,
+     "frames": 5410
+    },
+    "on3": {
+     "reuse": 1,
+     "windows": 50,
+     "draws": 49,
+     "built": 29,
+     "copied": 20,
+     "builtVerts": 3417,
+     "copiedVerts": 4466,
+     "usPerFrameMean": 127.7,
+     "usPerFrameMin": 72.6,
+     "usPerFrameMax": 200.8,
+     "clMeanMs": 2.21,
+     "frames": 3409
+    }
+   }
+  },
+  "timed-fakk2-creeper-glx": {
+   "run": ".tmp/alice-tiki/runs/timed-fakk2-creeper-glx",
+   "profile": "fakk2",
+   "map": "creeperpens",
+   "renderer": "glx",
+   "rendererSha256": "ec13a284fa73e3cd368e53dfb6cd35d547287e591d38b9537f1f865942356f3f",
+   "steps": "skipcinematic;god;notarget",
+   "extra": {},
+   "freeze": "timescale 0",
+   "binariesUnchanged": true,
+   "errors": [],
+   "timed": {
+    "on1": {
+     "reuse": 1,
+     "windows": 25,
+     "draws": 204,
+     "built": 78,
+     "copied": 126,
+     "builtVerts": 2518,
+     "copiedVerts": 6346,
+     "usPerFrameMean": 228.5,
+     "usPerFrameMin": 203.2,
+     "usPerFrameMax": 259.5,
+     "clMeanMs": 4.41,
+     "frames": 1752
+    },
+    "off1": {
+     "reuse": 0,
+     "windows": 21,
+     "draws": 204,
+     "built": 204,
+     "copied": 0,
+     "builtVerts": 8864,
+     "copiedVerts": 0,
+     "usPerFrameMean": 424.2,
+     "usPerFrameMin": 376.5,
+     "usPerFrameMax": 534.2,
+     "clMeanMs": 4.98,
+     "frames": 1552
+    },
+    "on2": {
+     "reuse": 1,
+     "windows": 22,
+     "draws": 204,
+     "built": 78,
+     "copied": 126,
+     "builtVerts": 2518,
+     "copiedVerts": 6346,
+     "usPerFrameMean": 240.4,
+     "usPerFrameMin": 214.8,
+     "usPerFrameMax": 277.6,
+     "clMeanMs": 4.79,
+     "frames": 1620
+    },
+    "off2": {
+     "reuse": 0,
+     "windows": 20,
+     "draws": 204,
+     "built": 204,
+     "copied": 0,
+     "builtVerts": 8864,
+     "copiedVerts": 0,
+     "usPerFrameMean": 428.8,
+     "usPerFrameMin": 385.4,
+     "usPerFrameMax": 503.6,
+     "clMeanMs": 5.04,
+     "frames": 1527
+    },
+    "on3": {
+     "reuse": 1,
+     "windows": 21,
+     "draws": 204,
+     "built": 78,
+     "copied": 126,
+     "builtVerts": 2518,
+     "copiedVerts": 6346,
+     "usPerFrameMean": 254.0,
+     "usPerFrameMin": 228.8,
+     "usPerFrameMax": 283.5,
+     "clMeanMs": 5.15,
+     "frames": 1502
+    }
+   }
+  },
+  "timed-fakk2-creeper-vk": {
+   "run": ".tmp/alice-tiki/runs/timed-fakk2-creeper-vk",
+   "profile": "fakk2",
+   "map": "creeperpens",
+   "renderer": "vk",
+   "rendererSha256": "d95fc7bf5fe406cd591c35b24dbffbc7acf4f2d9d328dad5ba4160e9095838f1",
+   "steps": "skipcinematic;god;notarget",
+   "extra": {},
+   "freeze": "timescale 0",
+   "binariesUnchanged": true,
+   "errors": [],
+   "timed": {
+    "on1": {
+     "reuse": 1,
+     "windows": 37,
+     "draws": 204,
+     "built": 73,
+     "copied": 131,
+     "builtVerts": 2441,
+     "copiedVerts": 6423,
+     "usPerFrameMean": 213.0,
+     "usPerFrameMin": 177.5,
+     "usPerFrameMax": 267.0,
+     "clMeanMs": 2.81,
+     "frames": 2709
+    },
+    "off1": {
+     "reuse": 0,
+     "windows": 36,
+     "draws": 204,
+     "built": 204,
+     "copied": 0,
+     "builtVerts": 8864,
+     "copiedVerts": 0,
+     "usPerFrameMean": 398.8,
+     "usPerFrameMin": 360.8,
+     "usPerFrameMax": 458.3,
+     "clMeanMs": 2.88,
+     "frames": 2656
+    },
+    "on2": {
+     "reuse": 1,
+     "windows": 37,
+     "draws": 204,
+     "built": 73,
+     "copied": 131,
+     "builtVerts": 2441,
+     "copiedVerts": 6423,
+     "usPerFrameMean": 216.2,
+     "usPerFrameMin": 175.7,
+     "usPerFrameMax": 274.6,
+     "clMeanMs": 2.76,
+     "frames": 2762
+    },
+    "off2": {
+     "reuse": 0,
+     "windows": 35,
+     "draws": 204,
+     "built": 204,
+     "copied": 0,
+     "builtVerts": 8864,
+     "copiedVerts": 0,
+     "usPerFrameMean": 405.6,
+     "usPerFrameMin": 339.9,
+     "usPerFrameMax": 474.2,
+     "clMeanMs": 3.04,
+     "frames": 2505
+    },
+    "on3": {
+     "reuse": 1,
+     "windows": 32,
+     "draws": 204,
+     "built": 73,
+     "copied": 131,
+     "builtVerts": 2441,
+     "copiedVerts": 6423,
+     "usPerFrameMean": 236.1,
+     "usPerFrameMin": 209.8,
+     "usPerFrameMax": 263.2,
+     "clMeanMs": 3.28,
+     "frames": 2301
+    }
+   }
+  },
+  "timed-fakk2-homes1-vk": {
+   "run": ".tmp/alice-tiki/runs/timed-fakk2-homes1-vk",
+   "profile": "fakk2",
+   "map": "homes1",
+   "renderer": "vk",
+   "rendererSha256": "d95fc7bf5fe406cd591c35b24dbffbc7acf4f2d9d328dad5ba4160e9095838f1",
+   "steps": "skipcinematic;god;notarget",
+   "extra": {},
+   "freeze": "timescale 0",
+   "binariesUnchanged": true,
+   "errors": [],
+   "timed": {
+    "on1": {
+     "reuse": 1,
+     "windows": 55,
+     "draws": 133,
+     "built": 77,
+     "copied": 56,
+     "builtVerts": 4654,
+     "copiedVerts": 5427,
+     "usPerFrameMean": 260.3,
+     "usPerFrameMin": 207.1,
+     "usPerFrameMax": 323.9,
+     "clMeanMs": 1.98,
+     "frames": 3795
+    },
+    "off1": {
+     "reuse": 0,
+     "windows": 48,
+     "draws": 133,
+     "built": 133,
+     "copied": 0,
+     "builtVerts": 10081,
+     "copiedVerts": 0,
+     "usPerFrameMean": 335.4,
+     "usPerFrameMin": 278.6,
+     "usPerFrameMax": 424.5,
+     "clMeanMs": 2.05,
+     "frames": 3092
+    },
+    "on2": {
+     "reuse": 1,
+     "windows": 62,
+     "draws": 133,
+     "built": 77,
+     "copied": 56,
+     "builtVerts": 4654,
+     "copiedVerts": 5427,
+     "usPerFrameMean": 238.1,
+     "usPerFrameMin": 196.8,
+     "usPerFrameMax": 284.5,
+     "clMeanMs": 1.73,
+     "frames": 4331
+    },
+    "off2": {
+     "reuse": 0,
+     "windows": 48,
+     "draws": 133,
+     "built": 133,
+     "copied": 0,
+     "builtVerts": 10081,
+     "copiedVerts": 0,
+     "usPerFrameMean": 349.7,
+     "usPerFrameMin": 290.6,
+     "usPerFrameMax": 413.7,
+     "clMeanMs": 2.14,
+     "frames": 3503
+    },
+    "on3": {
+     "reuse": 1,
+     "windows": 46,
+     "draws": 133,
+     "built": 77,
+     "copied": 56,
+     "builtVerts": 4654,
+     "copiedVerts": 5427,
+     "usPerFrameMean": 286.6,
+     "usPerFrameMin": 219.1,
+     "usPerFrameMax": 425.5,
+     "clMeanMs": 2.2,
+     "frames": 3391
+    }
+   }
+  }
+ },
+ "identity": {
+  "ab-fakk2-creeper-glx": {
+   "run": ".tmp/alice-tiki/runs/ab-fakk2-creeper-glx",
+   "profile": "fakk2",
+   "map": "creeperpens",
+   "renderer": "glx",
+   "rendererSha256": "2e04f31432311a477c73ce61eeead6bd46baac8fbea1c7bf2b1b7ce6fd9bfa4d",
+   "steps": "skipcinematic;god;notarget",
+   "extra": {},
+   "freeze": "timescale 0",
+   "binariesUnchanged": true,
+   "errors": [],
+   "ab": {
+    "on1": {
+     "clMean": 8.43,
+     "clP95": 10,
+     "fps": 113.1,
+     "frames": 917,
+     "png": "e9dc4b04aa2f05de0420c6cdb4169e476807d971c03a974cd3e4a5012ca0a9b6",
+     "pixelsDifferingFromOn1": 0,
+     "bbox": null,
+     "pixelsDifferingOutsideGauge": 0
+    },
+    "off1": {
+     "clMean": 8.12,
+     "clP95": 10,
+     "fps": 118.4,
+     "frames": 963,
+     "png": "55469f5fa9c423a4cd1a1686d8440c54728b4f1d0eac4d6c2e3f60b98554240d",
+     "pixelsDifferingFromOn1": 3713,
+     "bbox": [
+      19,
+      33,
+      154,
+      140
+     ],
+     "pixelsDifferingOutsideGauge": 0
+    },
+    "on2": {
+     "clMean": 8.26,
+     "clP95": 10,
+     "fps": 115.7,
+     "frames": 948,
+     "png": "7f1f07ddd83c2878fe2a2e25a03c754a59734fab8d95c907431133664e707ba7",
+     "pixelsDifferingFromOn1": 3674,
+     "bbox": [
+      19,
+      33,
+      154,
+      140
+     ],
+     "pixelsDifferingOutsideGauge": 0
+    },
+    "off2": {
+     "clMean": 8.67,
+     "clP95": 10,
+     "fps": 110.6,
+     "frames": 893,
+     "png": "6fdf43500eef8124c94a45215fba7846640f0472a4db5469768d28e590f18640",
+     "pixelsDifferingFromOn1": 3710,
+     "bbox": [
+      19,
+      33,
+      154,
+      140
+     ],
+     "pixelsDifferingOutsideGauge": 0
+    },
+    "on3": {
+     "clMean": 8.47,
+     "clP95": 10,
+     "fps": 113.1,
+     "frames": 912,
+     "png": "6d53d1bc5b53ecd14e3f1747fbb6fc6cbc17bf2dbaad17e9d4681810b357e426",
+     "pixelsDifferingFromOn1": 3682,
+     "bbox": [
+      19,
+      33,
+      154,
+      140
+     ],
+     "pixelsDifferingOutsideGauge": 0
+    }
+   },
+   "pairwise": {
+    "on1-off1": 0,
+    "on1-on2": 0,
+    "on1-off2": 0,
+    "on1-on3": 0,
+    "off1-on2": 0,
+    "off1-off2": 0,
+    "off1-on3": 0,
+    "on2-off2": 0,
+    "on2-on3": 0,
+    "off2-on3": 0
+   }
+  },
+  "ab-fakk2-creeper-vk": {
+   "run": ".tmp/alice-tiki/runs/ab-fakk2-creeper-vk",
+   "profile": "fakk2",
+   "map": "creeperpens",
+   "renderer": "vk",
+   "rendererSha256": "faf5d833c90ac59a69b2db1382c00fcb41642a40e397e6b2caf38b68a9901756",
+   "steps": "skipcinematic;god;notarget",
+   "extra": {},
+   "freeze": "timescale 0",
+   "binariesUnchanged": true,
+   "errors": [],
+   "ab": {
+    "on1": {
+     "clMean": 6.2,
+     "clP95": 7,
+     "fps": 153.3,
+     "frames": 1235,
+     "png": "e10423045df8d79c7e7bb5360c1fd3bff97cadad3d7aeb0f4cbc718868d032a0",
+     "pixelsDifferingFromOn1": 0,
+     "bbox": null,
+     "pixelsDifferingOutsideGauge": 0
+    },
+    "off1": {
+     "clMean": 6.24,
+     "clP95": 7,
+     "fps": 151.6,
+     "frames": 1235,
+     "png": "649ccf4525ac5b8d735d19cb7fb0898577db9420ef1a7ab45343becdcd6a82d5",
+     "pixelsDifferingFromOn1": 3752,
+     "bbox": [
+      19,
+      33,
+      154,
+      140
+     ],
+     "pixelsDifferingOutsideGauge": 0
+    },
+    "on2": {
+     "clMean": 6.54,
+     "clP95": 8,
+     "fps": 144.7,
+     "frames": 1172,
+     "png": "bed4c7ccda177fd32099a3d1e579aedef11825e1b0c938d6fe62ae3d1b9fdb7a",
+     "pixelsDifferingFromOn1": 3654,
+     "bbox": [
+      19,
+      33,
+      154,
+      140
+     ],
+     "pixelsDifferingOutsideGauge": 0
+    },
+    "off2": {
+     "clMean": 7.03,
+     "clP95": 8,
+     "fps": 135.5,
+     "frames": 1091,
+     "png": "7d10684ed4bf5d095a8e5cdc0d2fa0caf11c58e376eddb80c5818fbadc53d31e",
+     "pixelsDifferingFromOn1": 3432,
+     "bbox": [
+      19,
+      33,
+      154,
+      140
+     ],
+     "pixelsDifferingOutsideGauge": 0
+    },
+    "on3": {
+     "clMean": 6.14,
+     "clP95": 7,
+     "fps": 154.4,
+     "frames": 1261,
+     "png": "b923a0ced0c3f732bfd1451f2e4f46ed2fa8a665b146143e5e161b53b85df41f",
+     "pixelsDifferingFromOn1": 3664,
+     "bbox": [
+      19,
+      33,
+      154,
+      140
+     ],
+     "pixelsDifferingOutsideGauge": 0
+    }
+   },
+   "pairwise": {
+    "on1-off1": 0,
+    "on1-on2": 0,
+    "on1-off2": 0,
+    "on1-on3": 0,
+    "off1-on2": 0,
+    "off1-off2": 0,
+    "off1-on3": 0,
+    "on2-off2": 0,
+    "on2-on3": 0,
+    "off2-on3": 0
+   }
+  },
+  "ab-fakk2-creeper-rtx0": {
+   "run": ".tmp/alice-tiki/runs/ab-fakk2-creeper-rtx0",
+   "profile": "fakk2",
+   "map": "creeperpens",
+   "renderer": "rtx",
+   "rendererSha256": "1b0f646a6631897d715996af391b4a459c678f5b909a37d03527ac7ebc236454",
+   "steps": "skipcinematic;god;notarget",
+   "extra": {
+    "rtx_rt_mode": "0"
+   },
+   "freeze": "timescale 0",
+   "binariesUnchanged": true,
+   "errors": [],
+   "ab": {
+    "on1": {
+     "clMean": 6.41,
+     "clP95": 8,
+     "fps": 147.5,
+     "frames": 1185,
+     "png": "1bbb2a6a40994f3686b8a1d6228a9a15ca1e1a9addc0470a7d6ef5778fbd79aa",
+     "pixelsDifferingFromOn1": 0,
+     "bbox": null,
+     "pixelsDifferingOutsideGauge": 0
+    },
+    "off1": {
+     "clMean": 6.93,
+     "clP95": 8,
+     "fps": 136.3,
+     "frames": 1092,
+     "png": "32ce15f9d33067f543133c831cea943cbd7bf8a61be2894010717e8280591f53",
+     "pixelsDifferingFromOn1": 3745,
+     "bbox": [
+      19,
+      33,
+      154,
+      140
+     ],
+     "pixelsDifferingOutsideGauge": 0
+    },
+    "on2": {
+     "clMean": 6.21,
+     "clP95": 8,
+     "fps": 151.4,
+     "frames": 1212,
+     "png": "4772d1683437f7c4cf07f16ad345ceccb00f3cc71ee5e7ddd68c62039bb54235",
+     "pixelsDifferingFromOn1": 3711,
+     "bbox": [
+      19,
+      33,
+      154,
+      140
+     ],
+     "pixelsDifferingOutsideGauge": 0
+    },
+    "off2": {
+     "clMean": 6.12,
+     "clP95": 8,
+     "fps": 154.3,
+     "frames": 1237,
+     "png": "a8cba49220d5fead10232828ab70b2905f646d0a630eeddf52a05b86d379aebd",
+     "pixelsDifferingFromOn1": 3726,
+     "bbox": [
+      19,
+      33,
+      154,
+      140
+     ],
+     "pixelsDifferingOutsideGauge": 0
+    },
+    "on3": {
+     "clMean": 5.96,
+     "clP95": 7,
+     "fps": 159.1,
+     "frames": 1278,
+     "png": "5ceb597628243e4ba01289c515d3513b86ff08104bf2d565819c90a408e3b63c",
+     "pixelsDifferingFromOn1": 3740,
+     "bbox": [
+      19,
+      33,
+      154,
+      140
+     ],
+     "pixelsDifferingOutsideGauge": 0
+    }
+   },
+   "pairwise": {
+    "on1-off1": 0,
+    "on1-on2": 0,
+    "on1-off2": 0,
+    "on1-on3": 0,
+    "off1-on2": 0,
+    "off1-off2": 0,
+    "off1-on3": 0,
+    "on2-off2": 0,
+    "on2-on3": 0,
+    "off2-on3": 0
+   }
+  },
+  "ab-alice-paused-glx": {
+   "run": ".tmp/alice-tiki/runs/ab-alice-paused-glx",
+   "profile": "alice",
+   "map": "grounds1",
+   "renderer": "glx",
+   "rendererSha256": "2e04f31432311a477c73ce61eeead6bd46baac8fbea1c7bf2b1b7ce6fd9bfa4d",
+   "steps": "skipcinematic;god;notarget",
+   "extra": {},
+   "freeze": "pause",
+   "binariesUnchanged": true,
+   "errors": [],
+   "ab": {
+    "on1": {
+     "clMean": 7.46,
+     "clP95": 9,
+     "fps": 128.4,
+     "frames": 1034,
+     "png": "1c6356ec1f279d83b316b19f79ff95f952285fa132008d4ac52257e8b25d0e4e",
+     "pixelsDifferingFromOn1": 0,
+     "bbox": null,
+     "pixelsDifferingOutsideGauge": 0
+    },
+    "off1": {
+     "clMean": 7.58,
+     "clP95": 9,
+     "fps": 126.0,
+     "frames": 1020,
+     "png": "1c6356ec1f279d83b316b19f79ff95f952285fa132008d4ac52257e8b25d0e4e",
+     "pixelsDifferingFromOn1": 0,
+     "bbox": null,
+     "pixelsDifferingOutsideGauge": 0
+    },
+    "on2": {
+     "clMean": 7.39,
+     "clP95": 9,
+     "fps": 129.4,
+     "frames": 1040,
+     "png": "1c6356ec1f279d83b316b19f79ff95f952285fa132008d4ac52257e8b25d0e4e",
+     "pixelsDifferingFromOn1": 0,
+     "bbox": null,
+     "pixelsDifferingOutsideGauge": 0
+    },
+    "off2": {
+     "clMean": 7.48,
+     "clP95": 9,
+     "fps": 128.4,
+     "frames": 1031,
+     "png": "1c6356ec1f279d83b316b19f79ff95f952285fa132008d4ac52257e8b25d0e4e",
+     "pixelsDifferingFromOn1": 0,
+     "bbox": null,
+     "pixelsDifferingOutsideGauge": 0
+    },
+    "on3": {
+     "clMean": 7.18,
+     "clP95": 9,
+     "fps": 133.4,
+     "frames": 1078,
+     "png": "1c6356ec1f279d83b316b19f79ff95f952285fa132008d4ac52257e8b25d0e4e",
+     "pixelsDifferingFromOn1": 0,
+     "bbox": null,
+     "pixelsDifferingOutsideGauge": 0
+    }
+   },
+   "pairwise": {
+    "on1-off1": 0,
+    "on1-on2": 0,
+    "on1-off2": 0,
+    "on1-on3": 0,
+    "off1-on2": 0,
+    "off1-off2": 0,
+    "off1-on3": 0,
+    "on2-off2": 0,
+    "on2-on3": 0,
+    "off2-on3": 0
+   }
+  },
+  "ab-alice-paused-vk": {
+   "run": ".tmp/alice-tiki/runs/ab-alice-paused-vk",
+   "profile": "alice",
+   "map": "grounds1",
+   "renderer": "vk",
+   "rendererSha256": "faf5d833c90ac59a69b2db1382c00fcb41642a40e397e6b2caf38b68a9901756",
+   "steps": "skipcinematic;god;notarget",
+   "extra": {},
+   "freeze": "pause",
+   "binariesUnchanged": true,
+   "errors": [],
+   "ab": {
+    "on1": {
+     "clMean": 4.84,
+     "clP95": 6,
+     "fps": 196.0,
+     "frames": 1576,
+     "png": "e872a64a5d28cea2830d2ae285cc63a95689f27b5869801857626c5780fd9a1e",
+     "pixelsDifferingFromOn1": 0,
+     "bbox": null,
+     "pixelsDifferingOutsideGauge": 0
+    },
+    "off1": {
+     "clMean": 5.1,
+     "clP95": 6,
+     "fps": 186.6,
+     "frames": 1506,
+     "png": "e872a64a5d28cea2830d2ae285cc63a95689f27b5869801857626c5780fd9a1e",
+     "pixelsDifferingFromOn1": 0,
+     "bbox": null,
+     "pixelsDifferingOutsideGauge": 0
+    },
+    "on2": {
+     "clMean": 4.09,
+     "clP95": 5,
+     "fps": 227.7,
+     "frames": 1839,
+     "png": "e872a64a5d28cea2830d2ae285cc63a95689f27b5869801857626c5780fd9a1e",
+     "pixelsDifferingFromOn1": 0,
+     "bbox": null,
+     "pixelsDifferingOutsideGauge": 0
+    },
+    "off2": {
+     "clMean": 4.35,
+     "clP95": 5,
+     "fps": 218.9,
+     "frames": 1757,
+     "png": "e872a64a5d28cea2830d2ae285cc63a95689f27b5869801857626c5780fd9a1e",
+     "pixelsDifferingFromOn1": 0,
+     "bbox": null,
+     "pixelsDifferingOutsideGauge": 0
+    },
+    "on3": {
+     "clMean": 4.12,
+     "clP95": 5,
+     "fps": 230.1,
+     "frames": 1867,
+     "png": "e872a64a5d28cea2830d2ae285cc63a95689f27b5869801857626c5780fd9a1e",
+     "pixelsDifferingFromOn1": 0,
+     "bbox": null,
+     "pixelsDifferingOutsideGauge": 0
+    }
+   },
+   "pairwise": {
+    "on1-off1": 0,
+    "on1-on2": 0,
+    "on1-off2": 0,
+    "on1-on3": 0,
+    "off1-on2": 0,
+    "off1-off2": 0,
+    "off1-on3": 0,
+    "on2-off2": 0,
+    "on2-on3": 0,
+    "off2-on3": 0
+   }
+  },
+  "ab-alice-paused-rtx0": {
+   "run": ".tmp/alice-tiki/runs/ab-alice-paused-rtx0",
+   "profile": "alice",
+   "map": "grounds1",
+   "renderer": "rtx",
+   "rendererSha256": "1b0f646a6631897d715996af391b4a459c678f5b909a37d03527ac7ebc236454",
+   "steps": "skipcinematic;god;notarget",
+   "extra": {
+    "rtx_rt_mode": "0"
+   },
+   "freeze": "pause",
+   "binariesUnchanged": true,
+   "errors": [],
+   "ab": {
+    "on1": {
+     "clMean": 3.09,
+     "clP95": 4,
+     "fps": 306.3,
+     "frames": 2454,
+     "png": "3e506debeceb3f90fd8618ef6a23d8c95d096962703e86b532b8b5e7d832401f",
+     "pixelsDifferingFromOn1": 0,
+     "bbox": null,
+     "pixelsDifferingOutsideGauge": 0
+    },
+    "off1": {
+     "clMean": 2.95,
+     "clP95": 4,
+     "fps": 320.9,
+     "frames": 2574,
+     "png": "3e506debeceb3f90fd8618ef6a23d8c95d096962703e86b532b8b5e7d832401f",
+     "pixelsDifferingFromOn1": 0,
+     "bbox": null,
+     "pixelsDifferingOutsideGauge": 0
+    },
+    "on2": {
+     "clMean": 3.17,
+     "clP95": 4,
+     "fps": 295.5,
+     "frames": 2374,
+     "png": "3e506debeceb3f90fd8618ef6a23d8c95d096962703e86b532b8b5e7d832401f",
+     "pixelsDifferingFromOn1": 0,
+     "bbox": null,
+     "pixelsDifferingOutsideGauge": 0
+    },
+    "off2": {
+     "clMean": 3.11,
+     "clP95": 4,
+     "fps": 304.2,
+     "frames": 2437,
+     "png": "3e506debeceb3f90fd8618ef6a23d8c95d096962703e86b532b8b5e7d832401f",
+     "pixelsDifferingFromOn1": 0,
+     "bbox": null,
+     "pixelsDifferingOutsideGauge": 0
+    },
+    "on3": {
+     "clMean": 2.75,
+     "clP95": 4,
+     "fps": 343.1,
+     "frames": 2749,
+     "png": "3e506debeceb3f90fd8618ef6a23d8c95d096962703e86b532b8b5e7d832401f",
+     "pixelsDifferingFromOn1": 0,
+     "bbox": null,
+     "pixelsDifferingOutsideGauge": 0
+    }
+   },
+   "pairwise": {
+    "on1-off1": 0,
+    "on1-on2": 0,
+    "on1-off2": 0,
+    "on1-on3": 0,
+    "off1-on2": 0,
+    "off1-off2": 0,
+    "off1-on3": 0,
+    "on2-off2": 0,
+    "on2-on3": 0,
+    "off2-on3": 0
+   }
+  },
+  "ab-alice-firepause-vk": {
+   "run": ".tmp/alice-tiki/runs/ab-alice-firepause-vk",
+   "profile": "alice",
+   "map": "grounds1",
+   "renderer": "vk",
+   "rendererSha256": "faf5d833c90ac59a69b2db1382c00fcb41642a40e397e6b2caf38b68a9901756",
+   "steps": "god;notarget",
+   "extra": {},
+   "freeze": "pause",
+   "binariesUnchanged": true,
+   "errors": [],
+   "ab": {
+    "on1": {
+     "clMean": 2.37,
+     "clP95": 3,
+     "fps": 398.1,
+     "frames": 3192,
+     "png": "d1637a93ce14b29920fe5f36a3410bd4acd94f644f53953e38b9ab1aa7392aac",
+     "pixelsDifferingFromOn1": 0,
+     "bbox": null,
+     "pixelsDifferingOutsideGauge": 0
+    },
+    "off1": {
+     "clMean": 2.64,
+     "clP95": 4,
+     "fps": 355.0,
+     "frames": 2846,
+     "png": "d1637a93ce14b29920fe5f36a3410bd4acd94f644f53953e38b9ab1aa7392aac",
+     "pixelsDifferingFromOn1": 0,
+     "bbox": null,
+     "pixelsDifferingOutsideGauge": 0
+    },
+    "on2": {
+     "clMean": 2.52,
+     "clP95": 4,
+     "fps": 372.7,
+     "frames": 2987,
+     "png": "d1637a93ce14b29920fe5f36a3410bd4acd94f644f53953e38b9ab1aa7392aac",
+     "pixelsDifferingFromOn1": 0,
+     "bbox": null,
+     "pixelsDifferingOutsideGauge": 0
+    },
+    "off2": {
+     "clMean": 2.6,
+     "clP95": 4,
+     "fps": 361.2,
+     "frames": 2896,
+     "png": "d1637a93ce14b29920fe5f36a3410bd4acd94f644f53953e38b9ab1aa7392aac",
+     "pixelsDifferingFromOn1": 0,
+     "bbox": null,
+     "pixelsDifferingOutsideGauge": 0
+    },
+    "on3": {
+     "clMean": 2.43,
+     "clP95": 3,
+     "fps": 384.9,
+     "frames": 3085,
+     "png": "d1637a93ce14b29920fe5f36a3410bd4acd94f644f53953e38b9ab1aa7392aac",
+     "pixelsDifferingFromOn1": 0,
+     "bbox": null,
+     "pixelsDifferingOutsideGauge": 0
+    }
+   },
+   "pairwise": {
+    "on1-off1": 0,
+    "on1-on2": 0,
+    "on1-off2": 0,
+    "on1-on3": 0,
+    "off1-on2": 0,
+    "off1-off2": 0,
+    "off1-on3": 0,
+    "on2-off2": 0,
+    "on2-on3": 0,
+    "off2-on3": 0
+   }
+  }
+ },
+ "identityInconclusive": {
+  "ab-fakk2-creeper-rtx": {
+   "run": ".tmp/alice-tiki/runs/ab-fakk2-creeper-rtx",
+   "profile": "fakk2",
+   "map": "creeperpens",
+   "renderer": "rtx",
+   "rendererSha256": "1b0f646a6631897d715996af391b4a459c678f5b909a37d03527ac7ebc236454",
+   "steps": "skipcinematic;god;notarget",
+   "extra": {},
+   "freeze": "timescale 0",
+   "binariesUnchanged": true,
+   "errors": [],
+   "ab": {
+    "on1": {
+     "clMean": 7.09,
+     "clP95": 8,
+     "fps": 26.4,
+     "frames": 212,
+     "png": "d8fff53ac43c13e60e0c8ac147eed2a344145c872ae89fe3d07c309acafa17f5",
+     "pixelsDifferingFromOn1": 0,
+     "bbox": null,
+     "pixelsDifferingOutsideGauge": 0
+    },
+    "off1": {
+     "clMean": 7.99,
+     "clP95": 9,
+     "fps": 19.8,
+     "frames": 160,
+     "png": "039639b5115c1dbd4049df4da2eae744d4c0612a2d848e3c05cb99da675042fe",
+     "pixelsDifferingFromOn1": 827572,
+     "bbox": [
+      0,
+      0,
+      1280,
+      720
+     ],
+     "pixelsDifferingOutsideGauge": 811361
+    },
+    "on2": {
+     "clMean": 7.56,
+     "clP95": 9,
+     "fps": 16.9,
+     "frames": 137,
+     "png": "270a479821e8c212cdd382363a9df451eae0a3fb4cccaca5cb607cae24a5a9ad",
+     "pixelsDifferingFromOn1": 840265,
+     "bbox": [
+      0,
+      0,
+      1280,
+      720
+     ],
+     "pixelsDifferingOutsideGauge": 823805
+    },
+    "off2": {
+     "clMean": 7.78,
+     "clP95": 9,
+     "fps": 20.5,
+     "frames": 166,
+     "png": "f44508f86a62fe46aaf9ace755297b2177d40ff6de3295dc124747121d281db1",
+     "pixelsDifferingFromOn1": 845033,
+     "bbox": [
+      0,
+      0,
+      1280,
+      720
+     ],
+     "pixelsDifferingOutsideGauge": 828432
+    },
+    "on3": {
+     "clMean": 7.42,
+     "clP95": 8,
+     "fps": 22.1,
+     "frames": 179,
+     "png": "4aea1b146a5d8f526dc9c9e08992b8daaeeca9a42ef118dfd9042e0f9fceeb22",
+     "pixelsDifferingFromOn1": 847602,
+     "bbox": [
+      0,
+      0,
+      1280,
+      720
+     ],
+     "pixelsDifferingOutsideGauge": 830948
+    }
+   },
+   "pairwise": {
+    "on1-off1": 811361,
+    "on1-on2": 823805,
+    "on1-off2": 828432,
+    "on1-on3": 830948,
+    "off1-on2": 796925,
+    "off1-off2": 817185,
+    "off1-on3": 822411,
+    "on2-off2": 802608,
+    "on2-on3": 814562,
+    "off2-on3": 779035
+   },
+   "reason": "path traced (rtx_rt_mode 2): two captures with the store on differ as much as on and off"
+  },
+  "ab-alice-gate-glx": {
+   "run": ".tmp/alice-tiki/runs/ab-alice-gate-glx",
+   "profile": "alice",
+   "map": "grounds1",
+   "renderer": "glx",
+   "rendererSha256": "2e04f31432311a477c73ce61eeead6bd46baac8fbea1c7bf2b1b7ce6fd9bfa4d",
+   "steps": "skipcinematic;god;notarget",
+   "extra": {},
+   "freeze": "timescale 0",
+   "binariesUnchanged": true,
+   "errors": [],
+   "ab": {
+    "on1": {
+     "clMean": 6.13,
+     "clP95": 8,
+     "fps": 151.4,
+     "frames": 1225,
+     "png": "91c1edcada3db1b08e9973352d12b413994291290151189a85a793c80e54f51a",
+     "pixelsDifferingFromOn1": 0,
+     "bbox": null,
+     "pixelsDifferingOutsideGauge": 0
+    },
+    "off1": {
+     "clMean": 6.81,
+     "clP95": 9,
+     "fps": 135.7,
+     "frames": 1102,
+     "png": "08c1674b73a6a4d7cabf573d4591e6561e266b06dd95e0ecd903e89d2f773c04",
+     "pixelsDifferingFromOn1": 905341,
+     "bbox": [
+      0,
+      0,
+      1280,
+      720
+     ],
+     "pixelsDifferingOutsideGauge": 873769
+    },
+    "on2": {
+     "clMean": 7.02,
+     "clP95": 9,
+     "fps": 132.0,
+     "frames": 1064,
+     "png": "750d45b590419a3c613ee3a571e0ce6ae8b604fddebf125e926392506dc48d42",
+     "pixelsDifferingFromOn1": 905264,
+     "bbox": [
+      0,
+      0,
+      1280,
+      720
+     ],
+     "pixelsDifferingOutsideGauge": 873706
+    },
+    "off2": {
+     "clMean": 6.77,
+     "clP95": 9,
+     "fps": 136.2,
+     "frames": 1102,
+     "png": "df27054ae052649cde19db989a8489fdb2ec73aa2cc7dccb69ba247d2ab955a3",
+     "pixelsDifferingFromOn1": 905273,
+     "bbox": [
+      0,
+      0,
+      1280,
+      720
+     ],
+     "pixelsDifferingOutsideGauge": 873706
+    },
+    "on3": {
+     "clMean": 6.65,
+     "clP95": 8,
+     "fps": 139.6,
+     "frames": 1131,
+     "png": "89d34e96090afa0ac0522c9467a5a1ce185546d4b2183825aa38c32e490a5aeb",
+     "pixelsDifferingFromOn1": 905270,
+     "bbox": [
+      0,
+      0,
+      1280,
+      720
+     ],
+     "pixelsDifferingOutsideGauge": 873701
+    }
+   },
+   "pairwise": {
+    "on1-off1": 905341,
+    "on1-on2": 905264,
+    "on1-off2": 905273,
+    "on1-on3": 905270,
+    "off1-on2": 828096,
+    "off1-off2": 671866,
+    "off1-on3": 743773,
+    "on2-off2": 827325,
+    "on2-on3": 854270,
+    "off2-on3": 522272
+   },
+   "reason": "Alice held with timescale 0: the camera moved between captures"
+  },
+  "ab-alice-gate-vk": {
+   "run": ".tmp/alice-tiki/runs/ab-alice-gate-vk",
+   "profile": "alice",
+   "map": "grounds1",
+   "renderer": "vk",
+   "rendererSha256": "faf5d833c90ac59a69b2db1382c00fcb41642a40e397e6b2caf38b68a9901756",
+   "steps": "skipcinematic;god;notarget",
+   "extra": {},
+   "freeze": "timescale 0",
+   "binariesUnchanged": true,
+   "errors": [],
+   "ab": {
+    "on1": {
+     "clMean": 4.85,
+     "clP95": 6,
+     "fps": 188.5,
+     "frames": 1528,
+     "png": "b7bf32c40994e6591410ff6405d2b0542edc3760f8a6c37ac6e46b57480a0811",
+     "pixelsDifferingFromOn1": 0,
+     "bbox": null,
+     "pixelsDifferingOutsideGauge": 0
+    },
+    "off1": {
+     "clMean": 5.09,
+     "clP95": 6,
+     "fps": 179.5,
+     "frames": 1446,
+     "png": "42bc7c3fb194fda33aa438d9b36275f27a78d26ab0dc7f5ce7fdfeada5de1c01",
+     "pixelsDifferingFromOn1": 903539,
+     "bbox": [
+      0,
+      0,
+      1280,
+      720
+     ],
+     "pixelsDifferingOutsideGauge": 871923
+    },
+    "on2": {
+     "clMean": 4.63,
+     "clP95": 6,
+     "fps": 195.3,
+     "frames": 1598,
+     "png": "477967bacf9158c86bc162efb8ca38da59144d4bd4b8dbda730020ba85068453",
+     "pixelsDifferingFromOn1": 903159,
+     "bbox": [
+      0,
+      0,
+      1280,
+      720
+     ],
+     "pixelsDifferingOutsideGauge": 871558
+    },
+    "off2": {
+     "clMean": 4.88,
+     "clP95": 6,
+     "fps": 186.5,
+     "frames": 1500,
+     "png": "247ef04220cab1a0eac7200f48a6c87b3752ac41ba4aff2941ac25f5cbb54f36",
+     "pixelsDifferingFromOn1": 898124,
+     "bbox": [
+      0,
+      0,
+      1280,
+      720
+     ],
+     "pixelsDifferingOutsideGauge": 866511
+    },
+    "on3": {
+     "clMean": 4.5,
+     "clP95": 6,
+     "fps": 201.3,
+     "frames": 1628,
+     "png": "e9e9c1e1877657f0e4d3b411119f1977ca9802576fd21c8314d97e819bd6c90e",
+     "pixelsDifferingFromOn1": 903712,
+     "bbox": [
+      0,
+      0,
+      1280,
+      720
+     ],
+     "pixelsDifferingOutsideGauge": 872116
+    }
+   },
+   "pairwise": {
+    "on1-off1": 903539,
+    "on1-on2": 903159,
+    "on1-off2": 898124,
+    "on1-on3": 903712,
+    "off1-on2": 853180,
+    "off1-off2": 853650,
+    "off1-on3": 864075,
+    "on2-off2": 683690,
+    "on2-on3": 753743,
+    "off2-on3": 557353
+   },
+   "reason": "Alice held with timescale 0: the camera moved between captures"
+  },
+  "ab-alice-gate-rtx0": {
+   "run": ".tmp/alice-tiki/runs/ab-alice-gate-rtx0",
+   "profile": "alice",
+   "map": "grounds1",
+   "renderer": "rtx",
+   "rendererSha256": "1b0f646a6631897d715996af391b4a459c678f5b909a37d03527ac7ebc236454",
+   "steps": "skipcinematic;god;notarget",
+   "extra": {
+    "rtx_rt_mode": "0"
+   },
+   "freeze": "timescale 0",
+   "binariesUnchanged": true,
+   "errors": [],
+   "ab": {
+    "on1": {
+     "clMean": 4.28,
+     "clP95": 5,
+     "fps": 212.6,
+     "frames": 1723,
+     "png": "52d268940d1fef8126c866a3d8617b6929748dd798c439ce88526e523b75cce4",
+     "pixelsDifferingFromOn1": 0,
+     "bbox": null,
+     "pixelsDifferingOutsideGauge": 0
+    },
+    "off1": {
+     "clMean": 4.52,
+     "clP95": 5,
+     "fps": 200.9,
+     "frames": 1635,
+     "png": "f399420a71dd2d445f6a69b3adac4edc9aa3c26009d8d22328c52c08465cb118",
+     "pixelsDifferingFromOn1": 903040,
+     "bbox": [
+      0,
+      0,
+      1280,
+      720
+     ],
+     "pixelsDifferingOutsideGauge": 871424
+    },
+    "on2": {
+     "clMean": 4.43,
+     "clP95": 5,
+     "fps": 205.2,
+     "frames": 1662,
+     "png": "8f6af58c1ad3e123276592d3d0472fec2c9abac05ece8bb9dca59413f02b5abc",
+     "pixelsDifferingFromOn1": 904756,
+     "bbox": [
+      0,
+      0,
+      1280,
+      720
+     ],
+     "pixelsDifferingOutsideGauge": 873143
+    },
+    "off2": {
+     "clMean": 4.49,
+     "clP95": 6,
+     "fps": 202.0,
+     "frames": 1631,
+     "png": "afcac228cf30020f86fac5936eb210e73361132af790a85b9d08d27a3803c100",
+     "pixelsDifferingFromOn1": 899450,
+     "bbox": [
+      0,
+      0,
+      1280,
+      720
+     ],
+     "pixelsDifferingOutsideGauge": 867837
+    },
+    "on3": {
+     "clMean": 4.5,
+     "clP95": 6,
+     "fps": 203.4,
+     "frames": 1631,
+     "png": "85431db4e7ae58afc9ba80654bf06a1471345010d698d113c75f61dd40752557",
+     "pixelsDifferingFromOn1": 903809,
+     "bbox": [
+      0,
+      0,
+      1280,
+      720
+     ],
+     "pixelsDifferingOutsideGauge": 872212
+    }
+   },
+   "reason": "Alice held with timescale 0: the camera moved between captures"
+  },
+  "ab-alice-fire-glx": {
+   "run": ".tmp/alice-tiki/runs/ab-alice-fire-glx",
+   "profile": "alice",
+   "map": "grounds1",
+   "renderer": "glx",
+   "rendererSha256": "2e04f31432311a477c73ce61eeead6bd46baac8fbea1c7bf2b1b7ce6fd9bfa4d",
+   "steps": "",
+   "extra": {},
+   "freeze": "timescale 0",
+   "binariesUnchanged": true,
+   "errors": [],
+   "ab": {
+    "on1": {
+     "clMean": 5.36,
+     "clP95": 7,
+     "fps": 172.5,
+     "frames": 1384,
+     "png": "a95754aa21c8f7457b61d359d41c0565d4102dce8b66cc69b3e38a869477eaaf",
+     "pixelsDifferingFromOn1": 0,
+     "bbox": null,
+     "pixelsDifferingOutsideGauge": 0
+    },
+    "off1": {
+     "clMean": 6.79,
+     "clP95": 9,
+     "fps": 135.9,
+     "frames": 1113,
+     "png": "3a031ca1ceea67f7180337061cda329f893621d49eb58323977f00420dcf460f",
+     "pixelsDifferingFromOn1": 918122,
+     "bbox": [
+      0,
+      0,
+      1280,
+      720
+     ],
+     "pixelsDifferingOutsideGauge": 888001
+    },
+    "on2": {
+     "clMean": 1.84,
+     "clP95": 3,
+     "fps": 495.5,
+     "frames": 4028,
+     "png": "c1c4280e3255823870debcdc69fa1b2b511c9ba6d1adef6f244cfdf064f048b8",
+     "pixelsDifferingFromOn1": 919429,
+     "bbox": [
+      0,
+      0,
+      1280,
+      720
+     ],
+     "pixelsDifferingOutsideGauge": 887463
+    },
+    "off2": {
+     "clMean": 2.13,
+     "clP95": 3,
+     "fps": 428.9,
+     "frames": 3525,
+     "png": "b6b8f2d81aa58081b8383f6022d3acf574f597c7bfe06fc698f1327cce11a60f",
+     "pixelsDifferingFromOn1": 919429,
+     "bbox": [
+      0,
+      0,
+      1280,
+      720
+     ],
+     "pixelsDifferingOutsideGauge": 887463
+    },
+    "on3": {
+     "clMean": 2.18,
+     "clP95": 3,
+     "fps": 418.2,
+     "frames": 3407,
+     "png": "710efa2cb9b7540cc4f4f73ad8d0ec3020e3d48ab136513ccbff109f08dd446b",
+     "pixelsDifferingFromOn1": 919429,
+     "bbox": [
+      0,
+      0,
+      1280,
+      720
+     ],
+     "pixelsDifferingOutsideGauge": 887463
+    }
+   },
+   "reason": "Alice's opening script set timescale back to 1; without god mode Alice burned and the load/save menu opened"
+  },
+  "ab-alice-fire-vk": {
+   "run": ".tmp/alice-tiki/runs/ab-alice-fire-vk",
+   "profile": "alice",
+   "map": "grounds1",
+   "renderer": "vk",
+   "rendererSha256": "faf5d833c90ac59a69b2db1382c00fcb41642a40e397e6b2caf38b68a9901756",
+   "steps": "",
+   "extra": {},
+   "freeze": "timescale 0",
+   "binariesUnchanged": true,
+   "errors": [],
+   "ab": {
+    "on1": {
+     "clMean": 4.24,
+     "clP95": 5,
+     "fps": 214.6,
+     "frames": 1754,
+     "png": "5e8d821e039e3396ceaefab647498a95da158d23c38341c57fee561ca0e3eb09",
+     "pixelsDifferingFromOn1": 0,
+     "bbox": null,
+     "pixelsDifferingOutsideGauge": 0
+    },
+    "off1": {
+     "clMean": 5.29,
+     "clP95": 6,
+     "fps": 172.2,
+     "frames": 1404,
+     "png": "6d989135b1bf43560582fee26137c330285158c49b6c59a38fcbb98e9e334e5b",
+     "pixelsDifferingFromOn1": 919865,
+     "bbox": [
+      0,
+      0,
+      1280,
+      720
+     ],
+     "pixelsDifferingOutsideGauge": 889079
+    },
+    "on2": {
+     "clMean": 0.61,
+     "clP95": 3,
+     "fps": 800.1,
+     "frames": 6517,
+     "png": "63b7577d15b318c55e1c6acd4ff6a7c11c8aa01679290d1e16fe99d255efdb03",
+     "pixelsDifferingFromOn1": 915903,
+     "bbox": [
+      0,
+      0,
+      1280,
+      720
+     ],
+     "pixelsDifferingOutsideGauge": 883915
+    },
+    "off2": {
+     "clMean": 0.55,
+     "clP95": 3,
+     "fps": 808.9,
+     "frames": 6550,
+     "png": "c50ce5f18431664333ccf575844c6aa5cb3cdd2b9c3828f0e481a40dca7c64b0",
+     "pixelsDifferingFromOn1": 915903,
+     "bbox": [
+      0,
+      0,
+      1280,
+      720
+     ],
+     "pixelsDifferingOutsideGauge": 883915
+    },
+    "on3": {
+     "clMean": 0.58,
+     "clP95": 3,
+     "fps": 827.0,
+     "frames": 6682,
+     "png": "c3986486e2129b799c6af2a9f27fd5d96d43c58e0b8162f915528c298b059417",
+     "pixelsDifferingFromOn1": 915903,
+     "bbox": [
+      0,
+      0,
+      1280,
+      720
+     ],
+     "pixelsDifferingOutsideGauge": 883915
+    }
+   },
+   "reason": "Alice's opening script set timescale back to 1; without god mode Alice burned and the load/save menu opened"
+  },
+  "ab-alice-fire-rtx": {
+   "run": ".tmp/alice-tiki/runs/ab-alice-fire-rtx",
+   "profile": "alice",
+   "map": "grounds1",
+   "renderer": "rtx",
+   "rendererSha256": "1b0f646a6631897d715996af391b4a459c678f5b909a37d03527ac7ebc236454",
+   "steps": "",
+   "extra": {},
+   "freeze": "timescale 0",
+   "binariesUnchanged": true,
+   "errors": [],
+   "ab": {
+    "on1": {
+     "clMean": 4.6,
+     "clP95": 5,
+     "fps": 31.6,
+     "frames": 256,
+     "png": "59f02ac12d753a22d33eadd7beca81d9b4114bad3a03070a22d37d65ab2caaea",
+     "pixelsDifferingFromOn1": 0,
+     "bbox": null,
+     "pixelsDifferingOutsideGauge": 0
+    },
+    "off1": {
+     "clMean": 5.63,
+     "clP95": 7,
+     "fps": 22.6,
+     "frames": 183,
+     "png": "c16d4fbcc3f19475dd6cb4fda8717f4528730a339006d474c8d695ac1be02d82",
+     "pixelsDifferingFromOn1": 920055,
+     "bbox": [
+      0,
+      0,
+      1280,
+      720
+     ],
+     "pixelsDifferingOutsideGauge": 888611
+    },
+    "on2": {
+     "clMean": 0.1,
+     "clP95": 1,
+     "fps": 905.9,
+     "frames": 7318,
+     "png": "725495ca9757ac27af1574638e250f229e4d81371fc380a75ad3126f9273705f",
+     "pixelsDifferingFromOn1": 917867,
+     "bbox": [
+      0,
+      0,
+      1280,
+      720
+     ],
+     "pixelsDifferingOutsideGauge": 885867
+    },
+    "off2": {
+     "clMean": 0.16,
+     "clP95": 1,
+     "fps": 854.3,
+     "frames": 6936,
+     "png": "c87889e05b9a68c7807b53ccb72c836d9b42cf174baf9219fd9d66739cec5808",
+     "pixelsDifferingFromOn1": 917867,
+     "bbox": [
+      0,
+      0,
+      1280,
+      720
+     ],
+     "pixelsDifferingOutsideGauge": 885867
+    },
+    "on3": {
+     "clMean": 0.11,
+     "clP95": 1,
+     "fps": 862.8,
+     "frames": 6966,
+     "png": "e9b0c5623dd143de0ec7c120b120d4af2eee3faad5990225f0fa1cac21ac0953",
+     "pixelsDifferingFromOn1": 917867,
+     "bbox": [
+      0,
+      0,
+      1280,
+      720
+     ],
+     "pixelsDifferingOutsideGauge": 885867
+    }
+   },
+   "reason": "Alice's opening script set timescale back to 1; without god mode Alice burned and the load/save menu opened"
+  }
+ },
+ "tests": {
+  "added": [
+   "tests/alice_tiki_cache_tests.py",
+   "tests/alice_tiki_render_tests.cpp CheckTessellationKey"
+  ],
+  "passed": [
+   "tests/alice_tiki_cache_tests.py",
+   "fntech3_alice_tiki_render_tests (native)",
+   "tests/mohaa_skin_cache_tests.py",
+   "tests/dlight_caster_reuse_tests.py",
+   "tests/alice_effect_submission_tests.py",
+   "tests/alice_missing_content_tests.py",
+   "tests/alice_renderer_parity_tests.py",
+   "tests/entity_sun_shadow_tests.py",
+   "tests/mohaa_sun_flare_tests.py",
+   "tests/ritual_model_lights_tests.py",
+   "tests/rtx_scene_linear_gate_tests.py",
+   "tests/underwater_view_source_tests.py",
+   "tests/view_shake_tests.py",
+   "tests/steam_identity_source_tests.py",
+   "tests/changelog_tests.py",
+   "tests/generate_docs_tests.py",
+   "tests/player_manual_tests.py",
+   "tests/version_metadata_tests.py",
+   "tests/release_workflow_tests.py",
+   "tests/glx/glx_runtime_sweep_tests.py",
+   "tests/release_packaging_tests.py (1 skipped: no symlink privilege)"
+  ],
+  "fullSuite": "not run"
+ }
+}

@@ -564,11 +564,99 @@ static void CheckSkeletalCorrections() {
 	RA_TikiBeginFrame();
 }
 
+/* ---- what the frame's store keys a surface by ---------------------------- */
+
+/* The renderers keep each surface they tessellate for the frame's later
+ * passes, keyed by the surface, the pose, the frames and lerp, the scale and
+ * the detail (code/renderercommon/tr_alice_tiki_cache.h). That holds only if
+ * nothing else an entity says reaches the triangles, if each pose made in a
+ * frame is a skeleton of its own, and if the poses' generation moves on with
+ * the frame. */
+static aliceRenderEntity_t Unkeyed( aliceRenderEntity_t e ) {
+	e.torsoAnim = 0; e.torsoFrame = 1; e.torsoOldanim = 0; e.torsoOldframe = 1;
+	e.torsoBacklerp = 0.5f; e.useTorso = qtrue;
+	e.crossblendAnim = 0; e.crossblendFrame = 1; e.crossblendLerp = 0.5f;
+	e.useControllers = qtrue;
+	e.controllers[0].bone = 0;
+	e.controllers[0].quat[3] = 1.0f;
+	e.controllers[0].scale = 2.0f;
+	e.customShaderPass = qtrue;
+	e.renderfx = 0x7fff;
+	e.surfaces[0] = 0x46;
+	e.shaderData[0] = 12;
+	e.bones = &kSurfaces;
+	return e;
+}
+
+static bool SameTriangles( const Model &m, int s, const aliceRenderEntity_t &a, const aliceRenderEntity_t &b,
+	const void *bones, float lod ) {
+	float xa[8][4] = {}, na[8][4] = {}, sa[8][2] = {}, xb[8][4] = {}, nb[8][4] = {}, sb[8][2] = {};
+	unsigned int ia[16] = {}, ib[16] = {};
+	int va = 0, ca = 0, vb = 0, cb = 0;
+	CHECK( RA_TikiTessellateLod( &m, s, &a, bones, lod, xa, na, sa, ia, 5, 8, 16, &va, &ca ) );
+	CHECK( RA_TikiTessellateLod( &m, s, &b, bones, lod, xb, nb, sb, ib, 5, 8, 16, &vb, &cb ) );
+	return va == vb && ca == cb && std::memcmp( xa, xb, sizeof( xa ) ) == 0 &&
+		std::memcmp( na, nb, sizeof( na ) ) == 0 && std::memcmp( sa, sb, sizeof( sa ) ) == 0 &&
+		std::memcmp( ia, ib, sizeof( ia ) ) == 0;
+}
+
+static void CheckTessellationKey() {
+	const auto skeleton = LoadSkeleton( Skeleton() );
+	const auto walk = LoadSkeletalAnim( SkeletalAnim( 2 ) );
+	Model m{};
+	m.skeleton = skeleton.get();
+	m.scale = 1.0f;
+	m.animations.push_back( Anim( walk.get() ) );
+
+	RA_TikiBeginFrame();
+	const unsigned int generation = RA_TikiPoseGeneration();
+	CHECK( generation != 0u );
+	aliceRenderEntity_t e = Entity();
+	e.useLegs = qtrue;
+	const void *bones = RA_TikiPose( &m, &e );
+	const void *again = RA_TikiPose( &m, &e );
+	CHECK( bones && again && again != bones );
+	/* A skeletal surface reads its pose from the skeleton alone. */
+	for ( int s = 0; s < kSurfaces; ++s ) {
+		CHECK( SameTriangles( m, s, e, Unkeyed( e ), bones, 1.0f ) );
+	}
+	aliceRenderEntity_t scaled = e;
+	scaled.scale = 2.0f;
+	CHECK( !SameTriangles( m, 0, e, scaled, bones, 1.0f ) );
+	CHECK( RA_TikiPoseGeneration() == generation );
+	RA_TikiBeginFrame();
+	CHECK( RA_TikiPoseGeneration() != generation && RA_TikiPoseGeneration() != 0u );
+
+	/* A vertex-animated surface reads its frames, its lerp and its scale. */
+	const auto three = Tan( 3, 10.0f ), five = Tan( 5, 20.0f );
+	Model v{};
+	v.scale = 1.0f;
+	v.animations.push_back( Anim( three.get() ) );
+	v.animations.push_back( Anim( five.get() ) );
+	aliceRenderEntity_t f = Entity();
+	f.anim = 1; f.frame = 4; f.oldanim = 0; f.oldframe = 2; f.backlerp = 0.25f;
+	CHECK( SameTriangles( v, 0, f, Unkeyed( f ), nullptr, 1.0f ) );
+	aliceRenderEntity_t g = f;
+	g.frame = 3;
+	CHECK( !SameTriangles( v, 0, f, g, nullptr, 1.0f ) );
+	g = f;
+	g.oldframe = 1;
+	CHECK( !SameTriangles( v, 0, f, g, nullptr, 1.0f ) );
+	g = f;
+	g.backlerp = 0.5f;
+	CHECK( !SameTriangles( v, 0, f, g, nullptr, 1.0f ) );
+	g = f;
+	g.scale = 2.0f;
+	CHECK( !SameTriangles( v, 0, f, g, nullptr, 1.0f ) );
+	RA_TikiBeginFrame();
+}
+
 int main() {
 	CheckSkeletalSurfaces();
 	CheckInstalledSkeletons();
 	CheckVertexCorrections();
 	CheckSkeletalCorrections();
+	CheckTessellationKey();
 	std::cout << "alice tiki render tests passed\n";
 	return 0;
 }

@@ -32,6 +32,7 @@ See docs/fntech3/2026-09-23-alice-cgame.md.
 
 #include "tr_local.h"
 #include "../renderercommon/tr_alice_tiki.h"
+#include "../renderercommon/tr_alice_tiki_cache.h"
 #include "../compat/alice_render_abi.h"
 
 /*
@@ -502,15 +503,40 @@ void R_AddAliceTikiSurfaces( trRefEntity_t *ent, dlightShadowCasterContext_t *ca
 	}
 }
 
+/* The surfaces tessellated this frame (tr_alice_tiki_cache.h), and the switch
+ * that tessellates them for every pass instead, for comparison. */
+static aliceTikiCache_t	aliceTikiCache;
+static cvar_t			*r_ritualModelReuse;
+
+/* What a surface's tessellation reads from its entity, and its detail. */
+static void RB_AliceTikiCacheKey( aliceTikiCacheKey_t *key, const aliceSurface_t *surface,
+	const aliceRenderEntity_t *alice, float lod ) {
+	key->surface = surface;
+	key->bones = alice->bones;
+	key->anim = alice->anim;
+	key->oldanim = alice->oldanim;
+	key->frame = alice->frame;
+	key->oldframe = alice->oldframe;
+	key->backlerp = alice->backlerp;
+	key->scale = alice->scale;
+	key->lod = lod;
+}
+
 /*
 ==================
 RB_SurfaceAliceTiki
+
+Tessellated once a frame for each detail it is drawn at, however many passes
+draw it: the frame's later draws copy the first (tr_alice_tiki_cache.h).
 ==================
 */
 void RB_SurfaceAliceTiki( void *data ) {
 	const aliceSurface_t *surface = (const aliceSurface_t *)data;
 	const trRefEntity_t *ent = backEnd.currentEntity;
-	int verts, indexes;
+	const qboolean reuse = !r_ritualModelReuse || r_ritualModelReuse->integer ? qtrue : qfalse;
+	const unsigned int generation = RA_TikiPoseGeneration();
+	aliceTikiCacheKey_t key;
+	int verts, indexes = 0;
 
 	/* A dynamic light's shadow faces draw the whole surface, so every face
 	 * sees one silhouette; a view draws the detail it chose. */
@@ -527,12 +553,24 @@ void RB_SurfaceAliceTiki( void *data ) {
 	tess.surfType = SF_ALICE_TIKI;
 #endif
 
-	if ( !RA_TikiTessellateLod( surface->model->aliceModel, surface->index, &ent->e.alice,
-			ent->e.alice.bones, lod, tess.xyz + tess.numVertexes, tess.normal + tess.numVertexes,
-			tess.texCoords[0] + tess.numVertexes, tess.indexes + tess.numIndexes,
-			(unsigned int)tess.numVertexes, SHADER_MAX_VERTEXES - tess.numVertexes,
-			SHADER_MAX_INDEXES - tess.numIndexes, &verts, &indexes ) ) {
-		return;
+	RB_AliceTikiCacheKey( &key, surface, &ent->e.alice, lod );
+	verts = reuse ? R_AliceTikiCacheCopy( &aliceTikiCache, generation, &key, tess.xyz + tess.numVertexes,
+		tess.normal + tess.numVertexes, tess.texCoords[0] + tess.numVertexes, tess.indexes + tess.numIndexes,
+		(unsigned int)tess.numVertexes, SHADER_MAX_VERTEXES - tess.numVertexes,
+		SHADER_MAX_INDEXES - tess.numIndexes, &indexes ) : 0;
+	if ( verts <= 0 ) {
+		if ( !RA_TikiTessellateLod( surface->model->aliceModel, surface->index, &ent->e.alice,
+				ent->e.alice.bones, lod, tess.xyz + tess.numVertexes, tess.normal + tess.numVertexes,
+				tess.texCoords[0] + tess.numVertexes, tess.indexes + tess.numIndexes,
+				(unsigned int)tess.numVertexes, SHADER_MAX_VERTEXES - tess.numVertexes,
+				SHADER_MAX_INDEXES - tess.numIndexes, &verts, &indexes ) ) {
+			return;
+		}
+		if ( reuse ) {
+			R_AliceTikiCacheKeep( &aliceTikiCache, generation, &key, tess.xyz + tess.numVertexes,
+				tess.normal + tess.numVertexes, tess.texCoords[0] + tess.numVertexes,
+				tess.indexes + tess.numIndexes, (unsigned int)tess.numVertexes, verts, indexes );
+		}
 	}
 	tess.numVertexes += verts;
 	tess.numIndexes += indexes;
@@ -894,6 +932,13 @@ void R_AliceRegisterCvars( void ) {
 	ri.Cvar_SetDescription( r_sunflare_inportalsky, "Treats r_sunflare as a point seen through the sky portal." );
 	r_lightcoronasize = ri.Cvar_Get( "r_lightcoronasize", ".1", CVAR_ARCHIVE_ND );
 	ri.Cvar_SetDescription( r_lightcoronasize, "Half-size, as a fraction of the view, of a flaring dynamic light's corona." );
+	/* fnTech3's own, not retail's */
+	r_ritualModelReuse = ri.Cvar_Get( "r_ritualModelReuse", "1", CVAR_ARCHIVE_ND );
+	ri.Cvar_CheckRange( r_ritualModelReuse, "0", "1", CV_INTEGER );
+	ri.Cvar_SetDescription( r_ritualModelReuse, "Builds each model surface once a frame for every pass that "
+		"draws it -- the view, its dynamic lights and its shadows. 0 builds it again for every pass, for "
+		"comparison; the frames are the same either way." );
+	ri.Cvar_SetGroup( r_ritualModelReuse, CVG_RENDERER );
 }
 
 /* The file the sections are read from. Medal of Honor keeps the same

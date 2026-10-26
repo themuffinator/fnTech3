@@ -81,6 +81,9 @@ float RA_TikiLodFraction( const void *model, float projectedRadius, float lodSca
 qboolean RA_TikiLightingPoint( const void *model, const aliceRenderEntity_t *entity, float point[3] );
 
 void RA_TikiBeginFrame( void );
+/* Counts RA_TikiBeginFrame, never 0: a pose, and anything tessellated from
+ * one, belongs to the generation it was made in (tr_alice_tiki_cache.h). */
+unsigned int RA_TikiPoseGeneration( void );
 
 #ifdef __cplusplus
 }

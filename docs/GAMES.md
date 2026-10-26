@@ -776,6 +776,9 @@ compared with the original's. See the
   bright ([Graphics guide](DISPLAY.md#game-specific-renderer-settings)).
 - The targeting glow is a game effect and needs no extra bloom setting
   ([effects details](fntech3/2026-10-12-alice-effects.md)).
+- Each model is built once a frame however many lights and shadows draw it,
+  which takes a little work off busy scenes and changes nothing on screen
+  ([details](fntech3/2026-10-26-ritual-model-frame-time.md)).
 - As in the original, `+set config <name>` picks the settings file and names
   your saved games. The original remembered the name for later; fnTech3 uses
   it for the session you name it in.
@@ -809,6 +812,9 @@ game's pictures have not yet been compared with the original. See the
   bar keep their shape in their corners, and the view widens;
   `cl_hudAspect 0` stretches the HUD across the screen instead
   ([Widescreen guide](ASPECT_CORRECTION.md)).
+- Each model is built once a frame however many lights and shadows draw it,
+  which takes a little work off busy scenes and changes nothing on screen
+  ([details](fntech3/2026-10-26-ritual-model-frame-time.md)).
 - As in the original, `+set config <name>` picks the settings file and names
   your saved games. The original remembered the name for later; fnTech3 uses
   it for the session you name it in.

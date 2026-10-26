@@ -141,6 +141,16 @@ Quake III's own `four` demo replays byte-identical to the build before in
 Vulkan and with the reuse switched off in RTX; GL's one differing capture
 differs between every pair of runs. No compatibility gate closes.
 
+The [Ritual model frame-time record](2026-10-26-ritual-model-frame-time.md)
+does the same for Alice's and F.A.K.K.2's TIKI models, which every pass
+built again on the CPU: each surface is now built once a frame for each
+level of detail it is drawn at, keyed by its pose, frames, scale and detail,
+and the frame's other passes copy it. In the busiest views found, 110 to
+200 model surfaces a frame, that takes 0.08 to 0.19 ms off the 0.3 to 0.43
+ms the models took. Frames held still and switched between the store and
+the old builds are byte-identical in GL, Vulkan and RTX's raster path. No
+compatibility gate closes.
+
 The [completed branch integration](2026-10-23-recent-work-integration.md)
 combines the JKA model/surface work, profile-aware liquid feeds and completed
 RTX improvements with main's CSM baseline. Model removal now releases only
@@ -3514,6 +3524,15 @@ Both Outcast profiles are available in every build under the
 
 ## Alice gate matrix
 
+The [2026-10-26 model frame-time record](2026-10-26-ritual-model-frame-time.md)
+builds each TIKI surface once a frame for every pass that draws it. With
+Alice held by its own `pause` -- `timescale 0` leaves its camera moving, and
+`grounds1`'s opening script sets the timescale back -- the store on and off
+give byte-identical frames after the opening in GL, Vulkan and RTX's raster
+path, and in the opening's fire in Vulkan; it saves 0.11 to 0.14 ms a frame
+of the 0.3 to 0.43 ms that view's 112 to 128 model draws took (Source, Unit,
+Live subset). No gate closes.
+
 The [2026-10-12 effects correction](2026-10-12-alice-effects.md) restores
 the targeting glow, accepts effects from hidden carriers, sorts overlapping
 Alice sprites by distance and preserves zero-sized particles across GLx,
@@ -3605,6 +3624,14 @@ is Alice evidence.
 
 
 ## F.A.K.K.2 gate matrix
+
+The [2026-10-26 model frame-time record](2026-10-26-ritual-model-frame-time.md)
+builds each TIKI surface once a frame for every pass that draws it. On
+`creeperpens`, held with `timescale 0`, the store on and off give frames
+byte-identical in GL, Vulkan and RTX's raster path but for the health gauge,
+which animates in real time; it builds 73 to 78 of the frame's 204 model
+draws and saves 0.18 to 0.19 ms a frame, and 0.08 ms on `homes1` (Source,
+Unit, Live subset). No gate closes.
 
 The [2026-10-24 playability round](2026-10-24-fakk2-playability-round.md) takes only what a player
 meets in fnTech3. The dung pile on `creeperpens` was brown where retail's is

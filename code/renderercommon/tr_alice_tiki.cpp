@@ -55,6 +55,7 @@ constexpr std::size_t kBlockBones = 16384;
 std::vector<std::unique_ptr<pose::BoneTransform[]>> poseBlocks;
 std::size_t poseBlock = 0;
 std::size_t poseUsed = 0;
+unsigned int poseGeneration = 1;
 
 pose::BoneTransform *AllocBones( int count ) {
 	if ( count <= 0 || static_cast<std::size_t>( count ) > kBlockBones ) return nullptr;
@@ -572,6 +573,13 @@ int RA_TikiTessellateLod( const void *model, int surface, const aliceRenderEntit
 void RA_TikiBeginFrame( void ) {
 	poseBlock = 0;
 	poseUsed = 0;
+	if ( ++poseGeneration == 0 ) {
+		poseGeneration = 1;
+	}
+}
+
+unsigned int RA_TikiPoseGeneration( void ) {
+	return poseGeneration;
 }
 
 } // extern "C"
