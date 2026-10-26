@@ -162,6 +162,14 @@ lantern's cube, about 4 ms in GL and Vulkan; Quake III's `four` demo replays
 byte-identical with the change on and off in all three renderers, its
 lights all in view. No compatibility gate closes.
 
+The [shadow coverage evaluation](2026-10-26-shadow-coverage.md) tests a
+projected-size floor in the three raster renderers. The truck ride's two
+shadowed static lights were incorrectly described as distant: their
+projected bounds are large, and the tested small-light cutoffs save neither
+cube. The evaluation keeps the production planner unchanged and records
+the comparison captures and timing limits separately. No compatibility
+gate closes.
+
 The [completed branch integration](2026-10-23-recent-work-integration.md)
 combines the JKA model/surface work, profile-aware liquid feeds and completed
 RTX improvements with main's CSM baseline. Model removal now releases only

@@ -90,6 +90,9 @@ Release packages include them as web pages in their `manual` folder, built by
   -- the convoy's headlights are beams and coronas, the ride's one game light
   is the lantern behind the player, and lights outside the view no longer
   cast shadows in any game.
+- [Projected size and point-light shadows](fntech3/2026-10-26-shadow-coverage.md)
+  -- a measured decision on skipping small shadow cubes, including a
+  correction to the truck ride's supposed distant lights.
 - [Medal of Honor's frame time](fntech3/2026-10-25-mohaa-frame-time.md)
   -- why the campaign felt sluggish, Medal of Honor's models skinned once a
   frame, every game's dynamic-light shadow casters built once for six faces,

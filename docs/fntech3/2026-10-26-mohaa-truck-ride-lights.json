@@ -78,7 +78,7 @@
   "note": "no freeze; switch alternated every 3 s; mean cl",
   "vk": {"kept1": 8.57, "culled1": 4.78, "kept2": 5.74, "culled2": 5.86, "kept3": 8.08, "culled3": 5.27},
   "glx": {"kept1": 13.98, "culled1": 8.51, "kept2": 9.29, "culled2": 9.55, "kept3": 12.59, "culled3": 11.10},
-  "middleWindow": "both cases planned two cubes a frame (plan 2/8 most frames); a GL census of the moving ride with the cull on found the cubes held by m1l1.lights.json points about 5,000 units off, in view, lighting a few distant ground and wall surfaces"
+  "middleWindow": "both cases planned two cubes a frame (plan 2/8 most frames); correction in 2026-10-26-shadow-coverage.md: the saved GL census puts the eligible static points with receivers 466-637 units from the truck lantern. The original claim of about 5,000 units was unsupported."
  },
  "crossProfile": {
   "q3": {"demo": "baseq3 demos/four.dm_68, timedemo 1, 20 captures at frames 60..1200", "vk": "20/20 identical off/on/off", "glx": "20/20 identical off/on/off", "rtxRaster": "20/20 identical off/on", "plans": "956 shadowed lights, 5668 faces over 591 of 778 frames in every run"},

@@ -129,8 +129,11 @@ On the moving ride (no freeze; the switch alternated every 3 s; Vulkan mean
 `cl` ms): 8.57 kept, 4.78 culled, 5.74 kept, 5.86 culled, 8.08 kept, 5.27
 culled. In the middle pair both cases planned two cubes a frame. A census of the
 moving ride in GL, with the cull on, found such cubes held by the map's
-static points, in view about 5,000 units off, lighting a few distant ground
-and wall surfaces (below).
+static points. **Correction from the [coverage follow-up](2026-10-26-shadow-coverage.md):**
+the original claim that these receivers were about 5,000 units away was
+unsupported. The saved census's eligible points with receivers are 466 to
+637 units from the truck's lantern, not the distant points visible only in
+the initial light list. The follow-up measures their projected bounds.
 
 The change was compared where shadowed lights are common:
 
@@ -175,12 +178,10 @@ see no longer takes their work. The headlights' beams and coronas are
 
 ## Not done
 
-- A shadow-eligible light in view but far away gets a full cube however
-  few pixels it lights: on the moving ride the map's static points, about
-  5,000 units off, held two cubes, and the middle window above took 5.7 to
-  5.9 ms in Vulkan either way. The planner's priority
-  falls with distance but has no floor while the budget is not full. A floor
-  would change shadows in every profile and was not tried here.
+- A shadow-eligible light gets a full cube however few pixels it lights.
+  The planner's priority falls with distance but has no floor while the
+  budget is not full. The [coverage follow-up](2026-10-26-shadow-coverage.md)
+  evaluates that floor and corrects this record's original distance claim.
 - The two path models (`gmctruckpath_opening.tik`, `truck2path_opening.tik`)
   are drawn with `<default>` surfaces, their TIKI naming no shader, and their
   bounds span the ride, so every light near the route lists them. Whether
