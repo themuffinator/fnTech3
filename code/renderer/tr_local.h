@@ -113,6 +113,9 @@ typedef struct dlight_s {
 #ifdef USE_PMLIGHT
 	struct litSurf_s	*head;
 	struct litSurf_s	*tail;
+	// this view's frustum holds none of the light's reach, so it lights
+	// none of the view's surfaces (renderercommon/tr_dlight_view_cull.h)
+	qboolean outsideView;
 	qboolean shadowEligible;
 	qboolean shadowPlanned;
 	int shadowIndex;

@@ -497,6 +497,8 @@ void R_AddPlannedDlightShadowCasters( void )
 		planStartLitSurfCount = tr.refdef.numLitSurfs;
 		shadowLight = *dl;
 		shadowLight.radius = plan->projectionFar;
+		// its casters are gathered whether or not the view sees them
+		shadowLight.outsideView = qfalse;
 		VectorCopy( shadowLight.origin, shadowLight.transformed );
 		tr.light = dl;
 		context.targetLight = dl;

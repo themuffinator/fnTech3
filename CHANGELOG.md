@@ -330,6 +330,12 @@ historical upstream records, not fnTech3 release history. See the
   to 0.19 ms a frame of the 0.3 to 0.43 ms the models took, with the same
   picture; `r_ritualModelReuse 0` builds them every time, for comparison
   ([record](docs/fntech3/2026-10-26-ritual-model-frame-time.md)).
+- Stop spending shadow work on dynamic lights the view cannot see. A light
+  behind the player still lit the models in view that it touched, so it
+  was given a shadow; on `m1l1`'s truck ride the lantern hanging behind
+  the player cost about 4 ms a frame for nothing on screen. Every game draws the
+  same picture, faster where such lights occur
+  ([record](docs/fntech3/2026-10-26-mohaa-truck-ride-lights.md)).
 
 ## [0.1.0] - 2026-10-11
 

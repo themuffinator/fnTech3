@@ -151,6 +151,17 @@ ms the models took. Frames held still and switched between the store and
 the old builds are byte-identical in GL, Vulkan and RTX's raster path. No
 compatibility gate closes.
 
+The [Medal of Honor truck-ride lights record](2026-10-26-mohaa-truck-ride-lights.md)
+finds that a model tested its dynamic lights against its own bounds only,
+never against the view, so a light wholly outside the view still listed
+every model in view its sphere touched and was given a shadow cube. In
+every profile and all three renderers, a light outside a view's four side
+planes now lights none of that view's surfaces, the test the world walk
+already made: no picture can change. `m1l1`'s frozen frame loses the
+lantern's cube, about 4 ms in GL and Vulkan; Quake III's `four` demo replays
+byte-identical with the change on and off in all three renderers, its
+lights all in view. No compatibility gate closes.
+
 The [completed branch integration](2026-10-23-recent-work-integration.md)
 combines the JKA model/surface work, profile-aware liquid feeds and completed
 RTX improvements with main's CSM baseline. Model removal now releases only
@@ -3883,8 +3894,23 @@ clock were sound; the frames were slow, and `m1l1` had been since before
 light's casters once for its six faces take the truck ride from 13.0 and
 7.3 ms to 4.5 and 3.4 ms a frame in Vulkan, and its worst frame from 179 to
 15 ms (Live, Unit). Medal of Honor's frozen `m1l1` frame is byte-identical
-with the reuse on and off, though its headlights light nothing it shows.
-GL's default `r_vbo 0` keeps the world on the CPU, and no gate closes.
+with the reuse on and off, though its shadowed light lights nothing it
+shows. GL's default `r_vbo 0` keeps the world on the CPU, and no gate
+closes.
+
+The [2026-10-26 truck-ride lights record](2026-10-26-mohaa-truck-ride-lights.md) finds why.
+The following truck's headlights are 1.00's beam surface and corona
+sprites, no light; the client game's one light on the ride is the lantern
+hanging in the player's truck, and the frozen view sees nothing it
+reaches, as OpenMoHAA's reading of 2015's renderer would see nothing
+**[O]**. A model had tested its lights only against its own bounds, so
+the lantern, wholly outside the view, still listed the player's truck and
+was given a shadow cube. A light outside a view's frustum now lights none
+of that view's surfaces, in every profile and all three renderers: the
+frozen frame takes 6.0 to 6.4 ms in GL where it took 10.5 to 10.9, and
+3.1 to 3.2 ms in Vulkan where it took 6.6 to 7.4, its captures the same
+byte for byte, and Quake III's `four` demo replays identical with the
+change on and off in all three (Source, Unit, Live). No gate closes.
 
 Medal of Honor: Allied Assault is the tenth title and the fifteenth profile,
 `mohaa`, over one `main/` installation. It runs 2015's engine, a descendant of

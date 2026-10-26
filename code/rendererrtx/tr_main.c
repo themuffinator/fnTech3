@@ -3627,6 +3627,8 @@ void R_AliceQueueDebugLines( void ) {
 }
 
 
+#include "../renderercommon/tr_dlight_view_cull.h"
+
 /*
 ====================
 R_GenerateDrawSurfs
@@ -3641,6 +3643,7 @@ static void R_GenerateDrawSurfs( void ) {
 	for ( i = 0; i < tr.viewParms.num_dlights; i++ ) {
 		tr.viewParms.dlights[i].head = tr.viewParms.dlights[i].tail = NULL;
 	}
+	R_MarkDlightsOutsideView();
 #endif
 
 	tr.numAliceSkyPortalSurfaces = 0;

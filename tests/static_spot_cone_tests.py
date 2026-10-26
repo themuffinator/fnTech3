@@ -436,7 +436,8 @@ class SpotConeRendererTests(unittest.TestCase):
                 self.assertIn('qboolean linear;\n', record)
                 self.assertIn('\tqboolean spot;\n\tfloat\tspotCosOuter;', record)
                 world = function(read(f'code/{renderer}/tr_world.c'), 'qboolean R_LightCullBounds(')
-                branch = world[world.index('if ( dl->linear ) {'):world.index('\n\t}\n')]
+                linear = world.index('if ( dl->linear ) {')
+                branch = world[linear:world.index('\n\t}\n', linear)]
                 self.assertIn('if ( dl->spot && R_SpotConeCullBounds( dl->transformed, dl->transformed2,\n'
                               '\t\t\tdl->spotCosOuter, mins, maxs ) )\n\t\t\treturn qtrue;', branch)
         # the module lights that bypass both scene functions start zeroed

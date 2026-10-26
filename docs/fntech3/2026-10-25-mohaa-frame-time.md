@@ -46,8 +46,11 @@ configurations, uses `cl_renderer vk`.
 Freezing `m1l1` with `timescale 0` holds one frame still, so its settings can
 be compared in one run. With `r_dynamiclight 0` the frame took 5 ms in GL,
 with the level's nine dynamic lights 12 to 14 ms, and with `r_dlightShadows
-0` (and a `vid_restart`) 6 ms: the two lights whose shadows were drawn, the
-following truck's headlights, cost about 8 ms. Main-thread stacks sampled
+0` (and a `vid_restart`) 6 ms: the two lights whose shadows were drawn cost
+about 8 ms. (They were taken here for the following truck's headlights.
+The [truck-ride lights record](2026-10-26-mohaa-truck-ride-lights.md) found
+the headlights are no light at all; the cubes on the ride are the lantern's,
+behind the player, and the map's static lights'.) Main-thread stacks sampled
 with `cdb -pv` during that frame put 12 of 19 samples in the shadow pass,
 `RB_RenderDlightShadowCasters`:
 
@@ -147,7 +150,7 @@ by a few milliseconds.
   one another by up to 4 levels in a 50 by 20 pixel corner of the HUD, which
   replays there do not repeat.
 - **Medal of Honor.** The frozen `m1l1` frame with reuse on, off and on
-  again is byte-identical in Vulkan and GL. The two headlights light nothing
+  again is byte-identical in Vulkan and GL. Its shadowed light lights nothing
   that frame shows: with `r_dynamiclight 0` it is identical too, so this
   shows no change to the scene but does not show a lit caster.
 
@@ -166,9 +169,9 @@ once.
   face.
 - Alice's and F.A.K.K.2's `RB_SurfaceAliceTiki` tessellates per pass too; their
   shadow faces now copy it, but their view and lit passes do not share it.
-- On `m1l1` the convoy's headlights light nothing the view shows, yet cost a
-  shadow cube each. Whether their radius (`r_dlightScale` 0.5 of the client
-  game's intensity) or the truck's own body around the lamp is the reason was
-  not investigated.
+- On `m1l1` the shadowed lights light nothing the view shows, yet cost a
+  shadow cube each. The [truck-ride lights record](2026-10-26-mohaa-truck-ride-lights.md)
+  answers why (2026-10-26): the one the client game adds is the lantern,
+  wholly outside the view, and such a light no longer takes a cube.
 - The user's VS Code launch configurations start the client under the
   `cppvsdbg` debugger; its cost was not measured.

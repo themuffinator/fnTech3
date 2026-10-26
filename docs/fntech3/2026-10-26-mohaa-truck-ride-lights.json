@@ -1,0 +1,98 @@
+{
+ "record": "2026-10-26-mohaa-truck-ride-lights.md",
+ "date": "2026-10-26",
+ "profile": "mohaa",
+ "question": "m1l1's truck ride: why do the lights that cast shadow cubes light nothing a frozen frame shows?",
+ "evidenceLevels": ["Source", "Unit", "Build", "Live"],
+ "gatesClosed": [],
+ "build": {
+  "base": "6894fe47077c6e4896b350798d07b33ec513ecb8",
+  "dir": ".claude/worktrees/elated-bassi-85fe6f/.tmp/b, configured like meson/build/win32-dev (debugoptimized, strict warnings, renderers glx,vk,rtx, every development option)",
+  "platform": "Windows 11 x86 client, MSVC 2022",
+  "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
+  "diagnosticBuild": {
+   "fntech3.exe": "181e42983834a93a",
+   "note": "temporary, uncommitted: a per-light and per-entity dump in GL's R_PlanDlightShadows, a print of every client-game R_AddLightToScene, and a cvar switching the cull off; the A/B runs below used it",
+   "renderers": {"vk": "bbdcd848cc2438d1", "glx": "0ffb57536ecf9403", "rtx": "8505beeac9d78cc8"}
+  },
+  "committedBuild": {
+   "fntech3.exe": "b9cec2e89fc5ae30",
+   "fnql_glx_x86.dll": "b2a1db34d5c21646",
+   "fnql_vk_x86.dll": "75881b9014399565",
+   "fnql_rtx_x86.dll": "f511cbbd2d189cb9"
+  },
+  "gccI686": "gcc -m32 -fsyntax-only -Wall -Wextra on the three renderers' tr_main.c and tr_world.c under WSL Ubuntu: no diagnostic about the changed code"
+ },
+ "installation": "E:\\Games\\Medal of Honor Allied Assault, retail 1.00, read-only",
+ "probe": {
+  "tool": ".tmp/mohaa-headlights/probe.py (from .tmp/mohaa-sluggish/freeze.py), with q3_replay.py and rtcw_replay.py; each run's result.json, captures and gzipped log beside them",
+  "command": "fntech3.exe +set fs_basepath <install> +set fs_homepath <isolated> +set logfile 2 +set r_fullscreen 0 +set r_mode -1 +set r_customwidth 1280 +set r_customheight 720 +set net_enabled 1 +set net_ip 127.0.0.1 +set rconPassword probe +set sv_pure 0 +set thereisnomonkey 1 +set s_volume 0 +set in_mouse 0 +set com_maxfps 0 +set cl_renderer <r> +devmap m1l1",
+  "steps": "rcon finishloadingscreen; 4 s; timescale 0; per case: its commands, 2 s, screenshot, 4 s of com_speeds 1",
+  "input": "none; private desktop; empty configs/unnamedsoldier.cfg"
+ },
+ "frozenMoment": {
+  "view": {"origin": [2541.8, 86.7, 1006.9], "forward": [0.91, 0.43, 0.0]},
+  "lights": [
+   {"index": 0, "source": "client game R_AddLightToScene (maps/m1l1.scr lantern thread: fx/dummy.tik with lightOn/light/lightRadius)", "origin": [2496.6, 4.8, 1012.2], "intensity": "128-152 (lanterncolors)", "radiusDrawn": "64-76", "type": 0, "shadow": "planned", "receivers": ["gmctruck_opening.tik opel, gmcinside, heat_crate, opel", "gmctruckpath_opening.tik <default> x2"], "farthestSidePlaneDistance": -93.1},
+   {"index": "1-4", "source": "pkg/games/mohaa/main/maps/m1l1.lights.json spots m1l1-light-0004..0007", "radiusDrawn": 291.3, "shadow": "not eligible", "receivers": ["the two path models"]},
+   {"index": "5-6", "source": "m1l1.lights.json points m1l1-light-0076, -0077", "radiusDrawn": 121.1, "shadow": "eligible, no receivers"},
+   {"index": "7-8", "source": "m1l1.lights.json points m1l1-light-0079, -0080", "radiusDrawn": 108.2, "shadow": "not eligible (static shadow budget 2)"}
+  ],
+  "staticLightDistancesFromEye": [5105, 5662, 5495, 5925, 8805, 9030, 8533, 8573],
+  "clientGameLightsPerFrame": 1,
+  "headlights": {
+   "beams": "vehicles/opeltruck.tik surface opellights, scripts/opel.shader: airdust scroll + clampmap beam.tga, rgbGen dot 0 1.5, blendfunc add",
+   "coronas": "global/spotlight.scr::deadcorona attaches fx/searchlight.tik (shader corona_util, deformVertexes lightglow, blendfunc add) at tags 'light left' and 'light right'",
+   "dynamicLight": "none in either; observed in 1.00's data"
+  },
+  "fullRadiusCheck": "r_dlightScale 1: 2982 pixels at the canopy's right edge change, by at most 6 levels summed over RGB"
+ },
+ "retailReading": {
+  "source": "OpenMoHAA ab43a0de renderergl1 (reference only) [O]",
+  "world": "R_DlightSample: lightmap texel += (1 - d/R)^2 * 375 * colour within R = intensity",
+  "models": "RB_GetEntityGridLighting: += R * 7500 / d^2 * colour when the trace origin is within R; traceOrigin is never set in the reconstruction",
+  "frozenFrame": "no visible model's lighting origin within 152 of the lantern but the player's truck (138) and the m1l1truckride.tik turret at the eye (fx/dummy skeleton)"
+ },
+ "falloffComparison": {
+  "fntech3": "colour * smoothstep(1 - d^2 / r^2), r = intensity * r_dlightScale (attenShape 3, -2)",
+  "2015": "1.47 * (1 - d/R)^2 * colour, R = intensity [O]",
+  "atFractionOfIntensity": {
+   "0.25": {"fntech3Scale0.5": 0.84, "2015": 0.83, "fntech3Scale1": 0.99},
+   "0.40": {"fntech3Scale0.5": 0.30, "2015": 0.53, "fntech3Scale1": 0.93},
+   "0.50": {"fntech3Scale0.5": 0.0, "2015": 0.37, "fntech3Scale1": 0.84},
+   "0.75": {"fntech3Scale0.5": 0.0, "2015": 0.09, "fntech3Scale1": 0.40}
+  },
+  "decision": "default kept at 0.5"
+ },
+ "frozenFrameMs": {
+  "note": "mean com_speeds cl over 4 s per case, the cull switched within one run",
+  "glx": {"kept": [10.87, 10.69, 10.54], "culled": [5.96, 6.43, 6.30], "noDynamicLights": 6.49, "captures": "7/7 identical"},
+  "vk": {"kept": [6.60, 7.30, 7.43], "culled": [3.09, 3.24, 3.19], "noDynamicLights": 3.40, "captures": "7/7 identical"},
+  "rtxRaster": {"kept": [7.54, 7.04, 7.44], "culled": [3.13, 3.08, 3.11], "noDynamicLights": 3.31, "captures": "7/7 identical", "cvars": "rtx_rt_mode 0"},
+  "rtxTraced": {"kept": [8.64, 8.20, 5.51], "culled": [3.48, 3.38, 2.74], "noDynamicLights": 2.16, "captures": "all differ, kept against kept too"},
+  "planKept": "dlight shadows plan:1/9 cand:1 ... render lights:1 faces:6 batches:264 draws:264 surfs:367 ... nosurf:2",
+  "planCulled": "dlight shadows plan:0/9 cand:0 ... render lights:0 faces:0 batches:0 draws:0 surfs:0 ... nosurf:3",
+  "committedBuild": {"glx": "plan:0/9; r_nocull 1 restores plan:1/9 but changes the frame by itself", "vk": "plan:0/9"}
+ },
+ "rideMs": {
+  "note": "no freeze; switch alternated every 3 s; mean cl",
+  "vk": {"kept1": 8.57, "culled1": 4.78, "kept2": 5.74, "culled2": 5.86, "kept3": 8.08, "culled3": 5.27},
+  "glx": {"kept1": 13.98, "culled1": 8.51, "kept2": 9.29, "culled2": 9.55, "kept3": 12.59, "culled3": 11.10},
+  "middleWindow": "both cases planned two cubes a frame (plan 2/8 most frames); a GL census of the moving ride with the cull on found the cubes held by m1l1.lights.json points about 5,000 units off, in view, lighting a few distant ground and wall surfaces"
+ },
+ "crossProfile": {
+  "q3": {"demo": "baseq3 demos/four.dm_68, timedemo 1, 20 captures at frames 60..1200", "vk": "20/20 identical off/on/off", "glx": "20/20 identical off/on/off", "rtxRaster": "20/20 identical off/on", "plans": "956 shadowed lights, 5668 faces over 591 of 778 frames in every run"},
+  "rtcwMp": {"demo": "mp_ice, recorded by scripts/probe_shadow_finish.py's record(), replayed timedemo 1, 12 captures", "vk": "replays do not repeat (3/12 identical even unchanged); every run planned 113 shadowed lights of 904 promoted static lights, 226 eligible"}
+ },
+ "tests": {
+  "new": "tests/dlight_view_cull_tests.py: the mark against each renderer's R_CullDlight on 40,000 random point and linear lights in 200 random views, the lantern's case, r_nocull, and the three renderers' wiring",
+  "updated": ["tests/dlight_face_bounds_tests.py (fixture dlight_t gains outsideView)", "tests/static_spot_cone_tests.py (slice starts at the linear branch)"],
+  "affectedFiles": "115 test files on lights, shadows, culling, renderers and Medal of Honor: all pass (two only in the x86 dev shell with .tmp/jka-compat present; nine script-style files run as scripts)"
+ },
+ "notDone": [
+  "a far shadow-eligible light in view gets a full cube however few pixels it lights; no priority floor while the budget is not full",
+  "gmctruckpath_opening.tik and truck2path_opening.tik draw <default> surfaces and their bounds span the ride",
+  "no enclosed-light model rule for Medal of Honor (the lantern's own model)",
+  "no capture shows the lantern lighting the truck's inside: the turret holds the view without input"
+ ]
+}
