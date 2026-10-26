@@ -190,6 +190,25 @@ Nothing a player sees changes. The lighting, shadows and effects these
 models are drawn with stay as they were (invariant 11); this is the same
 work done once.
 
+## Integration review
+
+Commit `810eeb11` was fast-forwarded into the main checkout. A follow-up
+review found that hashing an extreme module-supplied frame or animation
+number could overflow signed arithmetic before conversion to unsigned.
+The hash now converts each input before multiplying and adding, leaving
+the key and tessellation unchanged. The cache fixture checks `INT_MIN`
+and `INT_MAX` with signed-overflow trapping enabled; it trapped before
+the correction and passes with it.
+
+The strict-warning Windows x86 `meson/build/win32-dev` build compiled and
+linked all three renderer modules and the native TIKI render fixture, which
+passes. The 17 focused Python test files pass: 117 tests and 1,064 subtests.
+The retained before/after runtime hashes match the companion, and
+all 70 pairs of the seven recorded screenshot sets were checked again:
+Alice's pixels match everywhere, and F.A.K.K.2's match outside its animated
+health gauge. These are rechecks of the recorded captures, not new runtime
+measurements of the hash correction.
+
 ## Not done
 
 - No frame was compared across two builds: Alice's frames differ from run to

@@ -2411,5 +2411,70 @@
    "tests/release_packaging_tests.py (1 skipped: no symlink privilege)"
   ],
   "fullSuite": "not run"
+ },
+ "integrationReview": {
+  "baseCommit": "810eeb111c2e59c4e6200614bde54f9d473d9244",
+  "landing": "fast-forwarded into main",
+  "correction": "Convert frame and animation to unsigned before cache-hash arithmetic to avoid signed overflow for extreme module-supplied values.",
+  "regression": {
+   "values": [
+    "INT_MIN",
+    "INT_MAX"
+   ],
+   "compilerFlag": "-ftrapv",
+   "before": "failed with exit 3221225501 (integer-overflow trap)",
+   "after": "passed"
+  },
+  "build": {
+   "directory": "meson/build/win32-dev",
+   "platform": "Windows x86 MSVC",
+   "strictWarnings": true,
+   "renderers": [
+    "glx",
+    "vk",
+    "rtx"
+   ],
+   "result": "passed"
+  },
+  "nativeTest": {
+   "name": "fntech3_alice_tiki_render",
+   "result": "passed"
+  },
+  "retainedEvidence": {
+   "runtimeHashesVerified": [
+    "before",
+    "after"
+   ],
+   "screenshotSets": 7,
+   "matchingPairs": 70,
+   "fakk2Exclusion": "animated health gauge (0,0)-(200,160)",
+   "newRuntimeMeasurements": false
+  },
+  "pythonTests": {
+   "files": 17,
+   "passed": 117,
+   "subtestsPassed": 1064,
+   "seconds": 95.92,
+   "scope": [
+    "tests/alice_tiki_cache_tests.py",
+    "tests/mohaa_skin_cache_tests.py",
+    "tests/dlight_caster_reuse_tests.py",
+    "tests/alice_effect_submission_tests.py",
+    "tests/alice_missing_content_tests.py",
+    "tests/alice_renderer_parity_tests.py",
+    "tests/entity_sun_shadow_tests.py",
+    "tests/mohaa_sun_flare_tests.py",
+    "tests/ritual_model_lights_tests.py",
+    "tests/rtx_scene_linear_gate_tests.py",
+    "tests/underwater_view_source_tests.py",
+    "tests/view_shake_tests.py",
+    "tests/steam_identity_source_tests.py",
+    "tests/changelog_tests.py",
+    "tests/generate_docs_tests.py",
+    "tests/player_manual_tests.py",
+    "tests/version_metadata_tests.py"
+   ],
+   "fullSuite": false
+  }
  }
 }

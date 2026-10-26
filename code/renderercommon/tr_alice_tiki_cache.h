@@ -79,7 +79,7 @@ static ID_INLINE aliceTikiCacheEntry_t *R_AliceTikiCacheEntry( aliceTikiCache_t 
 		cache->usedIndexes = 0;
 	}
 	hash = (unsigned int)( (size_t)key->surface >> 3 ) * 2654435761u ^ (unsigned int)( (size_t)key->bones >> 4 ) * 40503u ^
-		(unsigned int)( key->frame * 31 + key->anim ) * 2246822519u;
+		( (unsigned int)key->frame * 31u + (unsigned int)key->anim ) * 2246822519u;
 	for ( probe = 0; probe < ALICE_TIKI_CACHE_PROBES; probe++ ) {
 		aliceTikiCacheEntry_t *entry = &cache->entries[( hash + (unsigned int)probe ) & ( ALICE_TIKI_CACHE_ENTRIES - 1 )];
 		if ( entry->generation != generation || R_AliceTikiCacheKeyMatches( entry, generation, key ) ) {

@@ -27,6 +27,7 @@ KEY_FIELDS = ('anim', 'oldanim', 'frame', 'oldframe', 'backlerp', 'scale')
 
 HOST = r'''
 #include <cassert>
+#include <climits>
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
@@ -143,6 +144,17 @@ int main() {
 		}
 	}
 	assert( kept > 0 && kept <= ALICE_TIKI_CACHE_ENTRIES && cache.usedVerts == kept * 3 );
+	/* Module-supplied frame/animation values must not overflow the hash. */
+	for ( int edge = 0; edge < 2; edge++ ) {
+		aliceTikiCacheKey_t extreme = key;
+		extreme.frame = edge ? INT_MIN : INT_MAX;
+		extreme.anim = edge ? INT_MAX : INT_MIN;
+		const unsigned int edgeGen = gen4 + 1 + (unsigned int)edge;
+		assert( Copy( edgeGen, extreme, 0, 4096, 12288, &n ) == 0 );
+		Tessellate( 0, 12.0f );
+		R_AliceTikiCacheKeep( &cache, edgeGen, &extreme, xyz, normal, st, indexes, 0, 3, 3 );
+		assert( Copy( edgeGen, extreme, 8, 4096, 12288, &n ) == 3 && xyz[8][0] == 12.0f );
+	}
 	std::printf( "ok %d\n", kept );
 	return 0;
 }
@@ -167,7 +179,7 @@ class AliceTikiCacheTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix='alice-tiki-cache-', dir=ROOT / '.tmp') as temp:
             cpp, exe = Path(temp) / 'host.cpp', Path(temp) / 'host.exe'
             cpp.write_text(HOST, encoding='utf-8')
-            built = subprocess.run([compiler, *compiler_target_args(compiler), '-std=c++17', '-I', str(ROOT),
+            built = subprocess.run([compiler, *compiler_target_args(compiler), '-std=c++17', '-ftrapv', '-I', str(ROOT),
                                     str(cpp), '-o', str(exe)], capture_output=True, text=True, timeout=120)
             self.assertEqual(built.returncode, 0, built.stdout + built.stderr)
             run = subprocess.run([str(exe)], capture_output=True, text=True, timeout=60)
