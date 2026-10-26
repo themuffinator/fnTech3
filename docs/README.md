@@ -93,6 +93,9 @@ Release packages include them as web pages in their `manual` folder, built by
 - [Projected size and point-light shadows](fntech3/2026-10-26-shadow-coverage.md)
   -- a measured decision on skipping small shadow cubes, including a
   correction to the truck ride's supposed distant lights.
+- [GL's world buffer on by default](fntech3/2026-10-26-glx-world-vbo-default.md)
+  -- `r_vbo 1` in GLx, compared with `0` in all sixteen games: what differs
+  and why, frame rates and memory, and Elite Force's forced alpha kept.
 - [Medal of Honor's frame time](fntech3/2026-10-25-mohaa-frame-time.md)
   -- why the campaign felt sluggish, Medal of Honor's models skinned once a
   frame, every game's dynamic-light shadow casters built once for six faces,

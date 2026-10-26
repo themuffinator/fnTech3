@@ -336,6 +336,13 @@ historical upstream records, not fnTech3 release history. See the
   the player cost about 4 ms a frame for nothing on screen. Every game draws the
   same picture, faster where such lights occur
   ([record](docs/fntech3/2026-10-26-mohaa-truck-ride-lights.md)).
+- Keep the map's unchanging surfaces on the graphics card in GLx too
+  (`r_vbo 1`), as Vulkan and RTX already do, instead of rebuilding the whole
+  map on the processor every frame. The profile comparisons found faster busy
+  scenes and no measurable slowdown, with the picture the same apart from
+  small rounding differences and curved surfaces staying
+  smooth at a distance. A brush model fading with Elite Force's forced alpha
+  keeps fading ([record](docs/fntech3/2026-10-26-glx-world-vbo-default.md)).
 
 ## [0.1.0] - 2026-10-11
 
