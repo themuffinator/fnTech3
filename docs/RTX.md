@@ -33,7 +33,9 @@ Medal of Honor's terrain and static map scenery are traced too; its
 animated characters and props still use normal drawing
 ([terrain details](fntech3/2026-10-11-mohaa-rtx-world.md)). Its outdoor maps
 are lit by the sun and sky each map names, casting the same shadows as the
-game's own lighting ([sun details](fntech3/2026-10-16-mohaa-worldspawn-sun.md)).
+game's own lighting ([sun details](fntech3/2026-10-16-mohaa-worldspawn-sun.md)),
+and by every lamp the level holds, each lamp pointed the way the level
+points it ([lamp details](fntech3/2026-10-28-mohaa-rtx-light-entities.md)).
 Alice's and F.A.K.K.2's maps are lit by the sun each level names in the
 same way ([details](fntech3/2026-10-22-fnq-shadow-formats.md)).
 Return to Castle Wolfenstein's sun shines as strongly as the maps' own

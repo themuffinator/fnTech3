@@ -622,9 +622,122 @@ def compile_run_c_output(test, source):
         return ran.stdout
 
 
+# Medal of Honor's light entities, as 2015's compiler read them: each map's
+# sphere lights (lump 19, the lights it kept for models) record a light's
+# spot direction and its cone a unit along, and its lightmaps the falloff
+# (docs/fntech3/2026-10-28-mohaa-rtx-light-entities.md).
+MOHAA_CHECKS = r'''
+static world_t world;
+
+static void Load( const char *entities, comGameId_t game ) {
+    if ( s_rtLights.lights ) free( s_rtLights.lights );
+    if ( s_rtLights.reach ) free( s_rtLights.reach );
+    if ( s_rtLights.center ) free( s_rtLights.center );
+    if ( s_rtLights.cluster ) free( s_rtLights.cluster );
+    memset( &s_rtLights, 0, sizeof( s_rtLights ) );
+    s_rtLights.scale = 2.0f / 255.0f;
+    ri.gameId = game;
+    world.entityString = entities;
+    world.nodes = NULL;
+    tr.world = &world;
+    RT_AddEntityLights();
+}
+static uint32_t Type( int i ) { return (uint32_t)s_rtLights.lights[i].color[3] & RT_LIGHT_TYPE_MASK; }
+static uint32_t Skip( int i ) { return (uint32_t)s_rtLights.lights[i].color[3] & ~RT_LIGHT_TYPE_MASK; }
+static bool Angle( int i ) { return s_rtLights.lights[i].extra[3] < 0.5f; }
+static bool Near( float a, float b ) { return fabsf( a - b ) <= 1e-3f * fmaxf( 1.0f, fabsf( b ) ); }
+static float Photons( int i ) { return s_rtLights.lights[i].color[1] / s_rtLights.scale; }
+static bool Axis( int i, float x, float y, float z ) {
+    const float *d = s_rtLights.lights[i].dir;
+    return fabsf( d[0] - x ) < 1e-3f && fabsf( d[1] - y ) < 1e-3f && fabsf( d[2] - z ) < 1e-3f;
+}
+
+int main() {
+    /* an empty quoted value is a value: every light after it is read, in
+       every profile (m1l2a kept 27 of its 343 lights, dn5 21 of 466) */
+    static const char *const games[] = { "q3", "mohaa" };
+    for ( int g = 0; g < 2; g++ ) {
+        Load( "{ \"classname\" \"worldspawn\" } "
+              "{ \"classname\" \"info_splinepath\" \"model\" \"\" \"origin\" \"0 0 0\" } "
+              "{ \"\" \"x\" \"classname\" \"light\" \"origin\" \"0 0 64\" \"light\" \"100\" } "
+              "{ \"classname\" \"light\" \"origin\" \"0 0 128\" \"light\" \"\" } ",
+              g ? COM_GAME_MOHAA : COM_GAME_QUAKE3 );
+        if ( s_rtLights.entityLights != 2 || s_rtLights.numLights != 2 ) {
+            printf( "%s: %u light entities, %u lights\n", games[g], s_rtLights.entityLights, s_rtLights.numLights );
+            return 1;
+        }
+        /* an empty "light" is q3map's default 300 */
+        assert( Near( Photons( 0 ), 100 * 7500.0f ) && Near( Photons( 1 ), 300 * 7500.0f ) );
+    }
+    /* the text's end still ends an entity left open, keeping what it read */
+    Load( "{ \"classname\" \"worldspawn\" } { \"classname\" \"light\" \"origin\" \"0 0 0\" \"light\" \"50\" ",
+          COM_GAME_MOHAA );
+    assert( s_rtLights.numLights == 1 && Near( Photons( 0 ), 50 * 7500.0f ) );
+    Load( "{ \"classname\" \"worldspawn\" } { \"classname\" \"light\" \"origin\" \"0 0 0\" \"light\"", COM_GAME_MOHAA );
+    assert( s_rtLights.entityLights == 1 && s_rtLights.numLights == 1 && Near( Photons( 0 ), 300 * 7500.0f ) );
+
+    /* 2015: inverse square with the cosine, as id's q3map */
+    Load( "{ \"classname\" \"worldspawn\" } "
+          "{ \"classname\" \"light\" \"origin\" \"0 0 0\" \"light\" \"300\" \"overbright_range\" \"0.15\" } "
+          /* "angles" with no target: a spotlight along them, (radius + 16) / 64 */
+          "{ \"classname\" \"light\" \"origin\" \"0 0 0\" \"light\" \"100\" \"angles\" \"90 0 0\" } "
+          "{ \"classname\" \"light\" \"origin\" \"0 0 0\" \"light\" \"100\" \"angles\" \"-90 0 0\" \"radius\" \"45\" } "
+          /* spot_angle, the half-angle, takes the place of the radius */
+          "{ \"classname\" \"light\" \"origin\" \"0 0 0\" \"light\" \"20\" \"angles\" \"90 0 0\" \"spot_angle\" \"60\" "
+          "\"radius\" \"500\" } "
+          "{ \"classname\" \"light\" \"origin\" \"0 0 0\" \"light\" \"20\" \"angles\" \"-85 90 0\" \"spot_angle\" \"95\" } "
+          /* "angle" alone stays a point light, and so does a lone spot_angle */
+          "{ \"classname\" \"light\" \"origin\" \"0 0 0\" \"light\" \"20\" \"angle\" \"270\" } "
+          "{ \"classname\" \"light\" \"origin\" \"0 0 0\" \"light\" \"124\" \"spot_angle\" \"86\" \"radius\" \"500\" } "
+          /* a target still makes the spot, q3map's way */
+          "{ \"classname\" \"light\" \"origin\" \"0 0 0\" \"light\" \"52\" \"target\" \"t\" \"radius\" \"500\" } "
+          "{ \"classname\" \"info_null\" \"origin\" \"0 0 -141\" \"targetname\" \"t\" } "
+          /* no model light for spawnflags 2 or no_entity_light, but the world's */
+          "{ \"classname\" \"light\" \"origin\" \"0 0 0\" \"light\" \"40\" \"spawnflags\" \"2\" } "
+          "{ \"classname\" \"light\" \"origin\" \"0 0 0\" \"light\" \"40\" \"no_entity_light\" \"1\" } "
+          "{ \"classname\" \"light\" \"origin\" \"0 0 0\" \"light\" \"40\" \"no_entity_light\" \"0\" \"spawnflags\" \"8\" } "
+          "{ \"classname\" \"light\" \"origin\" \"0 0 0\" \"light\" \"60\" \"angles\" \"-90 0 0\" \"spawnflags\" \"2\" } "
+          /* a direction that is not three numbers makes none */
+          "{ \"classname\" \"light\" \"origin\" \"0 0 0\" \"light\" \"60\" \"angles\" \"90\" } ", COM_GAME_MOHAA );
+    assert( s_rtLights.numLights == 13 );
+    assert( Type( 0 ) == RT_LIGHT_POINT && Angle( 0 ) && Skip( 0 ) == 0 && Near( Photons( 0 ), 300 * 7500.0f ) );
+    assert( Type( 1 ) == RT_LIGHT_SPOT && Axis( 1, 0, 0, -1 ) && Near( s_rtLights.lights[1].dir[3], 1.25f ) );
+    assert( Near( Photons( 1 ), 100 * 7500.0f ) && Angle( 1 ) );
+    assert( Type( 2 ) == RT_LIGHT_SPOT && Axis( 2, 0, 0, 1 ) && Near( s_rtLights.lights[2].dir[3], 61.0f / 64.0f ) );
+    assert( Type( 3 ) == RT_LIGHT_SPOT && Near( s_rtLights.lights[3].dir[3], 1.7320508f ) );
+    /* a half-angle of 90 or more is no cone: the radius rule */
+    assert( Type( 4 ) == RT_LIGHT_SPOT && Axis( 4, 0, 0.0871557f, 0.9961947f ) );
+    assert( Near( s_rtLights.lights[4].dir[3], 80.0f / 64.0f ) );
+    assert( Type( 5 ) == RT_LIGHT_POINT && Type( 6 ) == RT_LIGHT_POINT );
+    assert( Type( 7 ) == RT_LIGHT_SPOT && Axis( 7, 0, 0, -1 ) && Near( s_rtLights.lights[7].dir[3], 516.0f / 141.0f ) );
+    assert( Type( 8 ) == RT_LIGHT_POINT && Skip( 8 ) == RT_LIGHT_NO_MODELS );
+    assert( Type( 9 ) == RT_LIGHT_POINT && Skip( 9 ) == RT_LIGHT_NO_MODELS );
+    assert( Type( 10 ) == RT_LIGHT_POINT && Skip( 10 ) == 0 );
+    assert( Type( 11 ) == RT_LIGHT_SPOT && Skip( 11 ) == RT_LIGHT_NO_MODELS );
+    assert( Type( 12 ) == RT_LIGHT_POINT );
+
+    /* no other profile reads these keys */
+    Load( "{ \"classname\" \"worldspawn\" } "
+          "{ \"classname\" \"light\" \"origin\" \"0 0 0\" \"light\" \"100\" \"angles\" \"90 0 0\" \"spot_angle\" \"60\" } "
+          "{ \"classname\" \"light\" \"origin\" \"0 0 0\" \"light\" \"40\" \"spawnflags\" \"2\" \"no_entity_light\" \"1\" } ",
+          COM_GAME_QUAKE3 );
+    assert( s_rtLights.numLights == 2 && Type( 0 ) == RT_LIGHT_POINT && Skip( 0 ) == 0 && Skip( 1 ) == 0 );
+    Load( "{ \"classname\" \"worldspawn\" } "
+          "{ \"classname\" \"light\" \"origin\" \"0 0 0\" \"light\" \"100\" \"angles\" \"90 0 0\" } ", COM_GAME_ALICE );
+    assert( s_rtLights.numLights == 1 && Type( 0 ) == RT_LIGHT_POINT );
+    printf( "ok\n" );
+    return 0;
+}
+'''
+
+
 class RtxLightEntityTests(unittest.TestCase):
     def test_lights_follow_the_maps_compiler_and_lighting_model(self):
         compile_run_c(self, harness() + CHECKS)
+
+    def test_empty_values_and_medal_of_honors_spotlights(self):
+        output = compile_run_c_output(self, harness() + MOHAA_CHECKS)
+        self.assertIn('ok', output)
 
     def test_a_reflection_finds_the_light_its_world_triangle_emits_as(self):
         # A glossy reflection ray that meets a surface light weighs it against

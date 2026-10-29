@@ -104,7 +104,9 @@ before/after `m1l1` comparison uses `r_subdivisions 4` in both isolated
 homes; this reduces Bezier curve tessellation, not MOHAA terrain detail.
 `m1l3c` uses the same setting, while `m1l3a` succeeds at the default 1.
 The allocation limit remains a separate issue; no user configuration or
-engine default was changed to conceal it.
+engine default was changed to conceal it. (2026-10-28: it no longer applies;
+`m1l1` builds one 533,088-triangle world tree at `r_subdivisions 1` and
+traces its whole view, [light entities record](2026-10-28-mohaa-rtx-light-entities.md).)
 
 An existing startup `Unknown command "fov"` diagnostic also remains.
 The probes mute audio and do not establish audio fidelity, retail-engine

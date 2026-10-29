@@ -132,6 +132,12 @@ historical upstream records, not fnTech3 release history. See the
   for Quake III's light-filter bits, and each title's own alpha-shadow
   surfaces now filter the path tracer's light instead
   ([record](docs/fntech3/2026-10-15-map-shader-flag-dialects.md)).
+- Light Medal of Honor's levels with all their lamps under RTX. The path
+  tracer stopped reading a level's lights at the first empty setting in it,
+  so twelve levels, `m1l2a` among them, lost most or all of their lamps, and
+  three Elite Force levels some of theirs; lamps the level points down now
+  light only below them, as the game's own lighting does
+  ([record](docs/fntech3/2026-10-28-mohaa-rtx-light-entities.md)).
 - Light Medal of Honor's outdoor maps with their sun under RTX. The maps name
   the sun and the sky's light in their level settings, not in a sky shader,
   so the path tracer had lit them with no sun; their streets and rooftops

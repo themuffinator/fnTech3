@@ -835,7 +835,7 @@ the credits: the game's menus, HUD, loading screens, briefing slides,
 objectives, subtitles and fades, the music and speech, the sun's lens flare,
 moving from level to level with your progress, saves, loads and demos. Over a LAN,
 players find a dedicated server in the server list and play free-for-all,
-team and objective matches. The original `MOHAA.exe` is copy-protected and no
+team, round-based and objective matches. The original `MOHAA.exe` is copy-protected and no
 longer runs on current Windows, so nothing has been compared with or played
 against the original game. See the
 [Medal of Honor details](fntech3/COMPATIBILITY.md#medal-of-honor-gate-matrix).
@@ -854,7 +854,11 @@ against the original game. See the
   ([effects details](fntech3/2026-10-11-mohaa-effects.md)).
 - RTX path tracing includes the game's terrain and static scenery,
   correcting holes in the ground on `m1l1` and the same omission elsewhere
-  ([terrain details](fntech3/2026-10-11-mohaa-rtx-world.md)).
+  ([terrain details](fntech3/2026-10-11-mohaa-rtx-world.md)). Since
+  2026-10-28 it lights each level with all of its lamps, and lamps the
+  level points down light only below them, as in the game's own lighting;
+  before, twelve levels such as `m1l2a` lost most of their lamps
+  ([details](fntech3/2026-10-28-mohaa-rtx-light-entities.md)).
 - Busy scenes with lit models, such as the truck ride at the start of
   `m1l1`, draw several times faster than before 2026-10-25, which keeps the
   mouse and movement responsive; Vulkan (`cl_renderer vk`) runs them

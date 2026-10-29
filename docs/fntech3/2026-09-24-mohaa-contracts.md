@@ -710,10 +710,11 @@ is cleared. This shows what the mix holds, not how it sounds.
   (`rtx_rt_mode 2`) traces with its compute backend instead. **Observed** on
   `m1l2a`: a world BVH of 274,974 triangles, 105 lights from the map (53
   points and 52 surface triangles), and the whole 1280 by 720 view traced.
-  The tracer reads a map's lights as the Quake III compilers write them and
-  has not been matched to 2015's, whose lights this night level's lamps are:
-  they light little of the walls the raster renderers show lit, so the
-  traced frame is not yet a faithful one.
+  The tracer then read the map's lights only as far as the first empty value
+  in its entities, and none of 2015's own light keys, so this night level's
+  lamps lit little of the walls the raster renderers show lit. Since
+  2026-10-28 it reads all 343, with the spots and model-light rules 2015's
+  compiler gave them ([light entities record](2026-10-28-mohaa-rtx-light-entities.md)).
 
 ## Decals and level of detail
 

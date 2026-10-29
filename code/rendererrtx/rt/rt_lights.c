@@ -97,6 +97,10 @@ typedef struct {
 	float	minVertexLight;	// worldspawn, q3map2: "_minvertexlight"
 	float	minGridLight;	// worldspawn, q3map2: "_mingridlight"
 	int		spawnflags;
+	vec3_t	angles;			// 2015: a spotlight's direction where it names no target
+	float	spotAngle;		// 2015: "spot_angle", the cone's half-angle in degrees
+	qboolean hasAngles;
+	qboolean noEntityLight;	// 2015: "no_entity_light", left out of the model lights
 	qboolean hasColor;
 	qboolean hasOrigin;
 	qboolean hasAmbientQ3map2;
@@ -317,13 +321,15 @@ static int RT_ParseLightEntities( rtLightEntity_t *entities, int maxEntities )
 		Com_Memset( &ent, 0, sizeof( ent ) );
 		while ( 1 ) {
 			char key[64];
+			// an empty quoted value is a value (Medal of Honor's spline
+			// paths carry "model" ""); only the text's end ends the parse
 			token = COM_ParseExt( &parse, qtrue );
-			if ( !token[0] || token[0] == '}' ) {
+			if ( !parse || token[0] == '}' ) {
 				break;
 			}
 			Q_strncpyz( key, token, sizeof( key ) );
 			token = COM_ParseExt( &parse, qtrue );
-			if ( !token[0] || token[0] == '}' ) {
+			if ( !parse || token[0] == '}' ) {
 				break;
 			}
 			// a repeated key keeps its last value, as it does for q3map (which
@@ -388,12 +394,19 @@ static int RT_ParseLightEntities( rtLightEntity_t *entities, int maxEntities )
 				Q_strncpyz( ent.target, token, sizeof( ent.target ) );
 			} else if ( !Q_stricmp( key, "targetname" ) ) {
 				Q_strncpyz( ent.targetname, token, sizeof( ent.targetname ) );
+			} else if ( !Q_stricmp( key, "angles" ) ) {
+				ent.hasAngles = ( sscanf( token, "%f %f %f", &ent.angles[0], &ent.angles[1], &ent.angles[2] ) == 3 &&
+					RT_Vec3Valid( ent.angles, RT_LIGHT_MAX_COORD ) ) ? qtrue : qfalse;
+			} else if ( !Q_stricmp( key, "spot_angle" ) ) {
+				ent.spotAngle = Q_atof( token );
+			} else if ( !Q_stricmp( key, "no_entity_light" ) ) {
+				ent.noEntityLight = atoi( token ) != 0 ? qtrue : qfalse;
 			}
 		}
 		if ( count < maxEntities ) {
 			entities[count++] = ent;
 		}
-		if ( !token[0] ) {
+		if ( !parse ) {
 			break;
 		}
 	}
@@ -509,6 +522,7 @@ static void RT_WorldspawnLight( const rtLightEntity_t *ent )
 
 static void RT_AddEntityLights( void )
 {
+	const qboolean mohaa = ( ri.gameId == COM_GAME_MOHAA ) ? qtrue : qfalse;
 	rtLightEntity_t *entities;
 	int count;
 	int i;
@@ -560,10 +574,14 @@ static void RT_AddEntityLights( void )
 			angle = qtrue;
 		}
 		fade = ( linear && ent->fade > 0.0f && RT_FloatValid( ent->fade, RT_LIGHT_MAX_VALUE ) ) ? ent->fade : 1.0f;
-		// a lightJunior lights the grid alone; nogrid keeps a light off it
+		// a lightJunior lights the grid alone; nogrid keeps a light off it;
+		// 2015's compiler kept no model light for spawnflags 2 or
+		// no_entity_light, though they light its lightmaps
 		if ( !Q_stricmpn( ent->classname, "lightJunior", 11 ) ) {
 			skip = RT_LIGHT_NO_SURFACES;
 		} else if ( ( s_rtLights.wolf || s_rtLights.q3map2 ) && ( ent->spawnflags & 16 ) ) {
+			skip = RT_LIGHT_NO_MODELS;
+		} else if ( mohaa && ( ( ent->spawnflags & 2 ) || ent->noEntityLight ) ) {
 			skip = RT_LIGHT_NO_MODELS;
 		} else {
 			skip = 0;
@@ -611,6 +629,26 @@ static void RT_AddEntityLights( void )
 				s_rtLights.untargetedLights++;
 				continue;
 			}
+		} else if ( mohaa && ent->hasAngles ) {
+			// 2015's compiler: a light with no target is a spotlight along
+			// its "angles", (radius + 16) / 64 wide a unit along, or
+			// tan( spot_angle ) where that is set
+			vec3_t axis;
+			float radiusByDist;
+
+			AngleVectors( ent->angles, axis, NULL, NULL );
+			if ( ent->spotAngle > 0.0f && ent->spotAngle < 90.0f ) {
+				radiusByDist = tanf( DEG2RAD( ent->spotAngle ) );
+			} else {
+				const float radius = ent->radius != 0.0f ? ent->radius : 64.0f;
+				if ( !RT_FloatValid( radius, RT_LIGHT_MAX_COORD ) ) {
+					continue;
+				}
+				radiusByDist = ( radius + 16.0f ) / 64.0f;
+			}
+			RT_AddPointLight( ent->origin, color, intensity * RT_LIGHT_POINT_SCALE, qfalse, qtrue, 1.0f, axis,
+				radiusByDist, skip );
+			continue;
 		}
 		RT_AddPointLight( ent->origin, color, intensity * RT_LIGHT_POINT_SCALE, linear, angle, fade, NULL, 0.0f, skip );
 	}
@@ -1740,13 +1778,14 @@ static qboolean RT_ParseMOHAASun( const char *entities, rtMOHAASun_t *sun )
 	while ( 1 ) {
 		char key[64];
 		vec3_t v;
+		// an empty quoted value is a value; only the text's end ends it
 		token = COM_ParseExt( &parse, qtrue );
-		if ( !token[0] || token[0] == '}' ) {
+		if ( !parse || token[0] == '}' ) {
 			break;
 		}
 		Q_strncpyz( key, token, sizeof( key ) );
 		token = COM_ParseExt( &parse, qtrue );
-		if ( !token[0] || token[0] == '}' ) {
+		if ( !parse || token[0] == '}' ) {
 			break;
 		}
 		// a value that is not three numbers leaves the sun without that key
@@ -2073,7 +2112,7 @@ static qboolean RT_BuildLights( void )
 	ri.Printf( PRINT_ALL, "RTX RT: %u lights (%u point, %u surface triangles, %s model), grid %dx%dx%d of %.0f units, "
 		"%u list entries, %.1f ms\n",
 		s_rtLights.numLights, s_rtLights.pointLights, s_rtLights.triangleLights,
-		s_rtLights.wolf ? "Wolfenstein" : s_rtLights.q3map2 ? "q3map2" : "q3map",
+		s_rtLights.wolf ? "Wolfenstein" : s_rtLights.q3map2 ? "q3map2" : ri.gameId == COM_GAME_MOHAA ? "2015" : "q3map",
 		s_rtLights.dims[0], s_rtLights.dims[1], s_rtLights.dims[2], s_rtLights.cellSize, s_rtLights.numIndices,
 		vk_rt_elapsed_ms( start, vk_rt_now_microseconds() ) );
 	ri.Printf( PRINT_ALL, "RTX RT light grid: %u overflow cells, %llu omitted local entries, %.2f%% local importance; "
