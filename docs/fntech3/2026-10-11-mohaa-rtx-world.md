@@ -46,7 +46,8 @@ compute or hardware. Their map geometry, texture coordinates, lightmap
 coordinates and vertex colors flow through the existing triangle extractor.
 Permanent decals, sprites, effects and animated TIKI entities retain their
 existing raster handling. This change does not add traced animated TIKI
-models. GL and Vulkan retain their leaf-based world rendering. No feature
+models. (2026-10-29: the [TIKI record](2026-10-29-mohaa-rtx-tiki-models.md)
+adds them.) GL and Vulkan retain their leaf-based world rendering. No feature
 is disabled for compatibility and no retail-exact presentation mode is added.
 
 ## Validation

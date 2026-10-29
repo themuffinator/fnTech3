@@ -49,7 +49,7 @@ static struct { struct { int activeRtMode; } caps; } vk = { { 2 } };
 static struct { qboolean failed; } s_rt;
 static struct {
     struct { trRefEntity_t *entities; int rdflags; } refdef;
-    struct { portalView_t portalView; } viewParms;
+    struct { portalView_t portalView; struct { vec3_t origin; } or; } viewParms;
 } backEnd;
 static model_t models[16];
 static rtOwner_t materialOwners[4] = { RT_OWNER_RASTER, RT_OWNER_TRACED, RT_OWNER_BASE_RASTER, RT_OWNER_TRACED };
@@ -58,6 +58,16 @@ static const model_t *R_GetModelByHandle( qhandle_t handle ) {
 }
 static uint32_t RT_MaterialIndexForShader( const shader_t *shader ) { return shader->material; }
 static rtOwner_t RT_MaterialOwner( uint32_t material ) { return materialOwners[material]; }
+/* Medal of Honor's rule: one shader a surface, never a sky entity (tr_mohaa.c) */
+static qboolean mohaaTraceable = qtrue;
+static qboolean R_MOHAATraceable( const trRefEntity_t *ent, const model_t *model ) {
+    (void)ent; assert( model->type == MOD_MOHAA_TIKI ); return mohaaTraceable;
+}
+/* ... and whether the eye stands inside its model's bounds */
+static qboolean mohaaViewInside = qfalse;
+static qboolean R_MOHAAViewInside( const trRefEntity_t *ent, const model_t *model, const vec3_t eye ) {
+    (void)ent; (void)eye; assert( model->type == MOD_MOHAA_TIKI ); return mohaaViewInside;
+}
 '''
     source += function(backend, 'static int RT_EntityClass( const trRefEntity_t *ent )')
     source += function(backend, 'rtSurfaceOwner_t vk_rt_surface_owner(')
@@ -110,17 +120,18 @@ int main() {
      * rails and lightning (SF_ENTITY), polys, particles, flares, ET foliage and
      * decals, Alice's models and swipes, and model surfaces with no entity. */
     for ( int type : { SF_BAD, SF_SKIP, SF_POLY, SF_FLARE, SF_ENTITY, SF_WOLFET_FOLIAGE, SF_WOLFET_DECAL,
-                       SF_IHV_PARTICLES, SF_ALICE_TIKI, SF_ALICE_SWIPE, SF_MD3, SF_MDC, SF_MDS, SF_WOLFET } ) {
+                       SF_IHV_PARTICLES, SF_ALICE_TIKI, SF_ALICE_SWIPE, SF_MD3, SF_MDC, SF_MDS, SF_WOLFET,
+                       SF_MOHAA_TIKI } ) {
         assert( vk_rt_surface_owner( world, &tracedShader, 0, type ) == RT_SURFACE_RASTER );
         Model( MOD_MESH );
-        if ( type != SF_MD3 && type != SF_MDC && type != SF_MDS && type != SF_WOLFET )
+        if ( type != SF_MD3 && type != SF_MDC && type != SF_MDS && type != SF_WOLFET && type != SF_MOHAA_TIKI )
             assert( vk_rt_surface_owner( 0, &tracedShader, 0, type ) == RT_SURFACE_RASTER );
     }
     /* The model formats the trace poses, and brush models. */
     const struct { modtype_t model; int surface; } posed[] = {
         { MOD_MESH, SF_MD3 }, { MOD_MDR, SF_MDR }, { MOD_IQM, SF_IQM }, { MOD_MDC, SF_MDC },
-        { MOD_MDS, SF_MDS }, { MOD_WOLFET_MESH, SF_WOLFET }, { MOD_BRUSH, SF_FACE }, { MOD_BRUSH, SF_GRID },
-        { MOD_BRUSH, SF_TRIANGLES } };
+        { MOD_MDS, SF_MDS }, { MOD_WOLFET_MESH, SF_WOLFET }, { MOD_MOHAA_TIKI, SF_MOHAA_TIKI },
+        { MOD_BRUSH, SF_FACE }, { MOD_BRUSH, SF_GRID }, { MOD_BRUSH, SF_TRIANGLES } };
     for ( const auto &p : posed ) {
         Model( p.model );
         assert( RT_EntityClass( &entities[0] ) == 0 );
@@ -136,6 +147,34 @@ int main() {
         assert( RT_EntityClass( &entities[0] ) < 0 );
         assert( vk_rt_surface_owner( 0, &tracedShader, 0, SF_MD3 ) == RT_SURFACE_RASTER );
     }
+    /* A Medal of Honor entity that layers a second shader over a surface, or
+     * a sky entity, stays with raster, every pass of it; its first-person
+     * and third-person models take their classes. */
+    mohaaTraceable = qfalse;
+    Model( MOD_MOHAA_TIKI );
+    assert( RT_EntityClass( &entities[0] ) < 0 );
+    assert( vk_rt_surface_owner( 0, &tracedShader, 0, SF_MOHAA_TIKI ) == RT_SURFACE_RASTER );
+    assert( vk_rt_surface_owner( 0, &tracedShader, 2, SF_MOHAA_TIKI ) == RT_SURFACE_RASTER );
+    mohaaTraceable = qtrue;
+    Model( MOD_MOHAA_TIKI )->e.renderfx = RF_FIRST_PERSON | RF_DEPTHHACK;
+    assert( RT_EntityClass( &entities[0] ) == 1 );
+    entities[0].e.renderfx = RF_THIRD_PERSON;
+    assert( RT_EntityClass( &entities[0] ) == 2 );
+    /* A model the eye stands inside, as the player rides in m1l1's truck,
+     * is traced for shadows and reflections only, and raster draws it in
+     * the view; a view weapon around the eye stays the weapon. */
+    mohaaViewInside = qtrue;
+    Model( MOD_MOHAA_TIKI );
+    assert( RT_EntityClass( &entities[0] ) == 2 );
+    assert( vk_rt_surface_owner( 0, &tracedShader, 0, SF_MOHAA_TIKI ) == RT_SURFACE_RASTER );
+    assert( vk_rt_surface_owner( 0, &tracedShader, 2, SF_MOHAA_TIKI ) == RT_SURFACE_RASTER );
+    entities[0].e.renderfx = RF_FIRST_PERSON | RF_DEPTHHACK;
+    assert( RT_EntityClass( &entities[0] ) == 1 );
+    assert( vk_rt_surface_owner( 0, &tracedShader, 0, SF_MOHAA_TIKI ) == RT_SURFACE_TRACED );
+    mohaaViewInside = qfalse;
+    Model( MOD_MOHAA_TIKI );
+    assert( RT_EntityClass( &entities[0] ) == 0 );
+    assert( vk_rt_surface_owner( 0, &tracedShader, 0, SF_MOHAA_TIKI ) == RT_SURFACE_TRACED );
     for ( int reType = RT_POLY; reType < RT_MAX_REF_ENTITY_TYPE; ++reType ) {
         Model( MOD_MESH )->e.reType = (refEntityType_t)reType;
         assert( RT_EntityClass( &entities[0] ) < 0 );

@@ -858,7 +858,12 @@ against the original game. See the
   2026-10-28 it lights each level with all of its lamps, and lamps the
   level points down light only below them, as in the game's own lighting;
   before, twelve levels such as `m1l2a` lost most of their lamps
-  ([details](fntech3/2026-10-28-mohaa-rtx-light-entities.md)).
+  ([details](fntech3/2026-10-28-mohaa-rtx-light-entities.md)). Since
+  2026-10-29 it traces the characters, vehicles, weapons and props too, so
+  they cast shadows and show in reflections; a vehicle you ride in is drawn
+  the normal way in your view. On the heaviest scenes, such as the truck
+  ride, RTX draws about a quarter fewer frames a second for it
+  ([details](fntech3/2026-10-29-mohaa-rtx-tiki-models.md)).
 - Busy scenes with lit models, such as the truck ride at the start of
   `m1l1`, draw several times faster than before 2026-10-25, which keeps the
   mouse and movement responsive; Vulkan (`cl_renderer vk`) runs them

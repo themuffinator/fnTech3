@@ -2045,6 +2045,7 @@ static qboolean vk_rt_append_md3_entity_geometry( rtxRtCpuGeometry_t *geometry, 
 #include "../renderercommon/tr_mdc_ray_geometry.h"
 #include "../renderercommon/tr_mds_ray_geometry.h"
 #include "../renderercommon/tr_wolfet_ray_geometry.h"
+#include "../renderercommon/tr_mohaa_ray_geometry.h"
 
 static void vk_rt_iqm_matrix34_multiply( const float *a, const float *b, float *out )
 {
@@ -2456,6 +2457,10 @@ static qboolean vk_rt_extract_dynamic_model_entity_geometry( rtxRtCpuGeometry_t 
 		break;
 	case MOD_WOLFET_MESH:
 		if ( !vk_rt_append_wolfet_entity_geometry( geometry, ent ) ) return qfalse;
+		counted = qtrue;
+		break;
+	case MOD_MOHAA_TIKI:
+		if ( !vk_rt_append_mohaa_entity_geometry( geometry, ent ) ) return qfalse;
 		counted = qtrue;
 		break;
 	case MOD_MDC:

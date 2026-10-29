@@ -135,6 +135,11 @@ historical upstream records, not fnTech3 release history. See the
 - Stop GL reading the monitor's colour profile from disk every 15 frames:
   it is now read when the window or its display changes, or once a second
   at most ([record](docs/fntech3/2026-10-28-mohaa-rtx-light-entities.md#gls-frame-time-2026-10-29)).
+- Trace Medal of Honor's characters, vehicles, weapons and props under RTX,
+  so they cast shadows and show in reflections; the path tracer had left them
+  to normal drawing. A vehicle you ride in, such as the truck at the start of
+  `m1l1`, stays normally drawn in your view, so that you can see out of it
+  ([record](docs/fntech3/2026-10-29-mohaa-rtx-tiki-models.md)).
 - Light Medal of Honor's levels with all their lamps under RTX. The path
   tracer stopped reading a level's lights at the first empty setting in it,
   so twelve levels, `m1l2a` among them, lost most or all of their lamps, and

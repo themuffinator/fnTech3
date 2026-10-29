@@ -233,6 +233,9 @@ Release packages include them as web pages in their `manual` folder, built by
 - [Map shader flags of Ritual's and 2015's maps](fntech3/2026-10-15-map-shader-flag-dialects.md)
   -- the surface flags each engine's map compiler writes, compared, and
   Alice's, F.A.K.K.2's and Medal of Honor's read with their own values.
+- [Medal of Honor's TIKI models in RTX](fntech3/2026-10-29-mohaa-rtx-tiki-models.md)
+  -- the path tracer carrying Medal of Honor's characters, vehicles and
+  props, skinned as the raster passes draw them, and the truck you ride in.
 - [Medal of Honor's light entities in RTX](fntech3/2026-10-28-mohaa-rtx-light-entities.md)
   -- 2015's light rules read from the maps' own sphere lights and
   lightmaps, and RTX lighting every level with all its lamps.

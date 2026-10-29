@@ -36,7 +36,10 @@ static qboolean RT_GeometryKey( const trRefEntity_t *ent, rtGeometryKey_t *key )
 		ri.gameId == COM_GAME_QUAKE3_IHV ) return qfalse;
 	model = R_GetModelByHandle( ent->e.hModel );
 	/* MDS/ET have torso, bone and procedural pose inputs beyond frame/backlerp.
-	 * They keep their shared skeletal pose routines until a complete key exists. */
+	 * They keep their shared skeletal pose routines until a complete key exists.
+	 * Medal of Honor's TIKI pose has no frame at all: the engine blends up to
+	 * sixteen animations, bone controllers and the entity's own skeleton, at
+	 * a detail its view measures, so it is skinned afresh each frame. */
 	if ( !model || ( model->type != MOD_BRUSH && model->type != MOD_MESH &&
 		model->type != MOD_MDR && model->type != MOD_IQM ) ) return qfalse;
 	/* A Raven Ghoul2 body is a runtime MDR: always frame 0, its bones

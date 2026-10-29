@@ -11,8 +11,9 @@ This is the Vulkan renderer's code/renderervk/tr_mohaa.c, the OpenGL
 renderer's code/renderer/tr_mohaa.c with the Vulkan family's
 tessellation rules: a surface that writes into tess flushes any queued world
 VBO items first and names its surface type, and an entity surface whose
-shader samples the screen asks the scene for a screen map. These models
-are drawn by the raster pass only; the ray-traced scene does not carry them.
+shader samples the screen asks the scene for a screen map. The path tracer
+carries these models too (renderercommon/tr_mohaa_ray_geometry.h): it
+skins each surface as the back end draws it, with the shader chosen here.
 
 A TIKI definition is the engine's, shared with 2015's game and client game;
 the client game's host registers each one here by name and definition
@@ -209,6 +210,171 @@ static shader_t *R_MOHAASkinShader( const mohaaSurface_t *surface, int skin ) {
 
 /*
 ==================
+R_MOHAASurfaceShader
+
+The shader a surface is drawn with, by the choice this file's header
+describes, or NULL for a surface not drawn: one the definition marks
+nodraw, one its byte hides, or one with nothing in it. `second` gets a
+crossfading surface's second skin and `pass` a custom shader drawn over the
+skins, each NULL when there is none.
+==================
+*/
+shader_t *R_MOHAASurfaceShader( const trRefEntity_t *ent, const mohaaSurface_t *surface, shader_t **second,
+	shader_t **pass ) {
+	const int state = surface->index >= 0 && surface->index < (int)ARRAY_LEN( ent->e.mohaa.surfaces )
+		? ent->e.mohaa.surfaces[surface->index] : 0;
+	shader_t *shader;
+
+	if ( second ) {
+		*second = NULL;
+	}
+	if ( pass ) {
+		*pass = NULL;
+	}
+	if ( ( surface->flags & MOHAA_TIKI_SURF_NODRAW ) || ( state & 4 ) ) {
+		return NULL;
+	}
+	if ( !surface->numVerts || !surface->numIndexes ) {
+		return NULL;
+	}
+	if ( ent->e.customShader && !( ent->e.mohaa.renderfx & MOHAA_RF_CUSTOMSHADERPASS ) ) {
+		return R_GetShaderByHandle( ent->e.customShader );
+	}
+	if ( ( state & 0x40 ) && surface->numSkins > 1 ) {
+		shader = R_MOHAASkinShader( surface, ( state & 2 ) + ent->e.skinNum );
+		if ( second ) {
+			*second = R_MOHAASkinShader( surface, ( state & 2 ) + ent->e.skinNum + 1 );
+		}
+	} else {
+		shader = R_MOHAASkinShader( surface, ( state & 3 ) + ent->e.skinNum );
+	}
+	if ( pass && ent->e.customShader ) {
+		*pass = R_GetShaderByHandle( ent->e.customShader );
+	}
+	return shader;
+}
+
+/*
+==================
+R_MOHAATraceable
+
+Whether the path tracer carries an entity (RT_EntityClass). It carries one
+shader for each surface, so an entity that draws a second over one, a
+crossfade's second skin or a custom shader over the skins, stays with
+raster, as does a sky entity, which only the sky portal's view draws.
+==================
+*/
+qboolean R_MOHAATraceable( const trRefEntity_t *ent, const model_t *mod ) {
+	shader_t *second, *pass;
+	int i;
+
+	if ( ent->e.mohaa.renderfx & MOHAA_RF_SKYENTITY ) {
+		return qfalse;
+	}
+	for ( i = 0; i < mod->numMohaaSurfaces; i++ ) {
+		if ( R_MOHAASurfaceShader( ent, &mod->mohaaSurfaces[i], &second, &pass ) && ( second || pass ) ) {
+			return qfalse;
+		}
+	}
+	return qtrue;
+}
+
+/*
+==================
+R_MOHAAViewInside
+
+Whether a point, the trace's eye, stands inside an entity's model bounds,
+as the player riding in the back of `m1l1`'s truck stands inside the truck.
+From inside, raster sees out through the backs of the hull's single-sided
+faces, which the trace, counting an opaque face from both sides, would see;
+so the trace keeps such an entity for shadows and reflections alone, and
+raster draws it in the view (RT_EntityClass, vk_rt_surface_owner).
+==================
+*/
+qboolean R_MOHAAViewInside( const trRefEntity_t *ent, const model_t *mod, const vec3_t point ) {
+	const float scale = ent->e.mohaa.scale > 0.0f ? ent->e.mohaa.scale : 1.0f;
+	vec3_t bounds[2], delta;
+	int k;
+
+	if ( !ri.MOHAARender || !mod->mohaaTiki ) {
+		return qfalse;
+	}
+	ri.MOHAARender->Bounds( mod->mohaaTiki, scale, bounds[0], bounds[1] );
+	VectorSubtract( point, ent->e.origin, delta );
+	for ( k = 0; k < 3; k++ ) {
+		const float local = DotProduct( delta, ent->e.axis[k] );
+		if ( !( local >= bounds[0][k] && local <= bounds[1][k] ) ) {
+			return qfalse;
+		}
+	}
+	return qtrue;
+}
+
+/*
+==================
+R_MOHAATracePose
+
+The pose the path tracer skins an entity by: the one a view computed for
+it this frame, or for an entity no view drew, one computed now into the
+frame's pool, as a dynamic light's shadow poses one. The entity is the
+back end's and keeps no pose of the trace's.
+==================
+*/
+const float *R_MOHAATracePose( const trRefEntity_t *ent, const model_t *mod ) {
+	trRefEntity_t posed;
+
+	if ( ent->e.mohaa.bones ) {
+		return ent->e.mohaa.bones;
+	}
+	if ( !ri.MOHAARender || mod->type != MOD_MOHAA_TIKI || !mod->mohaaTiki ) {
+		return NULL;
+	}
+	posed = *ent;
+	return R_MOHAAPose( &posed, mod );
+}
+
+/*
+==================
+R_MOHAASkinTraceSurface
+
+One of an entity's surfaces skinned for the path tracer into the caller's
+arrays, its indexes from the surface's first vertex, as RB_SurfaceMOHAATiki
+skins it: by the pose, at the entity's scale and the detail the main view
+measured, and copied from the frame's skin cache when a raster pass kept
+it. A surface the trace alone poses is not kept, which leaves the cache's
+room to the raster passes. Returns the vertices, 0 for none.
+==================
+*/
+int R_MOHAASkinTraceSurface( const trRefEntity_t *ent, const float *bones, const mohaaSurface_t *surface,
+	vec4_t *xyz, vec4_t *normal, vec2_t *st, unsigned int *indexes, int maxVerts, int maxIndexes, int *numIndexes ) {
+	const float scale = ent->e.mohaa.scale > 0.0f ? ent->e.mohaa.scale : 1.0f;
+	const int lodFlags = ( ent->e.renderfx & RF_DEPTHHACK ) ? MOHAA_LOD_VIEWMODEL : 0;
+	int verts;
+
+	*numIndexes = 0;
+	if ( !ri.MOHAARender || !bones ) {
+		return 0;
+	}
+	verts = R_MOHAASkinCacheCopy( &mohaaSkinCache, mohaaPoseGeneration, bones, surface, scale, ent->e.mohaa.lod,
+		lodFlags, xyz, normal, st, indexes, 0, maxVerts, maxIndexes, numIndexes );
+	if ( verts > 0 ) {
+		return verts;
+	}
+	verts = ri.MOHAARender->Skin( surface->model->mohaaTiki, surface->index, bones, scale, ent->e.mohaa.lod,
+		lodFlags, xyz, normal, st, indexes, 0, maxVerts, maxIndexes, numIndexes );
+	if ( verts <= 0 ) {
+		*numIndexes = 0;
+		return 0;
+	}
+	if ( bones == ent->e.mohaa.bones ) {
+		R_MOHAASkinCacheKeep( &mohaaSkinCache, mohaaPoseGeneration, bones, surface, scale, ent->e.mohaa.lod,
+			lodFlags, xyz, normal, st, indexes, 0, verts, *numIndexes );
+	}
+	return verts;
+}
+
+/*
+==================
 R_AddMOHAATikiSurfaces
 
 With a caster context the surfaces go to that dynamic light's shadow alone,
@@ -221,7 +387,6 @@ detail is the one the main view measured, whole for one it has not measured
 void R_AddMOHAATikiSurfaces( trRefEntity_t *ent, dlightShadowCasterContext_t *casterContext ) {
 	const model_t *mod = tr.currentModel;
 	const float scale = ent->e.mohaa.scale > 0.0f ? ent->e.mohaa.scale : 1.0f;
-	const qboolean customPass = ( ent->e.mohaa.renderfx & MOHAA_RF_CUSTOMSHADERPASS ) ? qtrue : qfalse;
 	vec3_t bounds[2];
 	qboolean personalModel;
 	qboolean personalShadowCaster;
@@ -289,22 +454,11 @@ void R_AddMOHAATikiSurfaces( trRefEntity_t *ent, dlightShadowCasterContext_t *ca
 
 	for ( i = 0; i < mod->numMohaaSurfaces; i++ ) {
 		mohaaSurface_t *surface = &mod->mohaaSurfaces[i];
-		const int state = i < (int)ARRAY_LEN( ent->e.mohaa.surfaces ) ? ent->e.mohaa.surfaces[i] : 0;
-		shader_t *shader, *second = NULL;
+		shader_t *second, *pass;
+		shader_t *shader = R_MOHAASurfaceShader( ent, surface, &second, &pass );
 
-		if ( ( surface->flags & MOHAA_TIKI_SURF_NODRAW ) || ( state & 4 ) ) {
+		if ( !shader ) {
 			continue;
-		}
-		if ( !surface->numVerts || !surface->numIndexes ) {
-			continue;
-		}
-		if ( ent->e.customShader && !customPass ) {
-			shader = R_GetShaderByHandle( ent->e.customShader );
-		} else if ( ( state & 0x40 ) && surface->numSkins > 1 ) {
-			shader = R_MOHAASkinShader( surface, ( state & 2 ) + ent->e.skinNum );
-			second = R_MOHAASkinShader( surface, ( state & 2 ) + ent->e.skinNum + 1 );
-		} else {
-			shader = R_MOHAASkinShader( surface, ( state & 3 ) + ent->e.skinNum );
 		}
 
 #ifdef USE_PMLIGHT
@@ -329,8 +483,7 @@ void R_AddMOHAATikiSurfaces( trRefEntity_t *ent, dlightShadowCasterContext_t *ca
 				R_AddDrawSurf( &surface->surfaceType, second, fogNum, 0 );
 				tr.needScreenMap |= second->hasScreenMap;
 			}
-			if ( ent->e.customShader && customPass ) {
-				shader_t *pass = R_GetShaderByHandle( ent->e.customShader );
+			if ( pass ) {
 				R_AddDrawSurf( &surface->surfaceType, pass, fogNum, 0 );
 				tr.needScreenMap |= pass->hasScreenMap;
 			}

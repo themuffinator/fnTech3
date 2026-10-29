@@ -2794,6 +2794,14 @@ qhandle_t RE_RegisterMOHAATiki( const char *name, const void *tiki );
 void R_MOHAAModelBounds( const model_t *mod, vec3_t mins, vec3_t maxs );
 void R_AddMOHAATikiSurfaces( trRefEntity_t *ent, dlightShadowCasterContext_t *shadowCtx );
 void RB_SurfaceMOHAATiki( void *data );
+// ... and as the path tracer carries them (renderercommon/tr_mohaa_ray_geometry.h)
+shader_t *R_MOHAASurfaceShader( const trRefEntity_t *ent, const mohaaSurface_t *surface, shader_t **second,
+	shader_t **pass );
+qboolean R_MOHAATraceable( const trRefEntity_t *ent, const model_t *mod );
+qboolean R_MOHAAViewInside( const trRefEntity_t *ent, const model_t *mod, const vec3_t point );
+const float *R_MOHAATracePose( const trRefEntity_t *ent, const model_t *mod );
+int R_MOHAASkinTraceSurface( const trRefEntity_t *ent, const float *bones, const mohaaSurface_t *surface,
+	vec4_t *xyz, vec4_t *normal, vec2_t *st, unsigned int *indexes, int maxVerts, int maxIndexes, int *numIndexes );
 void RB_SurfaceAliceSprite( void );
 int RE_GetAliceTikiHandle( qhandle_t handle );
 void RE_GetShaderImageSize( qhandle_t handle, int *width, int *height );

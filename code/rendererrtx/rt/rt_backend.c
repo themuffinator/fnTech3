@@ -894,6 +894,7 @@ static int RT_EntityClass( const trRefEntity_t *ent )
 {
 	const model_t *model;
 	int renderfx = ent->e.renderfx;
+	qboolean viewInside = qfalse;
 
 	if ( ent->e.reType != RT_MODEL || ent->e.hModel <= 0 ) {
 		return -1;
@@ -925,6 +926,13 @@ static int RT_EntityClass( const trRefEntity_t *ent )
 	case MOD_MDC:
 	case MOD_WOLFET_MESH:
 		break;
+	case MOD_MOHAA_TIKI:
+		// one shader a surface, and never a sky entity (R_MOHAATraceable)
+		if ( !R_MOHAATraceable( ent, model ) ) {
+			return -1;
+		}
+		viewInside = R_MOHAAViewInside( ent, model, backEnd.viewParms.or.origin );
+		break;
 	default:
 		return -1;
 	}
@@ -951,6 +959,12 @@ static int RT_EntityClass( const trRefEntity_t *ent )
 			return -1;
 		}
 		return 1;	// WEAPON
+	}
+	// a model the viewer rides inside, whose hull raster sees out through:
+	// its shadows and reflections are traced, the view is raster's
+	// (vk_rt_surface_owner)
+	if ( viewInside ) {
+		return 2;	// BODY
 	}
 	return 0;		// DYNAMIC
 }
@@ -3641,6 +3655,7 @@ static void RT_InvalidateScene( void )
 	RT_HostFree( s_rtIqmScratch );
 	s_rtIqmScratch = NULL;
 	s_rtIqmScratchCount = 0;
+	RT_MOHAAScratchFree();
 	RT_DestroyWorld();
 	vk_rt_destroy_buffer( &s_rt.lightGrid );
 	vk_rt_destroy_buffer( &s_rt.lightIndices );
@@ -3881,6 +3896,7 @@ rtSurfaceOwner_t vk_rt_surface_owner( int entityNum, const shader_t *shader, int
 	case SF_MDC:
 	case SF_MDS:
 	case SF_WOLFET:
+	case SF_MOHAA_TIKI:
 		// the model formats RT_ExtractDynamic poses
 		if ( world ) {
 			return RT_SURFACE_RASTER;
@@ -3891,7 +3907,13 @@ rtSurfaceOwner_t vk_rt_surface_owner( int entityNum, const shader_t *shader, int
 	}
 	if ( !world ) {
 		const trRefEntity_t *ent = &backEnd.refdef.entities[ entityNum ];
-		if ( RT_EntityClass( ent ) < 0 ) {
+		const int cls = RT_EntityClass( ent );
+		if ( cls < 0 ) {
+			return RT_SURFACE_RASTER;
+		}
+		// the view draws a Medal of Honor model the viewer is inside, which
+		// the trace keeps for shadows and reflections (R_MOHAAViewInside)
+		if ( cls == 2 && surfaceType == SF_MOHAA_TIKI ) {
 			return RT_SURFACE_RASTER;
 		}
 	}

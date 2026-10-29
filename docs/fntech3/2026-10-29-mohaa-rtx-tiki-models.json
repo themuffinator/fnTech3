@@ -1,0 +1,1074 @@
+{
+ "record": "docs/fntech3/2026-10-29-mohaa-rtx-tiki-models.md",
+ "date": "2026-10-29",
+ "base_commit": "d792d7c82ecd7165d5447180074a874185945c96",
+ "base_commit_note": "the before runtime was built from this commit; HEAD moved to a23b611a (documents only) during the work",
+ "platform": "Windows 11 x86 client (MSVC, meson/build/win32-dev), NVIDIA RTX 4060 laptop GPU, compute tracing",
+ "installations": {
+  "mohaa": "E:\\Games\\Medal of Honor Allied Assault (1.00 US), read only",
+  "pak0_sha256": "6caf6d93cc996b6895d5015f1be153724e5369b8c063c73e1609578323261df6",
+  "pak5_sha256": "b6035d8686bed133be76cdee322c37fd4a9814ba88bbce3e91f20571ea7b2a1d"
+ },
+ "installation_verified": "after the runs, .tmp/mohaa-install/tools/mohaa_verify.py: files 2663, bytes 1290164022, bad 0",
+ "evidence_levels": {
+  "appender_and_ownership": "Source, Unit (tests/mohaa_ray_geometry_tests.py, tests/rtx_surface_owner_tests.py)",
+  "retail_data": "Observed: 1,378 TIKI files and the scripts of 1.00 paks",
+  "live": "Live subset, private desktop, no input"
+ },
+ "source": {
+  "appender": "code/renderercommon/tr_mohaa_ray_geometry.h (vk_rt_append_mohaa_entity_geometry)",
+  "helpers": "code/rendererrtx/tr_mohaa.c: R_MOHAASurfaceShader, R_MOHAATraceable, R_MOHAAViewInside, R_MOHAATracePose, R_MOHAASkinTraceSurface",
+  "classes_and_ownership": "code/rendererrtx/rt/rt_backend.c: RT_EntityClass, vk_rt_surface_owner",
+  "geometry_cache": "code/rendererrtx/rt/rt_geometry_cache.h: TIKI entities are not keyed"
+ },
+ "unit": {
+  "tests": [
+   "tests/mohaa_ray_geometry_tests.py",
+   "tests/rtx_surface_owner_tests.py"
+  ],
+  "scenarios": [
+   "visible",
+   "measured detail (lod 25)",
+   "view weapon",
+   "culled, posed by the trace",
+   "unposable",
+   "custom shader",
+   "every surface byte x skin number -1..3 x custom shader",
+   "R_MOHAATraceable",
+   "R_MOHAAViewInside",
+   "bad index",
+   "failure propagation",
+   "scratch"
+  ],
+  "mutations_caught": [
+   "skin at whole detail",
+   "no view-model flag",
+   "keep trace-only poses",
+   "unscaled",
+   "crossfade ignored",
+   "sky entity traced",
+   "trace mutates the entity",
+   "hidden surfaces traced",
+   "bad indexes traced"
+  ]
+ },
+ "retail_crossfade_scan": {
+  "tiki_files": 1378,
+  "surface_commands": 276,
+  "flags_set": [
+   "+nodraw",
+   "-nodraw"
+  ],
+  "crossfade": 0,
+  "tool": ".tmp/mohaa-rtx-tiki/scan_crossfade.py"
+ },
+ "runtimes": {
+  "before": {
+   "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+   "fnql_glx_x86.dll": "4db485f820b7c65ba7fd46bde90bbb4bfc3fe72ccd47ea2b5e89c48b614b61ec",
+   "fnql_rtx_x86.dll": "5240b6af7a24d71882a1e9b850fe476535143713b2cef00cb8d9f93e50af3348",
+   "fnql_vk_x86.dll": "d96e3460eccae4a8ad60169923fe8995f807b6701c2cca6f5bb76e36337cc820",
+   "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d",
+   "fntech3.exe": "307247a54a5da8c8f5a4a85f4917ae9dda50cf5bbb189111899602e18371cac0"
+  },
+  "after": {
+   "fnql-web.pak": "2ffb13850127647eea618c7ff1732b518d4828071d680ee6350e49660faa3493",
+   "fnql_glx_x86.dll": "4db485f820b7c65ba7fd46bde90bbb4bfc3fe72ccd47ea2b5e89c48b614b61ec",
+   "fnql_rtx_x86.dll": "a8db7a4408eedc345e52206571af12afd78f2c0f3dfe56fa1cb91f3cda6fa87d",
+   "fnql_vk_x86.dll": "d96e3460eccae4a8ad60169923fe8995f807b6701c2cca6f5bb76e36337cc820",
+   "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d",
+   "fntech3.exe": "307247a54a5da8c8f5a4a85f4917ae9dda50cf5bbb189111899602e18371cac0"
+  }
+ },
+ "live_runs": {
+  "m1l1-before": {
+   "runtime": "mohaa-rtx-tiki-before",
+   "exe_sha256_16": "307247a54a5da8c8",
+   "identity_sha256_16": {
+    "fnql-web.pak": "2ffb13850127647e",
+    "fnql_glx_x86.dll": "4db485f820b7c65b",
+    "fnql_rtx_x86.dll": "5240b6af7a24d718",
+    "fnql_vk_x86.dll": "d96e3460eccae4a8",
+    "fntech3-pkg.fnz": "be3a3d1a462f6a7f",
+    "fntech3.exe": "307247a54a5da8c8"
+   },
+   "identity_unchanged": true,
+   "map": "m1l1",
+   "seconds_before_freeze": 4.0,
+   "extra": [
+    "+set",
+    "cl_renderer",
+    "rtx",
+    "+set",
+    "rtx_rt_mode",
+    "2",
+    "+set",
+    "com_maxfps",
+    "0",
+    "+set",
+    "developer",
+    "1"
+   ],
+   "args": [
+    "+set",
+    "fs_basepath",
+    "E:\\Games\\Medal of Honor Allied Assault",
+    "+set",
+    "fs_homepath",
+    "<repo>\\.tmp\\mohaa-rtx-tiki\\runs\\m1l1-before\\home",
+    "+set",
+    "logfile",
+    "2",
+    "+set",
+    "developer",
+    "0",
+    "+set",
+    "r_fullscreen",
+    "0",
+    "+set",
+    "r_mode",
+    "-1",
+    "+set",
+    "r_customwidth",
+    "1280",
+    "+set",
+    "r_customheight",
+    "720",
+    "+set",
+    "net_enabled",
+    "1",
+    "+set",
+    "net_ip",
+    "127.0.0.1",
+    "+set",
+    "net_port",
+    "12471",
+    "+set",
+    "rconPassword",
+    "probe",
+    "+set",
+    "sv_pure",
+    "0",
+    "+set",
+    "g_gametype",
+    "0",
+    "+set",
+    "s_volume",
+    "0",
+    "+set",
+    "s_musicvolume",
+    "0",
+    "+set",
+    "thereisnomonkey",
+    "1",
+    "+set",
+    "com_maxfpsUnfocused",
+    "0",
+    "+set",
+    "in_mouse",
+    "0",
+    "+set",
+    "cl_renderer",
+    "rtx",
+    "+set",
+    "rtx_rt_mode",
+    "2",
+    "+set",
+    "com_maxfps",
+    "0",
+    "+set",
+    "developer",
+    "1",
+    "+devmap",
+    "m1l1"
+   ],
+   "steps": [],
+   "cases": {
+    "traced": {
+     "commands": "rtx_rt_debug_visualizer 0",
+     "sha": "fcf93662ccbdb330"
+    },
+    "light": {
+     "commands": "rtx_rt_debug_visualizer 10",
+     "sha": "d2a15eb45e99d3cc"
+    },
+    "shadow": {
+     "commands": "rtx_rt_debug_visualizer 13",
+     "sha": "b429b600d1ce203f"
+    },
+    "normal": {
+     "commands": "rtx_rt_debug_visualizer 2",
+     "sha": "2c60d24d66e0f1a0"
+    },
+    "traced2": {
+     "commands": "rtx_rt_debug_visualizer 0",
+     "sha": "061b114b8fafa25e"
+    },
+    "raster": {
+     "commands": "rtx_rt_mode 0|vid_restart",
+     "sha": "8d4e9efc5fe575bb"
+    }
+   },
+   "input_injected": false,
+   "desktop_switched": false
+  },
+  "m1l1-after": {
+   "runtime": "mohaa-rtx-tiki-after",
+   "exe_sha256_16": "307247a54a5da8c8",
+   "identity_sha256_16": {
+    "fnql-web.pak": "2ffb13850127647e",
+    "fnql_glx_x86.dll": "4db485f820b7c65b",
+    "fnql_rtx_x86.dll": "a8db7a4408eedc34",
+    "fnql_vk_x86.dll": "d96e3460eccae4a8",
+    "fntech3-pkg.fnz": "be3a3d1a462f6a7f",
+    "fntech3.exe": "307247a54a5da8c8"
+   },
+   "identity_unchanged": true,
+   "map": "m1l1",
+   "seconds_before_freeze": 4.0,
+   "extra": [
+    "+set",
+    "cl_renderer",
+    "rtx",
+    "+set",
+    "rtx_rt_mode",
+    "2",
+    "+set",
+    "com_maxfps",
+    "0",
+    "+set",
+    "developer",
+    "1"
+   ],
+   "args": [
+    "+set",
+    "fs_basepath",
+    "E:\\Games\\Medal of Honor Allied Assault",
+    "+set",
+    "fs_homepath",
+    "<repo>\\.tmp\\mohaa-rtx-tiki\\runs\\m1l1-after\\home",
+    "+set",
+    "logfile",
+    "2",
+    "+set",
+    "developer",
+    "0",
+    "+set",
+    "r_fullscreen",
+    "0",
+    "+set",
+    "r_mode",
+    "-1",
+    "+set",
+    "r_customwidth",
+    "1280",
+    "+set",
+    "r_customheight",
+    "720",
+    "+set",
+    "net_enabled",
+    "1",
+    "+set",
+    "net_ip",
+    "127.0.0.1",
+    "+set",
+    "net_port",
+    "12471",
+    "+set",
+    "rconPassword",
+    "probe",
+    "+set",
+    "sv_pure",
+    "0",
+    "+set",
+    "g_gametype",
+    "0",
+    "+set",
+    "s_volume",
+    "0",
+    "+set",
+    "s_musicvolume",
+    "0",
+    "+set",
+    "thereisnomonkey",
+    "1",
+    "+set",
+    "com_maxfpsUnfocused",
+    "0",
+    "+set",
+    "in_mouse",
+    "0",
+    "+set",
+    "cl_renderer",
+    "rtx",
+    "+set",
+    "rtx_rt_mode",
+    "2",
+    "+set",
+    "com_maxfps",
+    "0",
+    "+set",
+    "developer",
+    "1",
+    "+devmap",
+    "m1l1"
+   ],
+   "steps": [],
+   "cases": {
+    "traced": {
+     "commands": "rtx_rt_debug_visualizer 0",
+     "sha": "f21c1e339b2c0de3"
+    },
+    "light": {
+     "commands": "rtx_rt_debug_visualizer 10",
+     "sha": "23c9fec1be14e817"
+    },
+    "shadow": {
+     "commands": "rtx_rt_debug_visualizer 13",
+     "sha": "fc23066ab56e91e0"
+    },
+    "normal": {
+     "commands": "rtx_rt_debug_visualizer 2",
+     "sha": "90db11b20170829f"
+    },
+    "traced2": {
+     "commands": "rtx_rt_debug_visualizer 0",
+     "sha": "5163e60b0fee98f4"
+    },
+    "raster": {
+     "commands": "rtx_rt_mode 0|vid_restart",
+     "sha": "5957bf3d2b5cb52e"
+    }
+   },
+   "input_injected": false,
+   "desktop_switched": false
+  },
+  "mohdm6-before": {
+   "runtime": "mohaa-rtx-tiki-before",
+   "exe_sha256_16": "307247a54a5da8c8",
+   "identity_sha256_16": {
+    "fnql-web.pak": "2ffb13850127647e",
+    "fnql_glx_x86.dll": "4db485f820b7c65b",
+    "fnql_rtx_x86.dll": "5240b6af7a24d718",
+    "fnql_vk_x86.dll": "d96e3460eccae4a8",
+    "fntech3-pkg.fnz": "be3a3d1a462f6a7f",
+    "fntech3.exe": "307247a54a5da8c8"
+   },
+   "identity_unchanged": true,
+   "map": "dm/mohdm6",
+   "seconds_before_freeze": 2.0,
+   "extra": [
+    "+set",
+    "cl_renderer",
+    "rtx",
+    "+set",
+    "rtx_rt_mode",
+    "2",
+    "+set",
+    "com_maxfps",
+    "0",
+    "+set",
+    "developer",
+    "1",
+    "+set",
+    "g_gametype",
+    "2"
+   ],
+   "args": [
+    "+set",
+    "fs_basepath",
+    "E:\\Games\\Medal of Honor Allied Assault",
+    "+set",
+    "fs_homepath",
+    "<repo>\\.tmp\\mohaa-rtx-tiki\\runs\\mohdm6-before\\home",
+    "+set",
+    "logfile",
+    "2",
+    "+set",
+    "developer",
+    "0",
+    "+set",
+    "r_fullscreen",
+    "0",
+    "+set",
+    "r_mode",
+    "-1",
+    "+set",
+    "r_customwidth",
+    "1280",
+    "+set",
+    "r_customheight",
+    "720",
+    "+set",
+    "net_enabled",
+    "1",
+    "+set",
+    "net_ip",
+    "127.0.0.1",
+    "+set",
+    "net_port",
+    "12471",
+    "+set",
+    "rconPassword",
+    "probe",
+    "+set",
+    "sv_pure",
+    "0",
+    "+set",
+    "g_gametype",
+    "0",
+    "+set",
+    "s_volume",
+    "0",
+    "+set",
+    "s_musicvolume",
+    "0",
+    "+set",
+    "thereisnomonkey",
+    "1",
+    "+set",
+    "com_maxfpsUnfocused",
+    "0",
+    "+set",
+    "in_mouse",
+    "0",
+    "+set",
+    "cl_renderer",
+    "rtx",
+    "+set",
+    "rtx_rt_mode",
+    "2",
+    "+set",
+    "com_maxfps",
+    "0",
+    "+set",
+    "developer",
+    "1",
+    "+set",
+    "g_gametype",
+    "2",
+    "+devmap",
+    "dm/mohdm6"
+   ],
+   "steps": [
+    "cmd join_team allies",
+    "cmd primarydmweapon rifle",
+    "popmenu 0",
+    "cmd tele 554 -455 -150",
+    "cmd face 25 90 0"
+   ],
+   "cases": {
+    "traced": {
+     "commands": "rtx_rt_debug_visualizer 0",
+     "sha": "b6ca3c498b813bc4"
+    },
+    "light": {
+     "commands": "rtx_rt_debug_visualizer 10",
+     "sha": "d309263e633d5555"
+    },
+    "shadow": {
+     "commands": "rtx_rt_debug_visualizer 13",
+     "sha": "1d905c7c9d3ba5fe"
+    },
+    "third": {
+     "commands": "cg_3rd_person 1|rtx_rt_debug_visualizer 0",
+     "sha": "134dc7651f231958"
+    },
+    "thirdlight": {
+     "commands": "rtx_rt_debug_visualizer 10",
+     "sha": "f51521c68b50c2f7"
+    },
+    "thirdshadow": {
+     "commands": "rtx_rt_debug_visualizer 13",
+     "sha": "4708a62065e7c46c"
+    },
+    "thirdnormal": {
+     "commands": "rtx_rt_debug_visualizer 2",
+     "sha": "8f5cf2aa76aea693"
+    },
+    "raster": {
+     "commands": "rtx_rt_debug_visualizer 0|rtx_rt_mode 0|vid_restart",
+     "sha": "ceab54c0ac1cf951"
+    }
+   },
+   "input_injected": false,
+   "desktop_switched": false
+  },
+  "mohdm6-after": {
+   "runtime": "mohaa-rtx-tiki-after",
+   "exe_sha256_16": "307247a54a5da8c8",
+   "identity_sha256_16": {
+    "fnql-web.pak": "2ffb13850127647e",
+    "fnql_glx_x86.dll": "4db485f820b7c65b",
+    "fnql_rtx_x86.dll": "a8db7a4408eedc34",
+    "fnql_vk_x86.dll": "d96e3460eccae4a8",
+    "fntech3-pkg.fnz": "be3a3d1a462f6a7f",
+    "fntech3.exe": "307247a54a5da8c8"
+   },
+   "identity_unchanged": true,
+   "map": "dm/mohdm6",
+   "seconds_before_freeze": 2.0,
+   "extra": [
+    "+set",
+    "cl_renderer",
+    "rtx",
+    "+set",
+    "rtx_rt_mode",
+    "2",
+    "+set",
+    "com_maxfps",
+    "0",
+    "+set",
+    "developer",
+    "1",
+    "+set",
+    "g_gametype",
+    "2"
+   ],
+   "args": [
+    "+set",
+    "fs_basepath",
+    "E:\\Games\\Medal of Honor Allied Assault",
+    "+set",
+    "fs_homepath",
+    "<repo>\\.tmp\\mohaa-rtx-tiki\\runs\\mohdm6-after\\home",
+    "+set",
+    "logfile",
+    "2",
+    "+set",
+    "developer",
+    "0",
+    "+set",
+    "r_fullscreen",
+    "0",
+    "+set",
+    "r_mode",
+    "-1",
+    "+set",
+    "r_customwidth",
+    "1280",
+    "+set",
+    "r_customheight",
+    "720",
+    "+set",
+    "net_enabled",
+    "1",
+    "+set",
+    "net_ip",
+    "127.0.0.1",
+    "+set",
+    "net_port",
+    "12471",
+    "+set",
+    "rconPassword",
+    "probe",
+    "+set",
+    "sv_pure",
+    "0",
+    "+set",
+    "g_gametype",
+    "0",
+    "+set",
+    "s_volume",
+    "0",
+    "+set",
+    "s_musicvolume",
+    "0",
+    "+set",
+    "thereisnomonkey",
+    "1",
+    "+set",
+    "com_maxfpsUnfocused",
+    "0",
+    "+set",
+    "in_mouse",
+    "0",
+    "+set",
+    "cl_renderer",
+    "rtx",
+    "+set",
+    "rtx_rt_mode",
+    "2",
+    "+set",
+    "com_maxfps",
+    "0",
+    "+set",
+    "developer",
+    "1",
+    "+set",
+    "g_gametype",
+    "2",
+    "+devmap",
+    "dm/mohdm6"
+   ],
+   "steps": [
+    "cmd join_team allies",
+    "cmd primarydmweapon rifle",
+    "popmenu 0",
+    "cmd tele 554 -455 -150",
+    "cmd face 25 90 0"
+   ],
+   "cases": {
+    "traced": {
+     "commands": "rtx_rt_debug_visualizer 0",
+     "sha": "ebc480b8ec57253c"
+    },
+    "light": {
+     "commands": "rtx_rt_debug_visualizer 10",
+     "sha": "3f339588a122382c"
+    },
+    "shadow": {
+     "commands": "rtx_rt_debug_visualizer 13",
+     "sha": "a11c58a9f263e395"
+    },
+    "third": {
+     "commands": "cg_3rd_person 1|rtx_rt_debug_visualizer 0",
+     "sha": "09b3b43030ee3ab8"
+    },
+    "thirdlight": {
+     "commands": "rtx_rt_debug_visualizer 10",
+     "sha": "45035bc6e21f5df7"
+    },
+    "thirdshadow": {
+     "commands": "rtx_rt_debug_visualizer 13",
+     "sha": "f6d6df006bb11b1a"
+    },
+    "thirdnormal": {
+     "commands": "rtx_rt_debug_visualizer 2",
+     "sha": "eefb6a8395e80520"
+    },
+    "raster": {
+     "commands": "rtx_rt_debug_visualizer 0|rtx_rt_mode 0|vid_restart",
+     "sha": "28c19e07750b2bc4"
+    }
+   },
+   "input_injected": false,
+   "desktop_switched": false
+  }
+ },
+ "diagnostic_runs": {
+  "note": "diagnostic builds of the same source with temporary prints and a weapon-to-raster switch, removed before the commit",
+  "m1l1_traced_frame": {
+   "entities": 26,
+   "surfaces": 125,
+   "vertices": 25073,
+   "triangles": 30479,
+   "posed_by_the_trace": 11,
+   "player_truck": "models/vehicles/gmctruck_opening.tik, render flags 0x4000000, the eye inside"
+  },
+  "appender_time_ms_a_frame": [
+   1.589,
+   1.518,
+   1.281,
+   1.496,
+   1.519
+  ],
+  "pose_ms_a_frame": [
+   0.093,
+   0.104,
+   0.095,
+   0.096,
+   0.109
+  ],
+  "skin_ms_a_frame": [
+   0.558,
+   0.614,
+   0.519,
+   0.559,
+   0.616
+  ],
+  "frozen_frames_with_moved_dynamic_vertices_of_240": [
+   47,
+   63,
+   45,
+   38
+  ],
+  "mohdm6_weapon_ab": {
+   "runtime": "mohaa-rtx-tiki-diag",
+   "exe_sha256_16": "307247a54a5da8c8",
+   "identity_sha256_16": {
+    "fnql-web.pak": "2ffb13850127647e",
+    "fnql_glx_x86.dll": "4db485f820b7c65b",
+    "fnql_rtx_x86.dll": "7ac0e6dba4c3ceb7",
+    "fnql_vk_x86.dll": "d96e3460eccae4a8",
+    "fntech3-pkg.fnz": "be3a3d1a462f6a7f",
+    "fntech3.exe": "307247a54a5da8c8"
+   },
+   "identity_unchanged": true,
+   "map": "dm/mohdm6",
+   "seconds_before_freeze": 2.0,
+   "extra": [
+    "+set",
+    "cl_renderer",
+    "rtx",
+    "+set",
+    "rtx_rt_mode",
+    "2",
+    "+set",
+    "com_maxfps",
+    "0",
+    "+set",
+    "developer",
+    "1",
+    "+set",
+    "g_gametype",
+    "2"
+   ],
+   "args": [
+    "+set",
+    "fs_basepath",
+    "E:\\Games\\Medal of Honor Allied Assault",
+    "+set",
+    "fs_homepath",
+    "<repo>\\.tmp\\mohaa-rtx-tiki\\runs\\mohdm6-weapon-ab\\home",
+    "+set",
+    "logfile",
+    "2",
+    "+set",
+    "developer",
+    "0",
+    "+set",
+    "r_fullscreen",
+    "0",
+    "+set",
+    "r_mode",
+    "-1",
+    "+set",
+    "r_customwidth",
+    "1280",
+    "+set",
+    "r_customheight",
+    "720",
+    "+set",
+    "net_enabled",
+    "1",
+    "+set",
+    "net_ip",
+    "127.0.0.1",
+    "+set",
+    "net_port",
+    "12471",
+    "+set",
+    "rconPassword",
+    "probe",
+    "+set",
+    "sv_pure",
+    "0",
+    "+set",
+    "g_gametype",
+    "0",
+    "+set",
+    "s_volume",
+    "0",
+    "+set",
+    "s_musicvolume",
+    "0",
+    "+set",
+    "thereisnomonkey",
+    "1",
+    "+set",
+    "com_maxfpsUnfocused",
+    "0",
+    "+set",
+    "in_mouse",
+    "0",
+    "+set",
+    "cl_renderer",
+    "rtx",
+    "+set",
+    "rtx_rt_mode",
+    "2",
+    "+set",
+    "com_maxfps",
+    "0",
+    "+set",
+    "developer",
+    "1",
+    "+set",
+    "g_gametype",
+    "2",
+    "+devmap",
+    "dm/mohdm6"
+   ],
+   "steps": [
+    "cmd join_team allies",
+    "cmd primarydmweapon rifle",
+    "popmenu 0",
+    "cmd tele 554 -455 -150",
+    "cmd face 25 90 0"
+   ],
+   "cases": {
+    "traced": {
+     "commands": "cg_3rd_person 1",
+     "sha": "3e328637d1857a45"
+    },
+    "weaponraster": {
+     "commands": "set mohaa_ray_skip 1",
+     "sha": "ac685da2b9b0cd49"
+    },
+    "weapontraced": {
+     "commands": "set mohaa_ray_skip 0",
+     "sha": "62b39b949d933c93"
+    }
+   },
+   "input_injected": false,
+   "desktop_switched": false
+  }
+ },
+ "first_attempt_hull_from_inside": {
+  "below the board top": {
+   "before": 31.6,
+   "hull_traced_from_inside": 4.8,
+   "after": 34.7
+  },
+  "player truck board": {
+   "before": 27.2,
+   "hull_traced_from_inside": 0.1,
+   "after": 27.4
+  }
+ },
+ "region_levels_srgb_mean": {
+  "m1l1": {
+   "convoy truck": {
+    "raster": [
+     74.9,
+     74.9
+    ],
+    "traced": [
+     68.6,
+     55.1
+    ],
+    "light": [
+     68.8,
+     64.3
+    ],
+    "entity_shadow_green": [
+     46.2,
+     163.8
+    ]
+   },
+   "convoy soldiers": {
+    "raster": [
+     49.3,
+     49.3
+    ],
+    "traced": [
+     37.6,
+     33.6
+    ],
+    "light": [
+     36.7,
+     37.8
+    ],
+    "entity_shadow_green": [
+     8.9,
+     144.1
+    ]
+   },
+   "player truck board": {
+    "raster": [
+     28.4,
+     28.4
+    ],
+    "traced": [
+     27.2,
+     27.4
+    ],
+    "light": [
+     27.4,
+     27.7
+    ],
+    "entity_shadow_green": [
+     22.8,
+     25.8
+    ]
+   },
+   "ground before the convoy": {
+    "raster": [
+     57.3,
+     57.3
+    ],
+    "traced": [
+     39.3,
+     40.1
+    ],
+    "light": [
+     40.5,
+     42.5
+    ],
+    "entity_shadow_green": [
+     1.1,
+     148.6
+    ]
+   },
+   "open ground right": {
+    "raster": [
+     44.9,
+     44.9
+    ],
+    "traced": [
+     31.2,
+     34.4
+    ],
+    "light": [
+     27.9,
+     33.7
+    ],
+    "entity_shadow_green": [
+     0.0,
+     27.8
+    ]
+   },
+   "below the board top": {
+    "raster": [
+     51.2,
+     51.2
+    ],
+    "traced": [
+     31.6,
+     34.7
+    ],
+    "light": [
+     30.8,
+     36.3
+    ],
+    "entity_shadow_green": [
+     0.4,
+     37.3
+    ]
+   }
+  },
+  "mohdm6": {
+   "floor left of the legs": {
+    "third": [
+     153.3,
+     93.4
+    ],
+    "thirdlight": [
+     222.6,
+     131.8
+    ],
+    "raster": [
+     192.4,
+     187.4
+    ]
+   },
+   "floor right of the legs": {
+    "third": [
+     174.0,
+     170.3
+    ],
+    "thirdlight": [
+     245.7,
+     239.6
+    ],
+    "raster": [
+     200.1,
+     200.1
+    ]
+   },
+   "open floor": {
+    "third": [
+     183.0,
+     183.0
+    ],
+    "thirdlight": [
+     248.0,
+     248.0
+    ],
+    "raster": [
+     213.7,
+     213.7
+    ]
+   },
+   "player torso": {
+    "third": [
+     129.2,
+     66.2
+    ],
+    "thirdlight": [
+     139.2,
+     174.3
+    ],
+    "raster": [
+     127.8,
+     127.6
+    ]
+   },
+   "view weapon": {
+    "traced": [
+     153.4,
+     109.6
+    ],
+    "light": [
+     192.1,
+     215.1
+    ],
+    "raster": [
+     160.9,
+     160.3
+    ]
+   }
+  },
+  "order": "[before, after]; entity_shadow_green is rtx_rt_debug_visualizer 13 green"
+ },
+ "raster_before_vs_after": {
+  "m1l1": {
+   "mean": 0.0443,
+   "max": 126,
+   "pixels": 3277
+  },
+  "mohdm6": {
+   "mean": 0.7493,
+   "max": 245,
+   "pixels": 30370
+  }
+ },
+ "frame_time_frozen_m1l1": {
+  "m1l1-time-before": {
+   "runtime": "mohaa-rtx-tiki-before",
+   "frames_over_8s": 311,
+   "com_speeds_cl_mean_ms": 3.53,
+   "com_speeds_cl_p95_ms": 4,
+   "rtx_perf": [
+    "RTX RT GPU p50/p95/p99: 28.44/28.52/28.55 ms (256 frames)",
+    "RTX RT timing: gpu build 0.00 trace 25.57 denoise 2.80 composite 0.09 = 28.47 ms, cpu 0.09 ms, 1280x720, 856 still frames",
+    "RTX RT acceleration: 2 dynamic builds, 71 refits (all current-frame vertices)"
+   ]
+  },
+  "m1l1-time-before2": {
+   "runtime": "mohaa-rtx-tiki-before",
+   "frames_over_8s": 326,
+   "com_speeds_cl_mean_ms": 1.88,
+   "com_speeds_cl_p95_ms": 3,
+   "rtx_perf": [
+    "RTX RT GPU p50/p95/p99: 28.44/28.52/28.54 ms (256 frames)",
+    "RTX RT timing: gpu build 0.00 trace 25.55 denoise 2.79 composite 0.10 = 28.44 ms, cpu 0.07 ms, 1280x720, 854 still frames",
+    "RTX RT acceleration: 2 dynamic builds, 73 refits (all current-frame vertices)"
+   ]
+  },
+  "m1l1-time-after": {
+   "runtime": "mohaa-rtx-tiki-after",
+   "frames_over_8s": 240,
+   "com_speeds_cl_mean_ms": 10.6,
+   "com_speeds_cl_p95_ms": 16,
+   "rtx_perf": [
+    "RTX RT GPU p50/p95/p99: 30.30/31.17/37.02 ms (256 frames)",
+    "RTX RT timing: gpu build 0.00 trace 27.84 denoise 2.81 composite 0.10 = 30.75 ms, cpu 9.39 ms, 1280x720, 232 still frames",
+    "RTX RT acceleration: 71 dynamic builds, 1269 refits (all current-frame vertices)"
+   ]
+  },
+  "m1l1-time-after2": {
+   "runtime": "mohaa-rtx-tiki-after",
+   "frames_over_8s": 248,
+   "com_speeds_cl_mean_ms": 9.14,
+   "com_speeds_cl_p95_ms": 12,
+   "rtx_perf": [
+    "RTX RT GPU p50/p95/p99: 30.50/31.07/37.34 ms (256 frames)",
+    "RTX RT timing: gpu build 0.00 trace 27.69 denoise 2.81 composite 0.10 = 30.60 ms, cpu 7.79 ms, 1280x720, 164 still frames",
+    "RTX RT acceleration: 102 dynamic builds, 1411 refits (all current-frame vertices)"
+   ]
+  }
+ },
+ "alice_fakk2": "shape shareable, code not: Ritual models are tessellated by the renderer (RA_TikiTessellateLod), with per-view detail slots and custom skins; unchanged"
+}

@@ -265,4 +265,5 @@ gap. These three are such differences.
 
 - Medal of Honor's TIKI models are still drawn by raster under RTX, so its
   characters and vehicles cast no traced shadow; that work is under way in
-  its own task.
+  its own task. (2026-10-29: the path tracer carries them,
+  [TIKI record](2026-10-29-mohaa-rtx-tiki-models.md).)

@@ -23,15 +23,19 @@ graphics card cannot ray trace, RTX draws the game the normal way instead.
   the download.
 
 Every game with a client can use RTX. It traces the model formats of Quake
-III Arena and its relatives; models it cannot trace -- those of Alice,
-F.A.K.K.2 and Medal of Honor, for example -- are drawn the normal way, without
+III Arena and its relatives, and Medal of Honor's; models it cannot trace --
+those of Alice and F.A.K.K.2, for example -- are drawn the normal way, without
 traced shadows or reflections. Return to Castle Wolfenstein, Enemy
 Territory and both Elite Force modes have been drawn with it in testing,
 but, like those games themselves, that is still experimental.
 
-Medal of Honor's terrain and static map scenery are traced too; its
-animated characters and props still use normal drawing
-([terrain details](fntech3/2026-10-11-mohaa-rtx-world.md)). Its outdoor maps
+Medal of Honor's terrain and static map scenery are traced too
+([terrain details](fntech3/2026-10-11-mohaa-rtx-world.md)), and so are its
+characters, vehicles, weapons and props, which cast traced shadows and show
+in reflections. A vehicle you ride inside, such as the truck at the start of
+`m1l1`, is drawn the normal way in your view, so that you can see out of it,
+and still casts its traced shadow
+([model details](fntech3/2026-10-29-mohaa-rtx-tiki-models.md)). Its outdoor maps
 are lit by the sun and sky each map names, casting the same shadows as the
 game's own lighting ([sun details](fntech3/2026-10-16-mohaa-worldspawn-sun.md)),
 and by every lamp the level holds, each lamp pointed the way the level
