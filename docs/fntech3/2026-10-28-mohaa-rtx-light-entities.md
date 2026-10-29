@@ -252,14 +252,19 @@ gap. These three are such differences.
   times the falloff law, more the farther out, like light from elsewhere,
   while lamps without it range from 0.6 to 3.9 times
   (`.tmp/mohaa-gaps/obrfit.py`) **[I]**.
-- **GL's frame time.** GL does several times Vulkan's GPU work on Medal of
+- **GL's frame time.** GL takes several times Vulkan's time on Medal of
   Honor's world and models, by how GL draws in every profile, and scene fog
-  keeps its world off its buffer on the fogged maps. It still plays every
-  map well: 8.1 ms a frame on the slowest, `m2l1`, and 2 to 5 ms on most, at
-  1280x720 on this machine, under other sessions' load. Vulkan is the faster
-  path, and the players' guide says so. A single frame's GPU time swings by
-  two fifths from run to run on this laptop GPU, so toggles cannot place a
-  hot spot in it.
+  keeps its world off its buffer on the fogged maps. Medal of Honor asks
+  little of it: on the frozen `DM/mohdm1` view GL submits 190 draws and
+  58,935 indexes a frame (25 from its world buffer, 118 from the frame's own
+  index buffer, 47 generic; GLx's `glxinfo` counters over 5,303 frames,
+  `.tmp/mohaa-gaps/glx_queries.py`), and a third of the frame's main-thread
+  samples wait in the driver's `SDL_GL_SwapWindow`. GLx's back-end timer,
+  which counts the GPU waiting on the processor too, swings by two fifths
+  between runs with the machine's load, so toggles cannot place a hot spot
+  in it. It still plays every map well: 8.1 ms a frame on the slowest,
+  `m2l1`, and 2 to 5 ms on most, at 1280x720 on this machine, under other
+  sessions' load. Vulkan is the faster path, and the players' guide says so.
 
 ## Not done
 
