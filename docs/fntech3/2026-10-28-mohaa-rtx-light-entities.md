@@ -233,19 +233,36 @@ by their neighbours, inside and outside the cone alike, so the edge cannot
 be read from them; q3map's fade stays inferred **[I]** (`.tmp/mohaa-gaps/spotfade.py`,
 the JSON's `gl_follow_up_2026_10_29`).
 
+## Accepted differences
+
+Under invariant 12 a difference that no module, peer, file or player
+depends on is recorded once, with its reason, and not carried as an open
+gap. These three are such differences.
+
+- **The spot cone's last 32 units.** The path tracer fades a spot over q3map's
+  outer 32 units, as the compiler wrote q3map's cone width for it; the
+  lightmaps cannot show 2015's own edge (above) **[I]**. It decides only how
+  a traced cone's rim compares with a baked one, which nothing reads.
+- **`overbright_range`.** The tracer does not read it. It changes nothing the
+  compiler's own light records hold (every sphere light's intensity is the
+  entity's `light`), so whatever it does is to the baked lightmaps, which the
+  tracer's default does not use.
+  Isolated lamps do not show it either: the five with 0.6 or more are
+  `DM/mohdm5`'s identical `light 55` lamps (0.74), whose luxels hold 2 to 3
+  times the falloff law, more the farther out, like light from elsewhere,
+  while lamps without it range from 0.6 to 3.9 times
+  (`.tmp/mohaa-gaps/obrfit.py`) **[I]**.
+- **GL's frame time.** GL does several times Vulkan's GPU work on Medal of
+  Honor's world and models, by how GL draws in every profile, and scene fog
+  keeps its world off its buffer on the fogged maps. It still plays every
+  map well: 8.1 ms a frame on the slowest, `m2l1`, and 2 to 5 ms on most, at
+  1280x720 on this machine, under other sessions' load. Vulkan is the faster
+  path, and the players' guide says so. A single frame's GPU time swings by
+  two fifths from run to run on this laptop GPU, so toggles cannot place a
+  hot spot in it.
+
 ## Not done
 
-- Whether 2015's spot cone fades over q3map's 32 units is not settled by
-  the lightmaps (above) **[I]**.
-- `overbright_range` is not read. Isolated lamps do not show what it does:
-  the five with 0.6 or more are `DM/mohdm5`'s identical `light 55` lamps
-  (0.74), whose luxels hold 2 to 3 times the falloff law, more the farther
-  out, like light from elsewhere, while lamps without it range from 0.6 to
-  3.9 times (`.tmp/mohaa-gaps/obrfit.py`) **[I]**.
-- GL's back end does several times Vulkan's GPU work on Medal of Honor's
-  world and models; fog keeping the world off GL's buffer adds to it on the
-  fogged maps, and moving fog into the buffer's programs reaches every
-  profile with scene fog.
 - Medal of Honor's TIKI models are still drawn by raster under RTX, so its
   characters and vehicles cast no traced shadow; that work is under way in
   its own task.

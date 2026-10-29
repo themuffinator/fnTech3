@@ -3975,7 +3975,12 @@ static or dynamic lights on or off, where Vulkan's whole frame takes 0.3 ms
 window's ICC profile from disk, three of 56 main-thread samples; the
 platform layer now keeps it for its window and display, reading it again a
 second later at most, and no sample finds it (Source, Unit, Live subset).
-Lightmaps do not settle 2015's spot-cone edge **[I]**. No gate closes.
+GL still plays every map well (8.1 ms a frame on the slowest, `m2l1`), and
+its gap to Vulkan, the spot cone's last 32 units, which the lightmaps cannot
+settle **[I]**, and the unread `overbright_range`, which changes nothing the
+compiler's light records hold, are recorded as accepted differences
+([accepted differences](2026-10-28-mohaa-rtx-light-entities.md#accepted-differences)).
+No gate closes.
 
 Medal of Honor: Allied Assault is the tenth title and the fifteenth profile,
 `mohaa`, over one `main/` installation. It runs 2015's engine, a descendant of
