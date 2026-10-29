@@ -237,8 +237,11 @@ the JSON's `gl_follow_up_2026_10_29`).
 
 - Whether 2015's spot cone fades over q3map's 32 units is not settled by
   the lightmaps (above) **[I]**.
-- `overbright_range` is not read; the lightmaps would have to show what it
-  does.
+- `overbright_range` is not read. Isolated lamps do not show what it does:
+  the five with 0.6 or more are `DM/mohdm5`'s identical `light 55` lamps
+  (0.74), whose luxels hold 2 to 3 times the falloff law, more the farther
+  out, like light from elsewhere, while lamps without it range from 0.6 to
+  3.9 times (`.tmp/mohaa-gaps/obrfit.py`) **[I]**.
 - GL's back end does several times Vulkan's GPU work on Medal of Honor's
   world and models; fog keeping the world off GL's buffer adds to it on the
   fogged maps, and moving fog into the buffer's programs reaches every
