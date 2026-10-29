@@ -272,6 +272,7 @@ typedef struct {
 	// this frame's dynamic entities as extracted, and last frame's
 	rtMotionFrame_t			motion[2];
 	uint32_t				*partition;
+	byte					*partitionCodes;	// a triangle's partition, in the same block
 	uint32_t				partitionCapacity;
 	uint32_t				dynamicTriangles[RT_DYNAMIC_CLASSES][2];
 
@@ -674,11 +675,13 @@ static qboolean RT_EnsurePartitionScratch( uint32_t count )
 		RT_HostFree( s_rt.partition );
 	}
 	s_rt.partitionCapacity = MAX( count, 4096u );
-	s_rt.partition = (uint32_t *)RT_HostAlloc( (int)( s_rt.partitionCapacity * sizeof( uint32_t ) ) );
+	s_rt.partition = (uint32_t *)RT_HostAlloc( (int)( s_rt.partitionCapacity * ( sizeof( uint32_t ) + 1u ) ) );
 	if ( !s_rt.partition ) {
 		s_rt.partitionCapacity = 0;
+		s_rt.partitionCodes = NULL;
 		return qfalse;
 	}
+	s_rt.partitionCodes = (byte *)( s_rt.partition + s_rt.partitionCapacity );
 	return qtrue;
 }
 
@@ -687,13 +690,18 @@ Reorder a geometry's triangles into the partitions by material owner and the
 world's markers, dropping degenerate triangles and those the trace neither
 owns nor filters light with. Special (sky, portal) and filter triangles are
 world only; a traced filtering triangle is written to its no-shadow
-partition and to the filter partition.
+partition and to the filter partition. Each triangle is judged once and the
+partitions are then written in order, each in the triangles' own order (a
+stable counting sort): the frame's moving models pass through here every
+frame.
 */
+#define RT_PART_CODE_FILTER	0x08u	// also written to the filter partition
+
 static qboolean RT_PartitionTriangles( rtxRtCpuGeometry_t *geometry, qboolean world, uint32_t counts[RT_WORLD_PARTS] )
 {
-	uint32_t pass;
+	uint32_t start[RT_WORLD_PARTS];
 	uint32_t write = 0;
-	uint32_t i;
+	uint32_t i, t, part;
 
 	Com_Memset( counts, 0, RT_WORLD_PARTS * sizeof( counts[0] ) );
 	if ( geometry->numIndices < 3 ) {
@@ -704,44 +712,60 @@ static qboolean RT_PartitionTriangles( rtxRtCpuGeometry_t *geometry, qboolean wo
 		return qfalse;
 	}
 
-	for ( pass = 0; pass < RT_WORLD_PARTS; pass++ ) {
-		for ( i = 0; i + 2 < geometry->numIndices; i += 3 ) {
-			const uint32_t i0 = geometry->indices[i + 0];
-			const uint32_t i1 = geometry->indices[i + 1];
-			const uint32_t i2 = geometry->indices[i + 2];
-			uint32_t material, marker;
-			rtOwner_t owner;
-			uint32_t bucket = RT_WORLD_PARTS;
+	for ( i = 0, t = 0; i + 2 < geometry->numIndices; i += 3, t++ ) {
+		const uint32_t i0 = geometry->indices[i + 0];
+		const uint32_t i1 = geometry->indices[i + 1];
+		const uint32_t i2 = geometry->indices[i + 2];
+		uint32_t material, marker;
+		rtOwner_t owner;
+		uint32_t bucket = RT_WORLD_PARTS;
 
-			if ( i0 >= geometry->numVertices || i1 >= geometry->numVertices || i2 >= geometry->numVertices ||
-				i0 == i1 || i1 == i2 || i0 == i2 ) {
-				continue;
+		s_rt.partitionCodes[t] = (byte)RT_WORLD_PARTS;
+		if ( i0 >= geometry->numVertices || i1 >= geometry->numVertices || i2 >= geometry->numVertices ||
+			i0 == i1 || i1 == i2 || i0 == i2 ) {
+			continue;
+		}
+		material = geometry->vertices[i0].materialIndex;
+		owner = RT_MaterialOwner( material );
+		// RT_ExtractWorld marks what the map's lights pass through, or
+		// pass through filtered
+		marker = world ? (uint32_t)( geometry->vertices[i0].lightmapData[3] + 0.5f ) : 0u;
+		if ( owner == RT_OWNER_TRACED ) {
+			// An entity's no-shadow policy needs any-hit on shadow rays,
+			// even when its material is otherwise opaque.
+			bucket = ( RT_MaterialMasked( material ) || ( !world && geometry->vertices[i0].normal[3] < 0.0f ) ) ?
+				RT_PART_MASKED : RT_PART_OPAQUE;
+			if ( marker & ( RT_MARK_NOSHADOW | RT_MARK_FILTER ) ) {
+				bucket += RT_PART_NOSHADOW_OPAQUE;
 			}
-			material = geometry->vertices[i0].materialIndex;
-			owner = RT_MaterialOwner( material );
-			// RT_ExtractWorld marks what the map's lights pass through, or
-			// pass through filtered
-			marker = world ? (uint32_t)( geometry->vertices[i0].lightmapData[3] + 0.5f ) : 0u;
-			if ( owner == RT_OWNER_TRACED ) {
-				// An entity's no-shadow policy needs any-hit on shadow rays,
-				// even when its material is otherwise opaque.
-				bucket = ( RT_MaterialMasked( material ) || ( !world && geometry->vertices[i0].normal[3] < 0.0f ) ) ?
-					RT_PART_MASKED : RT_PART_OPAQUE;
-				if ( marker & ( RT_MARK_NOSHADOW | RT_MARK_FILTER ) ) {
-					bucket += RT_PART_NOSHADOW_OPAQUE;
-				}
-			} else if ( owner == RT_OWNER_BASE_RASTER && world ) {
-				bucket = RT_PART_SPECIAL;
-				marker = 0;
-			}
-			if ( !( bucket == pass || ( pass == RT_PART_FILTER && ( marker & RT_MARK_FILTER ) ) ) ) {
-				continue;
-			}
-			s_rt.partition[write + 0] = i0;
-			s_rt.partition[write + 1] = i1;
-			s_rt.partition[write + 2] = i2;
-			write += 3;
-			counts[pass]++;
+		} else if ( owner == RT_OWNER_BASE_RASTER && world ) {
+			bucket = RT_PART_SPECIAL;
+			marker = 0;
+		}
+		if ( bucket < RT_WORLD_PARTS ) {
+			counts[bucket]++;
+		}
+		// a filtering triangle goes to the filter partition too, traced or not
+		if ( marker & RT_MARK_FILTER ) {
+			counts[RT_PART_FILTER]++;
+			bucket |= RT_PART_CODE_FILTER;
+		}
+		s_rt.partitionCodes[t] = (byte)bucket;
+	}
+	for ( part = 0; part < RT_WORLD_PARTS; part++ ) {
+		start[part] = write;
+		write += counts[part] * 3u;
+	}
+	for ( i = 0, t = 0; i + 2 < geometry->numIndices; i += 3, t++ ) {
+		const uint32_t code = s_rt.partitionCodes[t];
+		const uint32_t bucket = code & ~RT_PART_CODE_FILTER;
+		if ( bucket < RT_WORLD_PARTS ) {
+			Com_Memcpy( s_rt.partition + start[bucket], geometry->indices + i, 3 * sizeof( uint32_t ) );
+			start[bucket] += 3;
+		}
+		if ( code & RT_PART_CODE_FILTER ) {
+			Com_Memcpy( s_rt.partition + start[RT_PART_FILTER], geometry->indices + i, 3 * sizeof( uint32_t ) );
+			start[RT_PART_FILTER] += 3;
 		}
 	}
 	if ( write > geometry->numIndices &&

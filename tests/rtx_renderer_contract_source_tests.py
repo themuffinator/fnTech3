@@ -623,7 +623,8 @@ class RtxRendererContractSourceTests(unittest.TestCase):
         self.assertIn("if ( owner == RT_OWNER_RASTER && !filters ) {", extract)
         self.assertLess(extract.index("if ( filters ) {"), extract.index("shader->rtCompiledTranslucent ||"))
         self.assertIn("if ( marker & ( RT_MARK_NOSHADOW | RT_MARK_FILTER ) ) {", partition)
-        self.assertIn("pass == RT_PART_FILTER && ( marker & RT_MARK_FILTER )", partition)
+        self.assertIn("if ( marker & RT_MARK_FILTER ) {\n\t\t\tcounts[RT_PART_FILTER]++;\n"
+                      "\t\t\tbucket |= RT_PART_CODE_FILTER;", partition)
         self.assertIn("RT_CLASS_WORLD_FILTER,\n\t\t\tRT_MASK_FILTER", backend)
         for mask in ("RT_MASK_PRIMARY", "RT_MASK_SECONDARY", "RT_MASK_SHADOW"):
             value = re.search(rf"const uint {mask} = ([^;]*);", common)

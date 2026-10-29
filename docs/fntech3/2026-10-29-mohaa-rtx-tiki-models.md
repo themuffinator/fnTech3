@@ -168,6 +168,26 @@ rebuilds, and uploads. The frozen frame also accumulates fewer still frames
 characters' poses in 38 to 63 of every 240 frames even under `timescale 0`,
 and each change restarts the average.
 
+## The partitions, judged once
+
+Main-thread stack samples of the traced, frozen `m1l1` frame put 5 of 38 in
+`RT_PartitionTriangles` (`code/rendererrtx/rt/rt_backend.c`), which every
+frame's moving models pass through: it walked every triangle once for each
+of the six partitions, judging each triangle's material, owner and markers
+six times. It now judges each triangle once and writes the partitions in
+order, each keeping the triangles' own order, a stable counting sort; the
+indexes and counts it writes are the old ones exactly, for world and model
+geometry (`tests/rtx_partition_tests.py` runs the production function
+against the six-walk rule on 400 random geometries, with degenerate,
+out-of-range and filtering triangles, ragged and empty index lists, refused
+growth and refused scratch). On the frozen frame, two runs each, the path
+tracer's CPU time fell from 18.0 and 19.1 ms a frame to 15.7 and 15.8 (the
+medians of three reports each) and the client's from 20.9 and 22.9 ms to
+18.7 and 18.9 (Live subset). Other sessions' builds held the CPU at 100%
+throughout, which is why every figure here is about twice the unloaded ones
+above; the saving is the partition's own. It serves every profile's traced
+models and each world at load.
+
 ## FnQ features
 
 The path tracer is the FnQ feature here, applied to 2015's own data: its TIKI
@@ -193,7 +213,8 @@ are unchanged here and still drawn by raster under RTX.
 
 - The compute backend's per-triangle cost of dynamic geometry (6 to 8 ms of
   CPU a frame for `m1l1`'s 30,000 TIKI triangles, outside the appender) is
-  not profiled; it is shared by every profile's models.
+  shared by every profile's models; the partition's share is cut (above),
+  and its BVH refit and rebuild, light stamps and uploads remain.
 - The hardware ray-tracing pipeline has not run the change, as this
   machine's driver offers only compute.
 - The eye-inside rule reads the model's unposed bounds: a large model whose

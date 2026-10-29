@@ -135,6 +135,10 @@ historical upstream records, not fnTech3 release history. See the
 - Stop GL reading the monitor's colour profile from disk every 15 frames:
   it is now read when the window or its display changes, or once a second
   at most ([record](docs/fntech3/2026-10-28-mohaa-rtx-light-entities.md#gls-frame-time-2026-10-29)).
+- Cut RTX's per-frame work on moving models: each triangle is sorted into
+  its group once instead of six times, so a busy scene such as `m1l1`'s
+  truck ride spends about 2.5 ms less a frame on the processor
+  ([record](docs/fntech3/2026-10-29-mohaa-rtx-tiki-models.md#the-partitions-judged-once)).
 - Trace Medal of Honor's characters, vehicles, weapons and props under RTX,
   so they cast shadows and show in reflections; the path tracer had left them
   to normal drawing. A vehicle you ride in, such as the truck at the start of
