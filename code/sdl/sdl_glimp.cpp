@@ -1299,6 +1299,42 @@ void *GL_GetProcAddress( const char *symbol )
 }
 
 /*
+The window's ICC profile, as SDL_GetWindowICCProfile last read it from disk.
+That read takes a millisecond or two, and GLx asks for the display output
+every 15 frames, so the profile is read again only for another window or
+display, or a second after the last read.
+*/
+#define GLW_ICC_REFRESH_MSEC 1000
+
+static struct {
+	qboolean		known;
+	SDL_Window		*window;
+	SDL_DisplayID	display;
+	int				readTime;
+	qboolean		available;
+	size_t			bytes;
+} glw_iccProfile;
+
+static void GLW_ReadIccProfile( SDL_DisplayID display )
+{
+	const int now = Sys_Milliseconds();
+	size_t iccSize = 0;
+	fnql::sdl::ScopedSdlMemory<void> iccProfile;
+
+	if ( glw_iccProfile.known && glw_iccProfile.window == SDL_window && glw_iccProfile.display == display
+		&& now - glw_iccProfile.readTime >= 0 && now - glw_iccProfile.readTime < GLW_ICC_REFRESH_MSEC ) {
+		return;
+	}
+	iccProfile.reset( SDL_GetWindowICCProfile( SDL_window, &iccSize ) );
+	glw_iccProfile.known = qtrue;
+	glw_iccProfile.window = SDL_window;
+	glw_iccProfile.display = display;
+	glw_iccProfile.readTime = now;
+	glw_iccProfile.available = iccProfile ? qtrue : qfalse;
+	glw_iccProfile.bytes = iccProfile ? iccSize : 0;
+}
+
+/*
 ===============
 GLimp_QueryDisplayOutput
 
@@ -1313,8 +1349,6 @@ void GLimp_QueryDisplayOutput( rendererDisplayOutput_t *output )
 	SDL_PropertiesID windowProps = 0;
 	const char *driver;
 	const char *displayName;
-	size_t iccSize = 0;
-	fnql::sdl::ScopedSdlMemory<void> iccProfile;
 	float sdrWhite;
 	float hdrHeadroom;
 	qboolean windowHdr;
@@ -1391,10 +1425,10 @@ void GLimp_QueryDisplayOutput( rendererDisplayOutput_t *output )
 		}
 	}
 
-	iccProfile.reset( SDL_GetWindowICCProfile( SDL_window, &iccSize ) );
-	if ( iccProfile ) {
+	GLW_ReadIccProfile( display );
+	if ( glw_iccProfile.available ) {
 		output->iccProfileAvailable = qtrue;
-		output->iccProfileBytes = ( iccSize > INT_MAX ) ? INT_MAX : (int)iccSize;
+		output->iccProfileBytes = ( glw_iccProfile.bytes > INT_MAX ) ? INT_MAX : (int)glw_iccProfile.bytes;
 	}
 
 	if ( output->hdrHeadroomValid ) {

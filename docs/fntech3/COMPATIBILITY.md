@@ -3967,6 +3967,16 @@ had drawn 135 (Live subset). A 54-map sweep in Vulkan and GL ran every map
 with no drop, every notice 1.00's own data, and `m1l1` traces its whole
 world at the default `r_subdivisions 1`. No gate closes.
 
+The record's [GL follow-up](2026-10-28-mohaa-rtx-light-entities.md#gls-frame-time-2026-10-29)
+(2026-10-29) finds GL GPU-bound on Medal of Honor: its back end takes 1.9 to
+2.3 ms of GPU time a frame on a frozen `DM/mohdm1` view, with the map's
+static or dynamic lights on or off, where Vulkan's whole frame takes 0.3 ms
+(Live subset). On every 15th frame GLx's display-output query had read the
+window's ICC profile from disk, three of 56 main-thread samples; the
+platform layer now keeps it for its window and display, reading it again a
+second later at most, and no sample finds it (Source, Unit, Live subset).
+Lightmaps do not settle 2015's spot-cone edge **[I]**. No gate closes.
+
 Medal of Honor: Allied Assault is the tenth title and the fifteenth profile,
 `mohaa`, over one `main/` installation. It runs 2015's engine, a descendant of
 Ritual's and of Quake III's, and fnTech3 serves it through adapters of its own

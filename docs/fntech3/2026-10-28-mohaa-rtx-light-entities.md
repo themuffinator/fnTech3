@@ -201,15 +201,48 @@ show them, and on `m1l3a`'s scripted fight they recur, all client time,
 while the level registers models and sounds it first uses, as 2015's engine
 loads them on demand.
 
+## GL's frame time, 2026-10-29
+
+`DM/mohdm1` shows the widest gap of the sweep: GL 2.8 ms a frame against
+Vulkan's 0.3. Frozen there in GL (`timescale 0`), skipping the back end
+(`r_skipBackEnd 1`) leaves 0.26 ms, and of 56 main-thread stack samples 20
+wait in `SDL_GL_SwapWindow`, the driver presenting the frame. GLx's own
+timer queries put the back end's GPU work at 1.9 to 2.3 ms a frame, the
+same with the map's static lights off (`r_staticLights 0`, 2.24 ms) or its
+dynamic lights off (2.60 ms), where Vulkan does the whole frame in 0.3 ms:
+GL is GPU-bound on Medal of Honor's world and models, by the structure of
+its draws, which every profile on GL shares (Live subset). That cost needs
+a GPU-level profile, not taken here.
+
+Three of the 56 samples found something else: every 15 frames GLx's post
+process asks the platform for the display output (HDR, white level, colour
+profile), and `GLimp_QueryDisplayOutput` read the window's ICC profile from
+disk with `SDL_GetWindowICCProfile` each time, opening the file anew, about
+twenty times a second at this frame rate. It now keeps the profile for its
+window and display and reads it again only for another window or display,
+or a second after the last read (`code/sdl/sdl_glimp.cpp`; Vulkan and RTX
+ask once, at start, and are unchanged). With it, no sample of the frozen
+frame is in the read (0 of 36; Live subset, `tests/sdl_icc_profile_cache_tests.py`).
+The machine's other work held the CPU at 100% throughout, so frame rates
+did not separate between runs, and none is claimed.
+
+The spot cone's edge was looked for in the lightmaps too. Only five
+downward spots (`angles 90 0 0`, no target, no `spot_angle`) stand far
+enough from other lights, and their floors are lit three to five times over
+by their neighbours, inside and outside the cone alike, so the edge cannot
+be read from them; q3map's fade stays inferred **[I]** (`.tmp/mohaa-gaps/spotfade.py`,
+the JSON's `gl_follow_up_2026_10_29`).
+
 ## Not done
 
-- Whether 2015's spot cone fades over q3map's 32 units has not been checked
-  against a lightmap **[I]**.
+- Whether 2015's spot cone fades over q3map's 32 units is not settled by
+  the lightmaps (above) **[I]**.
 - `overbright_range` is not read; the lightmaps would have to show what it
   does.
-- GL's frame time on Medal of Honor, three to four times Vulkan's, is not
-  traced. Fog keeping the world off GL's buffer is part of it on the fogged
-  maps; moving fog into the buffer's programs reaches every profile with
-  scene fog.
+- GL's back end does several times Vulkan's GPU work on Medal of Honor's
+  world and models; fog keeping the world off GL's buffer adds to it on the
+  fogged maps, and moving fog into the buffer's programs reaches every
+  profile with scene fog.
 - Medal of Honor's TIKI models are still drawn by raster under RTX, so its
-  characters and vehicles cast no traced shadow.
+  characters and vehicles cast no traced shadow; that work is under way in
+  its own task.

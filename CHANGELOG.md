@@ -132,6 +132,9 @@ historical upstream records, not fnTech3 release history. See the
   for Quake III's light-filter bits, and each title's own alpha-shadow
   surfaces now filter the path tracer's light instead
   ([record](docs/fntech3/2026-10-15-map-shader-flag-dialects.md)).
+- Stop GL reading the monitor's colour profile from disk every 15 frames:
+  it is now read when the window or its display changes, or once a second
+  at most ([record](docs/fntech3/2026-10-28-mohaa-rtx-light-entities.md#gls-frame-time-2026-10-29)).
 - Light Medal of Honor's levels with all their lamps under RTX. The path
   tracer stopped reading a level's lights at the first empty setting in it,
   so twelve levels, `m1l2a` among them, lost most or all of their lamps, and
