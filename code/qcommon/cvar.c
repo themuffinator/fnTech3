@@ -24,10 +24,24 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "q_shared.h"
 #include "qcommon.h"
 #include "../compat/game_abi_adapter.h"
+#include "cvar_integer.h"
 
 #ifndef DEDICATED
 void CL_WebView_PublishCvarChange( const char *name, const char *value, qboolean replicate );
 #endif
+
+/*
+============
+Cvar_IntegerValue
+
+The cached integer the selected profile's retail engine would compute: Quake
+Live also reads "0x"-prefixed hex (packed colour cvars); every other profile
+uses atoi alone.
+============
+*/
+static int Cvar_IntegerValue( const char *s ) {
+	return Com_GameIsQuakeLive() ? Cvar_ParseQLInteger( s ) : atoi( s );
+}
 
 static cvar_t	*cvar_vars = NULL;
 static cvar_t	*cvar_cheats;
@@ -581,7 +595,7 @@ cvar_t *Cvar_Get( const char *var_name, const char *var_value, int flags ) {
 	var->modified = qtrue;
 	var->modificationCount = 1;
 	var->value = Q_atof( var->string );
-	var->integer = atoi( var->string );
+	var->integer = Cvar_IntegerValue( var->string );
 	var->resetString = CopyString( var_value );
 	var->validator = CV_NONE;
 	var->description = NULL;
@@ -880,7 +894,7 @@ cvar_t *Cvar_Set2( const char *var_name, const char *value, qboolean force ) {
 	
 	var->string = CopyString( value );
 	var->value = Q_atof( var->string );
-	var->integer = atoi( var->string );
+	var->integer = Cvar_IntegerValue( var->string );
 #ifndef DEDICATED
 	Cvar_PublishChange( var );
 #endif

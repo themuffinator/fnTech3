@@ -261,6 +261,7 @@ static struct {int integer=0;}speeds;
 static auto *r_speeds=&speeds;
 static struct {int gameId=0;int Milliseconds(){return 0;}
  void Error(int,const char *,...){throw 1;}void Printf(int,const char *,...){};}ri;
+static int R_ProfileMilliseconds(){return ri.Milliseconds();}
 static struct Bundle{void *image[1];}bundle;
 static struct Stage{Bundle bundle[1];}stage;
 static struct Shader{Stage *stages[1]={&stage};int index=1;}shader;

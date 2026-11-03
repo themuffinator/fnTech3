@@ -1512,7 +1512,7 @@ void RE_StretchRaw( int x, int y, int w, int h, int cols, int rows, const byte *
 
 	start = 0;
 	if ( r_speeds->integer ) {
-		start = ri.Milliseconds();
+		start = R_ProfileMilliseconds();
 	}
 
 	// EF's Bink movies include 512 by 384 frames. Modern scratch textures
@@ -1525,7 +1525,7 @@ void RE_StretchRaw( int x, int y, int w, int h, int cols, int rows, const byte *
 	RE_UploadCinematic( w, h, cols, rows, data, client, dirty );
 
 	if ( r_speeds->integer ) {
-		end = ri.Milliseconds();
+		end = R_ProfileMilliseconds();
 		ri.Printf( PRINT_ALL, "qglTexSubImage2D %i, %i: %i msec\n", cols, rows, end - start );
 	}
 
@@ -3123,7 +3123,7 @@ static void RB_RenderCSMShadowAtlas( drawSurf_t *drawSurfs, int numDrawSurfs )
 	// actual glCullFace is flipped; the atlas pass uses its own viewParms
 	glState.faceCulling = -1;
 
-	startMsec = ri.Milliseconds();
+	startMsec = R_ProfileMilliseconds();
 	GLX_CompatBeginGpuPassTimer( GLX_GPU_PASS_CSM_SHADOW );
 	savedRefdef = backEnd.refdef;
 	savedViewParms = backEnd.viewParms;
@@ -3164,7 +3164,7 @@ static void RB_RenderCSMShadowAtlas( drawSurf_t *drawSurfs, int numDrawSurfs )
 #endif
 	qglLoadMatrixf( backEnd.or.modelMatrix );
 	GLX_CompatEndGpuPassTimer( GLX_GPU_PASS_CSM_SHADOW );
-	backEnd.pc.c_csmShadowAtlasMsec += ri.Milliseconds() - startMsec;
+	backEnd.pc.c_csmShadowAtlasMsec += R_ProfileMilliseconds() - startMsec;
 	FBO_EndCSMShadowAtlas();
 	R_ShadowManagerPublishCSMAtlas( &tr.shadowManager,
 		FBO_CSMShadowsReady(), generation );
@@ -3917,7 +3917,7 @@ static void RB_RenderDlightShadowAtlas( void )
 	// actual glCullFace is flipped; the atlas pass uses its own viewParms
 	glState.faceCulling = -1;
 
-	startMsec = ri.Milliseconds();
+	startMsec = R_ProfileMilliseconds();
 	GLX_CompatBeginGpuPassTimer( GLX_GPU_PASS_DLIGHT_SHADOW );
 	savedRefdef = backEnd.refdef;
 	savedViewParms = backEnd.viewParms;
@@ -4024,7 +4024,7 @@ static void RB_RenderDlightShadowAtlas( void )
 #endif
 	qglLoadMatrixf( backEnd.or.modelMatrix );
 	GLX_CompatEndGpuPassTimer( GLX_GPU_PASS_DLIGHT_SHADOW );
-	backEnd.pc.c_dlightShadowAtlasMsec += ri.Milliseconds() - startMsec;
+	backEnd.pc.c_dlightShadowAtlasMsec += R_ProfileMilliseconds() - startMsec;
 	FBO_EndDlightShadowAtlas();
 	R_ShadowManagerPublishPointAtlas( &tr.shadowManager,
 		FBO_DlightShadowsReady(), atlasGeneration );
@@ -4599,7 +4599,7 @@ void RB_ShowImages( void ) {
 	GL_ClientState( 0, CLS_TEXCOORD_ARRAY );
 	qglTexCoordPointer( 2, GL_FLOAT, 0, t );
 
-	start = ri.Milliseconds();
+	start = R_ProfileMilliseconds();
 
 	for ( i = 0; i < tr.numImages; i++ ) {
 		image = tr.images[ i ];
@@ -4632,7 +4632,7 @@ void RB_ShowImages( void ) {
 
 	qglFinish();
 
-	end = ri.Milliseconds();
+	end = R_ProfileMilliseconds();
 	ri.Printf( PRINT_ALL, "%i msec to draw all images\n", end - start );
 }
 
@@ -4881,7 +4881,7 @@ static const void *RB_SwapBuffers( const void *data ) {
 #endif
 
 	// buffer swap may take undefined time to complete, we can't measure it in a reliable way
-	backEnd.pc.msec = ri.Milliseconds() - backEnd.pc.msec;
+	backEnd.pc.msec = R_ProfileMilliseconds() - backEnd.pc.msec;
 
 	if ( ( backEnd.screenshotMask || backEnd.levelshotPending || backEnd.stvefThumbnail )
 		&& tr.frameCount > 1 ) {
@@ -5106,7 +5106,7 @@ RB_ExecuteRenderCommands
 */
 void RB_ExecuteRenderCommands( const void *data ) {
 
-	backEnd.pc.msec = ri.Milliseconds();
+	backEnd.pc.msec = R_ProfileMilliseconds();
 
 	while ( 1 ) {
 		data = PADP(data, sizeof(void *));

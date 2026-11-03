@@ -45,6 +45,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../renderercommon/tr_raven_bsp_format.h"
 #include "../qcommon/qcommon.h"
 #include "../renderercommon/tr_public.h"
+#include "../renderercommon/tr_profile_clock.h"
 #include "../renderercommon/tr_q3_ihv_fog.h"
 #include "../renderercommon/tr_q3_ihv_model_light.h"
 #include "../renderercommon/tr_ritual_model_light.h"

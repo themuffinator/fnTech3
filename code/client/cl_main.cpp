@@ -5726,6 +5726,7 @@ void CL_Frame( int msec, int realMsec ) {
 	cls.gametime += gameMsec;
 	if ( Com_GameProfile()->usesSteam ) {
 		CL_SteamP2PFrame();
+		CL_Steam_AvatarFrame();
 	}
 	if ( Com_GameProfile()->supportsWorkshop ) {
 		CL_Workshop_Frame();

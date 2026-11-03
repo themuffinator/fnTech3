@@ -19,6 +19,17 @@ historical upstream records, not fnTech3 release history. See the
 - Resolve installation icon paths through Windows file handles before checking
   containment, preventing MinGW from accepting an external junction target
   ([record](docs/fntech3/2026-10-11-icon-containment.md)).
+- Bring in FnQL's fixes since fnTech3 began, each limited to the games it
+  belongs to ([record](docs/fntech3/2026-11-03-fnql-upstream-sync.md)).
+  In Quake Live, pressing a key while spectating no longer stops following the
+  player, `cg_enemy*Color` tints forced enemy models instead of leaving them
+  white, the settings menu's bind prompt accepts mouse buttons, the wheel and
+  Escape, the mouse wheel scrolls menu pages, a demo started from the console
+  closes the main menu, Steam avatars no longer stall the game while they
+  load, and a bot's predicted target position reaches the game. Under Proton the
+  Steam install is found from the game's own folder. In every game, the
+  Vulkan renderers survive a minimised window or a renderer restart after a
+  driver fault, and `com_speeds` reports renderer time again.
 - Fade Medal of Honor's sound when a level ends or restarts, as the game asks.
   The command had reached the client game, which reported it as unknown, and
   the loading bar now recognises model definitions that are already loaded

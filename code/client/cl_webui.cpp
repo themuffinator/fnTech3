@@ -122,6 +122,7 @@ typedef struct {
 	qboolean	fnqlOverlayAvailable;
 	qboolean	fnqlOverlayInjected;
 	qboolean	keyCaptureArmed;
+	int			keyCapturePressedKey;	// mouse/wheel key whose press capture held back
 	qboolean	menuMusicOwned;
 	char		pendingHash[MAX_STRING_CHARS];
 	char		currentUrl[MAX_STRING_CHARS];
@@ -1103,12 +1104,22 @@ qboolean CL_IsSubscribedApp( int appId ) {
  * shader in that slot render as the player's avatar, so the cache is dropped
  * from both teardown paths and the entries carry the session that created them
  * as a second line of defence. */
+/* The pixels themselves come from the platform layer's avatar worker: Steam
+ * answers over IPC with unbounded latency, and the retail cgame asks from its
+ * draw path (issue #7 measured ~70 ms stalls under Proton). A lookup therefore
+ * only ever queues a transfer and returns 0, the same answer retail gives for
+ * an avatar Steam has not delivered yet, and cgame keeps drawing the model
+ * icon until CL_Steam_AvatarFrame uploads the pixels on a later frame. A
+ * nonzero placeholder would be wrong here: cgame caches any nonzero handle in
+ * clientInfo_t at configstring time and stops asking. */
 struct clSteamAvatarCacheEntry_t {
 	uint64_t steamId;
 	uint32_t size;
 	uint32_t session;
 	int retryTime;
+	int requestTime;
 	qhandle_t shader;
+	qboolean requested;
 };
 
 // One slot per connected client plus headroom for the UI's small/medium
@@ -1118,6 +1129,12 @@ struct clSteamAvatarCacheEntry_t {
 // provider's AVATAR_IMAGE_LOADED event clears the stamp as soon as the pixels
 // land, so this only bounds polling for providers that never emit one.
 #define CL_STEAM_AVATAR_RETRY_MSEC 500
+// A queued transfer whose result never arrives (the provider was restarted
+// under it) is asked for again after this long instead of staying pending.
+#define CL_STEAM_AVATAR_REQUEST_TIMEOUT_MSEC 10000
+// Texture uploads stay on the main thread; spreading a burst of arrivals, such
+// as a full scoreboard on demo start, keeps each frame's share small.
+#define CL_STEAM_AVATAR_UPLOADS_PER_FRAME 1
 
 static std::array<clSteamAvatarCacheEntry_t,
 	CL_STEAM_AVATAR_CACHE_SIZE> cl_steamAvatarCache;
@@ -1147,55 +1164,67 @@ static void CL_InvalidateAvatarImageHandle( uint64_t steamId ) {
 	}
 }
 
-static qhandle_t CL_RegisterSteamAvatarShader( uint64_t steamId,
-		uint32_t avatarSize ) {
-	uint32_t width = 0;
-	uint32_t height = 0;
-	uint32_t required = 0;
-	uint32_t loadedWidth = 0;
-	uint32_t loadedHeight = 0;
-	uint32_t loadedRequired = 0;
+static qhandle_t CL_RegisterSteamAvatarShader( const fnqlSteamAvatarImage_t &image ) {
 	char shaderName[MAX_QPATH];
-	byte *rgba;
-	qhandle_t shader;
 
-	if ( FNQL_Steam_GetAvatarRGBA( steamId, avatarSize,
-		NULL, 0, &width, &height, &required ) != FNQL_STEAM_RESULT_BUFFER_TOO_SMALL
-		|| !width || !height
-		|| (uint64_t)width * (uint64_t)height * 4ull != (uint64_t)required
-		|| required > 4u * 1024u * 1024u ) {
-		return 0;
-	}
-	rgba = static_cast<byte *>( Z_Malloc( required ) );
-	if ( !rgba ) {
-		return 0;
-	}
-	// Read the transfer's own extents rather than reusing the sizing call's:
-	// Steam swaps a placeholder for the real portrait as the download lands, so
-	// the provider can legitimately describe a larger image on the second call.
-	// Uploading those extents from a buffer sized for the first would hand the
-	// renderer whatever zone memory follows the avatar.
-	if ( FNQL_Steam_GetAvatarRGBA( steamId, avatarSize, rgba, required,
-		&loadedWidth, &loadedHeight, &loadedRequired ) != FNQL_STEAM_RESULT_OK
-		|| loadedWidth != width || loadedHeight != height
-		|| loadedRequired != required ) {
-		Z_Free( rgba );
+	if ( image.result != FNQL_STEAM_RESULT_OK || !image.rgba
+		|| !image.width || !image.height
+		|| !cls.rendererStarted || !re.RegisterShaderFromRGBA ) {
 		return 0;
 	}
 	// RE_RegisterShaderFromImage returns the existing shader whenever the name
 	// repeats and silently discards the pixels just uploaded, so every attempt
 	// gets its own name instead of one shared per avatar revision.
 	Com_sprintf( shaderName, sizeof( shaderName ), "*steam/avatar/%u/%u/%llu",
-		++cl_steamAvatarSerial, avatarSize, (unsigned long long)steamId );
-	shader = re.RegisterShaderFromRGBA( shaderName, rgba, (int)width, (int)height );
-	Z_Free( rgba );
-	return shader;
+		++cl_steamAvatarSerial, image.avatarSize,
+		(unsigned long long)image.steamId );
+	return re.RegisterShaderFromRGBA( shaderName, image.rgba,
+		(int)image.width, (int)image.height );
+}
+
+/*
+====================
+CL_Steam_AvatarFrame
+
+Collects transfers the platform avatar worker finished and uploads them for
+the entries still waiting on them. A result with no waiting entry belongs to a
+cache the renderer has since torn down or an avatar Steam has since replaced;
+it is dropped and the next lookup queues a fresh transfer.
+====================
+*/
+void CL_Steam_AvatarFrame( void ) {
+	fnqlSteamAvatarImage_t image;
+	int uploads = 0;
+
+	while ( uploads < CL_STEAM_AVATAR_UPLOADS_PER_FRAME
+		&& FNQL_Steam_TakeAvatarRGBA( &image ) ) {
+		clSteamAvatarCacheEntry_t *waiting = nullptr;
+		for ( clSteamAvatarCacheEntry_t &entry : cl_steamAvatarCache ) {
+			if ( entry.requested && entry.steamId == image.steamId
+				&& entry.size == image.avatarSize
+				&& entry.session == cl_steamAvatarSession ) {
+				waiting = &entry;
+				break;
+			}
+		}
+		if ( !waiting ) {
+			continue;
+		}
+		waiting->requested = qfalse;
+		waiting->shader = CL_RegisterSteamAvatarShader( image );
+		if ( waiting->shader ) {
+			waiting->retryTime = 0;
+			++uploads;
+		} else {
+			waiting->retryTime = cls.realtime + CL_STEAM_AVATAR_RETRY_MSEC;
+		}
+	}
 }
 
 static qhandle_t CL_GetSteamAvatarImageHandle( uint64_t steamId,
 		uint32_t avatarSize ) {
 	clSteamAvatarCacheEntry_t *target = nullptr;
-	qhandle_t shader;
+	fnqlSteamResult_t request;
 
 	if ( !steamId || avatarSize > FNQL_STEAM_AVATAR_LARGE
 		|| !re.RegisterShaderFromRGBA
@@ -1216,6 +1245,11 @@ static qhandle_t CL_GetSteamAvatarImageHandle( uint64_t steamId,
 				entry = {};
 			} else if ( entry.shader ) {
 				return entry.shader;
+			} else if ( entry.requested ) {
+				if ( cls.realtime - entry.requestTime
+					< CL_STEAM_AVATAR_REQUEST_TIMEOUT_MSEC ) {
+					return 0;
+				}
 			} else if ( cls.realtime < entry.retryTime ) {
 				return 0;
 			}
@@ -1223,9 +1257,11 @@ static qhandle_t CL_GetSteamAvatarImageHandle( uint64_t steamId,
 			break;
 		}
 		if ( !target && ( !entry.steamId
-			|| entry.session != cl_steamAvatarSession || !entry.shader ) ) {
+			|| entry.session != cl_steamAvatarSession
+			|| ( !entry.shader && !entry.requested ) ) ) {
 			// Free slot, a leftover from a previous renderer session, or an
-			// avatar that never resolved: all three are safe to take over.
+			// avatar that never resolved: all three are safe to take over. A
+			// transfer still in flight keeps its slot.
 			target = &entry;
 		}
 	}
@@ -1233,15 +1269,18 @@ static qhandle_t CL_GetSteamAvatarImageHandle( uint64_t steamId,
 		return 0;
 	}
 
-	shader = CL_RegisterSteamAvatarShader( steamId, avatarSize );
+	request = FNQL_Steam_RequestAvatarRGBA( steamId, avatarSize );
 	target->steamId = steamId;
 	target->size = avatarSize;
 	target->session = cl_steamAvatarSession;
-	target->shader = shader;
-	// A pending avatar keeps its slot so the poll stays bounded; without it the
-	// provider is queried, and the pixels copied, once per player per frame.
-	target->retryTime = shader ? 0 : cls.realtime + CL_STEAM_AVATAR_RETRY_MSEC;
-	return shader;
+	target->shader = 0;
+	target->requested = request == FNQL_STEAM_RESULT_PENDING ? qtrue : qfalse;
+	target->requestTime = cls.realtime;
+	// A refused request keeps its slot so the poll stays bounded; without it
+	// the worker is asked again once per player per frame.
+	target->retryTime = target->requested
+		? 0 : cls.realtime + CL_STEAM_AVATAR_RETRY_MSEC;
+	return 0;
 }
 
 qhandle_t CL_GetAvatarImageHandle( unsigned int identityLow, unsigned int identityHigh ) {
@@ -1719,8 +1758,12 @@ static void CL_Steam_AvatarTest_f( void ) {
 		}
 	}
 	shader = CL_GetSteamAvatarImageHandle( steamId, avatarSize );
-	Com_Printf( "Steam %s avatar shader for %llu: %d\n", sizeName,
-		(unsigned long long)steamId, shader );
+	Com_Printf( "Steam %s avatar shader for %llu: %d%s\n", sizeName,
+		(unsigned long long)steamId, shader,
+		shader ? ""
+		: !FNQL_Steam_Available( FNQL_STEAM_CAP_AVATARS )
+			? " (Steam avatars unavailable)"
+			: " (transfer queued or pending; repeat to read it)" );
 }
 
 static void CL_Steam_FriendsTest_f( void ) {
@@ -7047,6 +7090,7 @@ static void CL_WebHost_ProcessNativeJavascriptRequest( const char *request ) {
 
 	if ( !Q_stricmp( kind, "keycapture" ) ) {
 		cl_webui.keyCaptureArmed = ( !payload[0] || atoi( payload ) != 0 ) ? qtrue : qfalse;
+		cl_webui.keyCapturePressedKey = 0;
 	}
 }
 
@@ -7523,6 +7567,54 @@ static int CL_WebHost_MapCursorCoordinate( int coordinate, int sourceDimension,
 		* (double)targetDimension + 0.5 );
 }
 
+/*
+=============
+CL_WebHost_KeyCapturePending
+
+True while retail's bind dialog is waiting for GetNextKeyDown to answer.  The
+dialog closes only on the game.key event, so Escape must reach the capture
+rather than the menu toggle while this holds.
+=============
+*/
+qboolean CL_WebHost_KeyCapturePending( void ) {
+	return ( cl_webui.keyCaptureArmed && CL_WebHost_BrowserAcceptsInput() ) ? qtrue : qfalse;
+}
+
+/*
+=============
+CL_WebView_CaptureMouseKeyEvent
+
+Retail's bind dialog binds whatever key name the next game.key event carries
+and has no page-side handling for mouse buttons or the wheel, so the engine
+must publish them as it does keyboard keys.  The press is held back from the
+browser so the click or scroll that answers the prompt does not also act on
+the page.  The key is published when that same key is released, which keeps
+a button already held when capture was armed from being taken as the answer.
+Wheel notches arrive as a press/release pair, so they follow the same path.
+
+Returns qtrue when the event was consumed by the capture.
+=============
+*/
+qboolean CL_WebView_CaptureMouseKeyEvent( int key, qboolean down ) {
+	if ( !CL_WebHost_KeyCapturePending() ) {
+		return qfalse;
+	}
+
+	if ( down ) {
+		cl_webui.keyCapturePressedKey = key;
+		return qtrue;
+	}
+
+	if ( key != cl_webui.keyCapturePressedKey ) {
+		return qfalse;
+	}
+
+	cl_webui.keyCapturePressedKey = 0;
+	cl_webui.keyCaptureArmed = qfalse;
+	CL_WebView_PublishGameKey( key );
+	return qtrue;
+}
+
 void CL_WebView_OnMouseMove( int x, int y ) {
 	const fnql::webui::BackendStatus status =
 		fnql::webui::ClientBackendHost().Status();
@@ -7607,9 +7699,15 @@ void CL_WebView_OnKeyEvent( int key, qboolean down ) {
 		return;
 	}
 
-	if ( !down && cl_webui.keyCaptureArmed ) {
-		CL_WebView_PublishGameKey( key );
-		cl_webui.keyCaptureArmed = qfalse;
+	// Retail's window procedure withholds every keyboard message from the page
+	// while capture is armed, so the answering key cannot also act on it --
+	// Backspace, for one, would navigate the menu back to the previous tab.
+	if ( cl_webui.keyCaptureArmed ) {
+		if ( !down ) {
+			CL_WebView_PublishGameKey( key );
+			cl_webui.keyCaptureArmed = qfalse;
+		}
+		return;
 	}
 
 	virtualKey = CL_WebHost_MapVirtualKey( key );
@@ -7639,6 +7737,11 @@ void CL_WebView_OnCharEvent( int codepoint ) {
 	unsigned int scalar;
 
 	if ( !CL_WebHost_BrowserAcceptsInput() || codepoint <= 0 ) {
+		return;
+	}
+
+	// Character messages are withheld during key capture as well.
+	if ( cl_webui.keyCaptureArmed ) {
 		return;
 	}
 

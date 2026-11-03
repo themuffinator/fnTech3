@@ -64,6 +64,8 @@ qboolean FS_InvalidGameDir( const char *gamedir ) {
 }
 void QDECL FS_Printf( fileHandle_t f, const char *fmt, ... ) { (void)f; (void)fmt; }
 int FS_Write( const void *buffer, int len, fileHandle_t f ) { (void)buffer; (void)f; return len; }
+static int quakeLive;
+int Com_GameIsQuakeLive( void ) { return quakeLive; }
 int Com_GameIsRTCW( void ) { return 0; }
 int Com_GameIsWolfET( void ) { return 0; }
 const comGameProfile_t *Com_GameProfile( void ) { return NULL; }
@@ -255,6 +257,37 @@ int main( void ) {
 }
 '''
 
+HEX_INTEGER_CHECKS = PREAMBLE + r'''
+int main( void ) {
+	cvar_t *cv;
+
+	Cvar_Init();
+
+	/* Quake III's atoi: a packed colour string reads as 0. */
+	cv = Cvar_Get( "cg_enemyUpperColor", "0x2a8000FF", CVAR_ARCHIVE );
+	CHECK( cv->integer == 0 );
+
+	/* Retail Quake Live reads "0x" strings as hex, on create and on write, so
+	   its cgame sees the packed colour (FnQL issue #11). */
+	quakeLive = 1;
+	cv = Cvar_Get( "cg_enemyLowerColor", "0x00FF00FF", CVAR_ARCHIVE );
+	CHECK( cv->integer == 0x00FF00FF );
+	Cvar_Set( "cg_enemyUpperColor", "0xFF0000FF" );
+	CHECK( Cvar_VariableIntegerValue( "cg_enemyUpperColor" ) == (int)0xFF0000FFu );
+	Cvar_Set( "r_customwidth", "1920x1080" );
+	CHECK( Cvar_VariableIntegerValue( "r_customwidth" ) == 1920 );
+
+	/* Back under another profile, writes take atoi again. */
+	quakeLive = 0;
+	Cvar_Set( "cg_enemyLowerColor", "0x10" );
+	CHECK( Cvar_VariableIntegerValue( "cg_enemyLowerColor" ) == 0 );
+
+	if ( !failures )
+		printf( "cvar hex integer ok\n" );
+	return failures ? 1 : 0;
+}
+'''
+
 
 class CvarRangeCheckTests(unittest.TestCase):
     def run_harness(self, source, name, expected):
@@ -286,6 +319,9 @@ class CvarRangeCheckTests(unittest.TestCase):
 
     def test_writing_the_current_value_cancels_a_pending_latched_value(self):
         self.run_harness(LATCH_CHECKS, "cvar_latch", "cvar latch cancel ok")
+
+    def test_quake_live_alone_reads_hex_cvar_integers(self):
+        self.run_harness(HEX_INTEGER_CHECKS, "cvar_hex", "cvar hex integer ok")
 
 
 if __name__ == "__main__":

@@ -31,6 +31,7 @@ extern "C" {
 #include "input_compat.hpp"
 #include "client_jka_command_values.hpp"
 #include "alice_input.hpp"
+#include "../compat/ql_game_abi.h"
 #include "../compat/rtcw_game_abi.h"
 #include "../compat/stvef_game_abi.h"
 #include "../compat/wolfet_game_abi.h"
@@ -1474,9 +1475,13 @@ static void CL_CmdButtons( usercmd_t *cmd ) {
 	}
 
 	// allow the game to know if any key at all is
-	// currently pressed, even if it isn't bound to anything
+	// currently pressed, even if it isn't bound to anything.  Retail Quake
+	// Live moved it to 0x1000: its 0x0800 asks the spectator to stop
+	// following, so every physical key press (a +scores key, say) left
+	// follow mode (FnQL issue #5).
 	if ( anykeydown && !gameplayInputCaptured ) {
-		cmd->buttons |= Com_GameIsWolfET() ? FNTECH3_WOLFET_BUTTON_ANY :
+		cmd->buttons |= Com_GameIsQuakeLive() ? FNTECH3_QL_BUTTON_ANY :
+			Com_GameIsWolfET() ? FNTECH3_WOLFET_BUTTON_ANY :
 			Com_GameIsRTCW() ? FNTECH3_RTCW_BUTTON_ANY :
 			Com_GameIsSTVEFMP() ? FNTECH3_STVEF_MP_BUTTON_ANY :
 			Com_GameIsSTVEFSP() ? FNTECH3_STVEF_SP_BUTTON_ANY :

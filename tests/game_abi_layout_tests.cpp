@@ -348,7 +348,9 @@ static_assert( FNTECH3_QL_BUTTON_GETFLAG == 128 );
 static_assert( FNTECH3_QL_BUTTON_GUARDBASE == 256 );
 static_assert( FNTECH3_QL_BUTTON_PATROL == 512 );
 static_assert( FNTECH3_QL_BUTTON_FOLLOWME == 1024 );
-static_assert( FNTECH3_QL_BUTTON_ANY == 2048 );
+static_assert( FNTECH3_QL_BUTTON_STOP_FOLLOW == 2048 );
+static_assert( FNTECH3_QL_BUTTON_ANY == 4096 );
+static_assert( ( FNTECH3_QL_BUTTON_ANY & FNTECH3_QL_BUTTON_STOP_FOLLOW ) == 0 );
 
 static_assert( FNTECH3_QL_TR_STATIONARY == 0 );
 static_assert( FNTECH3_QL_TR_INTERPOLATE == 1 );

@@ -136,7 +136,11 @@ enum {
 	FNTECH3_QL_BUTTON_GUARDBASE = 256,
 	FNTECH3_QL_BUTTON_PATROL = 512,
 	FNTECH3_QL_BUTTON_FOLLOWME = 1024,
-	FNTECH3_QL_BUTTON_ANY = 2048
+	/* Retail CL_CmdButtons (quakelive_steam.exe 0x004B5C67) ORs bit 12 in for
+	   key activity. Quake III's bit 11 is a separate stop-follow input that
+	   retail SpectatorThink tests (qagamex86.dll 0x10033F82). */
+	FNTECH3_QL_BUTTON_STOP_FOLLOW = 2048,
+	FNTECH3_QL_BUTTON_ANY = 4096
 };
 
 typedef int32_t fntech3_ql_cvarHandle_t;

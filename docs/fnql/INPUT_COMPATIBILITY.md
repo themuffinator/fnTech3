@@ -71,6 +71,17 @@ unchanged when neither correction applies.
 
 ## Usercmd sampling and stateful commands
 
+### Key activity and spectator follow
+
+Retail Quake Live uses `0x1000` for the engine's key-activity flag:
+`CL_CmdButtons` ORs it into `usercmd_t.buttons` at `0x004B5C67` in
+`quakelive_steam.exe`. Quake III's value, `0x0800`, is a separate stop-follow
+input in retail QL, tested by `SpectatorThink` in `qagamex86.dll` at
+`0x10033F82`. Sending it for every physical key press made a `+scores` key
+leave follow mode (FnQL issue #5). The `ql` profile sends
+`FNTECH3_QL_BUTTON_ANY` (`0x1000`); every other profile keeps its own value
+([record](../fntech3/2026-11-03-fnql-upstream-sync.md)).
+
 Relative mouse deltas do not carry timestamps in the engine ABI. When usercmd
 generation is suspended before a gamestate, while disconnected, or by a local
 pause, FnQL therefore discards deltas collected during that unsampleable gap

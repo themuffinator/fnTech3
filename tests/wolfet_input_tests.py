@@ -20,7 +20,8 @@ int main() {
   for(int capture:{0,KEYCATCH_RETAIL_MOUSEPASS,KEYCATCH_UI,KEYCATCH_CONSOLE,KEYCATCH_CGAME}) {
    catcher=capture; anykeydown=1;
    auto cmd=Sample();
-   const int any=(Com_GameIsRTCW()||Com_GameIsSTVEFMP()||Com_GameIsWolfET()) ? 128 : BUTTON_ANY;
+   const int any=(Com_GameIsRTCW()||Com_GameIsSTVEFMP()||Com_GameIsWolfET()) ? 128 :
+    Com_GameIsQuakeLive() ? FNTECH3_QL_BUTTON_ANY : BUTTON_ANY;
    assert(cmd.buttons==((capture&~KEYCATCH_RETAIL_MOUSEPASS)?BUTTON_TALK:any));
    if(Com_GameIsWolfET()) {
     fntech3_wolfet_usercmd_t wire{};

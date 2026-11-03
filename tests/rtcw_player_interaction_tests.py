@@ -17,6 +17,7 @@ def input_fixture(client):
     source = r'''
 #include "code/client/input_compat.hpp"
 #include "code/compat/rtcw_state_adapter.hpp"
+#include "code/compat/ql_game_abi.h"
 #include "code/compat/stvef_game_abi.h"
 #include "code/compat/wolfet_game_abi.h"
 #include "code/qcommon/game_profile.h"
@@ -26,6 +27,7 @@ def input_fixture(client):
 using xcommand_t = void (*)();
 enum { CL_INPUT_COMMAND_STALE=-2, CL_INPUT_COMMAND_LEGACY=-1, MAX_KEYS=512 };
 static comGameId_t profile;
+int Com_GameIsQuakeLive() { return profile==COM_GAME_QUAKELIVE; }
 int Com_GameIsRTCW() { return profile==COM_GAME_RTCW_SP || profile==COM_GAME_RTCW_MP; }
 int Com_GameIsRTCWSP() { return profile==COM_GAME_RTCW_SP; }
 int Com_GameIsRTCWMP() { return profile==COM_GAME_RTCW_MP; }
@@ -88,7 +90,10 @@ int main() {
   assert(bool(CL_IsEngineStatefulInputCommand("+activate"))==rtcw);
   assert(!CL_IsEngineStatefulInputCommand("+activate_more"));
   assert(CL_IsEngineStatefulInputCommand("+attack"));
-  anykeydown=1; catcher=0; assert(Sample().buttons==(rtcw?128:ef?FNTECH3_STVEF_MP_BUTTON_ANY:efsp?FNTECH3_STVEF_SP_BUTTON_ANY:jedi?0x100:BUTTON_ANY));
+  anykeydown=1; catcher=0; assert(Sample().buttons==(rtcw?128:ef?FNTECH3_STVEF_MP_BUTTON_ANY:efsp?FNTECH3_STVEF_SP_BUTTON_ANY:jedi?0x100:
+   id==COM_GAME_QUAKELIVE?0x1000:BUTTON_ANY));
+  // Retail QL's 0x0800 is stop-follow; key activity must never assert it.
+  if(id==COM_GAME_QUAKELIVE) assert(!(Sample().buttons&FNTECH3_QL_BUTTON_STOP_FOLLOW));
   catcher=2; assert(Sample().buttons==BUTTON_TALK);
   catcher=0; anykeydown=0;
   if(efsp) {

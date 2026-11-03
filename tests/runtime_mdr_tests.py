@@ -199,6 +199,7 @@ static qboolean Minimized(void) { return minimized ? qtrue:qfalse; }
 static void Set(const char *name,const char *value) { (void)name;(void)value; }
 static struct { int (*Milliseconds)(void); qboolean (*CL_IsMinimized)(void);
     void (*Cvar_Set)(const char *,const char *); } ri={Milliseconds,Minimized,Set};
+static inline int R_ProfileMilliseconds(void) { return ri.Milliseconds(); }
 static void RB_EndSurface(void) { if(pending) { assert(opened);pending=0;++drains; } }
 static void vk_end_frame(void) { if(opened) { opened=0;++ends; } }
 static void vk_wait_idle(void) { ++waits; }

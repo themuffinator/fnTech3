@@ -2416,6 +2416,17 @@ The following evidence establishes the starting point, not compatibility:
 Later evidence must be appended or linked with its commit and environment; do
 not silently reinterpret these baseline results as proof for subsequent code.
 
+## Upstream FnQL review
+
+On 2026-11-03 FnQL's 26 commits after the pin, through `c919ae7`, were
+reviewed. Nine fixes were ported, each limited to the profiles it applies to:
+Quake Live's `0x1000` key-activity bit and hex cvar integers, its WebUI bind
+capture, wheel and demo-start hide, off-thread Steam avatars, two retail
+qagame import adapters, the Proton Steam-path fallback, Vulkan swapchain
+recreation hardening and renderer profiling on the real clock. The FnQL-game
+module host and `sv_lockstep` were not ported. Source/Unit evidence only; no
+gate changed ([record](2026-11-03-fnql-upstream-sync.md)).
+
 ## Full-compatibility sign-off
 
 The unified goal is complete only when every required row in every applicable

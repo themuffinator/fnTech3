@@ -320,7 +320,15 @@ const char *Sys_SteamPath( comGameId_t game )
 		return steamPath;
 	}
 
-	Sys_FindSteamRootFromKnownPaths( profile, steamPath, MAX_OSPATH );
+	if ( Sys_FindSteamRootFromKnownPaths( profile, steamPath, MAX_OSPATH ) ) {
+		return steamPath;
+	}
+
+	// Under Wine/Proton the registry and Program Files point at the prefix's
+	// stub Steam client, which has no steamapps. Steam still launches the
+	// executable from the game's install, so accept the executable's directory
+	// when it holds this profile's retail assets.
+	Sys_CopyValidSteamInstall( profile, Sys_Pwd(), steamPath, MAX_OSPATH );
 	return steamPath;
 }
 

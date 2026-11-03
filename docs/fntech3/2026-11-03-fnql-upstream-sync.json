@@ -1,0 +1,185 @@
+{
+  "date": "2026-11-03",
+  "scope": "FnQL upstream review since the merger pin",
+  "upstream": {
+    "repository": "https://github.com/themuffinator/FnQL",
+    "from": "fce44fe714564621e6ceb79e3da7c53089646af2",
+    "to": "c919ae7",
+    "commits_reviewed": 26
+  },
+  "use": "reference port of GPL-2.0-or-later FnQL text",
+  "ported": [
+    {
+      "commits": [
+        "40a17d7",
+        "040c90e"
+      ],
+      "change": "Vulkan swapchain recreation hardening and reinit shutdown ordering",
+      "profiles": "all",
+      "files": [
+        "code/renderervk/vk.c",
+        "code/rendererrtx/vk.c"
+      ]
+    },
+    {
+      "commits": [
+        "a6ae2e4"
+      ],
+      "change": "renderer profiling timed with the real clock",
+      "profiles": "all",
+      "files": [
+        "code/renderercommon/tr_profile_clock.h",
+        "code/renderer/tr_backend.c",
+        "code/renderer/tr_scene.c",
+        "code/renderervk/tr_backend.c",
+        "code/renderervk/tr_scene.c",
+        "code/renderervk/vk.c",
+        "code/rendererrtx/tr_backend.c",
+        "code/rendererrtx/tr_scene.c",
+        "code/rendererrtx/vk.c"
+      ]
+    },
+    {
+      "commits": [
+        "35c2ad2"
+      ],
+      "change": "Quake Live key activity 0x1000; 0x0800 is retail stop-follow",
+      "profiles": [
+        "ql"
+      ],
+      "files": [
+        "code/client/cl_input.cpp",
+        "code/compat/ql_game_abi.h"
+      ]
+    },
+    {
+      "commits": [
+        "cec8b9d"
+      ],
+      "change": "Windows Steam install falls back to the executable directory (Proton)",
+      "profiles": "Steam-sold profiles",
+      "files": [
+        "code/win32/win_shared.cpp"
+      ]
+    },
+    {
+      "commits": [
+        "9aacae5",
+        "0c3dcc6",
+        "68d9d43",
+        "5d689e3",
+        "f6fa75c",
+        "1582041"
+      ],
+      "change": "WebUI bind capture of mouse, wheel and Escape; keyboard withheld during capture; vertical wheel scrolling",
+      "profiles": [
+        "ql"
+      ],
+      "files": [
+        "code/client/cl_keys.cpp",
+        "code/client/cl_webui.cpp",
+        "code/client/client.h",
+        "code/client/awesomium_backend_win32.cpp"
+      ]
+    },
+    {
+      "commits": [
+        "fada298"
+      ],
+      "change": "WebUI hidden on every cgame load",
+      "profiles": [
+        "ql"
+      ],
+      "files": [
+        "code/client/cl_cgame.cpp"
+      ]
+    },
+    {
+      "commits": [
+        "dbb6104"
+      ],
+      "change": "Steam avatars fetched off the main thread",
+      "profiles": "usesSteam",
+      "files": [
+        "code/platform/fnql_steam.cpp",
+        "code/platform/fnql_steam.h",
+        "code/client/cl_webui.cpp",
+        "code/client/cl_main.cpp",
+        "code/client/client.h"
+      ]
+    },
+    {
+      "commits": [
+        "6f504de"
+      ],
+      "change": "hex cvar integers",
+      "profiles": [
+        "ql"
+      ],
+      "scoping": "FnQL applies it to every cvar; fnTech3 only while the ql profile is selected",
+      "files": [
+        "code/qcommon/cvar_integer.h",
+        "code/qcommon/cvar.c"
+      ]
+    },
+    {
+      "commits": [
+        "5a48e5d"
+      ],
+      "change": "qagame import slot 173 forwards five arguments; slot 200 returns the 64-bit SteamID",
+      "profiles": [
+        "ql"
+      ],
+      "files": [
+        "code/server/sv_game.cpp"
+      ]
+    }
+  ],
+  "not_ported": [
+    {
+      "commits": [
+        "5a48e5d"
+      ],
+      "part": "vm_gameProvider and FnQL_GetModuleInfo module hosting",
+      "reason": "feature for the FnQL-game companion module, which is at bring-up and checks its ABI against FnQL's tree"
+    },
+    {
+      "commits": [
+        "e218408",
+        "c919ae7"
+      ],
+      "part": "sv_lockstep",
+      "reason": "FnQL-game differential tooling limited to Quake Live layouts"
+    },
+    {
+      "commits": [
+        "318b5e3"
+      ],
+      "reason": "already present"
+    },
+    {
+      "commits": [
+        "14bdc9b",
+        "ff25f23"
+      ],
+      "reason": "FnQL repository housekeeping"
+    }
+  ],
+  "validation": {
+    "platform": "Windows x86",
+    "observed": [
+      "source and unit tests for each slice",
+      "cvar_range_check_tests.py: real cvar system reads hex only under ql",
+      "rtcw_player_interaction_tests.py and wolfet_input_tests.py: production CL_CmdButtons sends 0x1000 under ql and other profiles' values unchanged",
+      "win32-dev MSVC x86 strict-warning build of all outstanding steps; 14 related native tests passed",
+      "265 Python test files naming an edited source passed, one process per file"
+    ],
+    "not_observed": [
+      "retail Quake Live client runtime for the spectator, WebUI, demo-start and avatar changes",
+      "Proton",
+      "a provoked Vulkan driver fault",
+      "retail cgame tint of forced enemy models"
+    ]
+  },
+  "compatibility_gates_changed": []
+}

@@ -15,7 +15,9 @@ fnTech3 merges two GPL id Tech 3 engines into one profile-driven codebase:
   modernization line, pinned for the merger at
   `7d8c9629cdc7979f09697266470359101ffd9eda`;
 - [FnQL](https://github.com/themuffinator/FnQL), the Quake Live compatibility
-  baseline, pinned at `fce44fe714564621e6ceb79e3da7c53089646af2`.
+  baseline, pinned at `fce44fe714564621e6ceb79e3da7c53089646af2`. Its later
+  commits through `c919ae7` were reviewed and the applicable ones ported,
+  each scoped to its profiles ([record](2026-11-03-fnql-upstream-sync.md)).
 
 Both descend from Quake3e, ioquake3 and id Software's Quake III Arena source.
 fnTech3's own work is everything since the merger: the profile system, the
