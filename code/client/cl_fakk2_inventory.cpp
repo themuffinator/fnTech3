@@ -385,7 +385,7 @@ const char *CL_RitualItemName( int item ) {
 	if ( item < 0 ) return nullptr;
 	const bool fakk2 = Com_GameIsFAKK2() != 0;
 	const int index = ( fakk2 ? FNTECH3_FAKK2_CS_ITEMS : 0x400 ) + item;
-	const int count = fakk2 ? FNTECH3_FAKK2_MAX_CONFIGSTRINGS : FNTECH3_ALICE_MAX_CONFIGSTRINGS;
+	const int count = fakk2 ? (int)FNTECH3_FAKK2_MAX_CONFIGSTRINGS : (int)FNTECH3_ALICE_MAX_CONFIGSTRINGS;
 	if ( index >= count || index >= MAX_GAME_CONFIGSTRINGS ) return nullptr;
 	const char *text = cl.gameState.stringData + cl.gameState.stringOffsets[index];
 	return text[0] ? text : nullptr;

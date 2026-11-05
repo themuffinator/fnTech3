@@ -1707,7 +1707,7 @@ vm_t *CL_AliceLoadCGame() {
 	}
 	/* F.A.K.K.2's GetCGameAPI (0x300224e0) writes the first six of Alice's
 	 * seven, in the same order; the seventh is Alice's own. */
-	const int exportSlots = fakk2 ? FNTECH3_FAKK2_CGAME_EXPORT_SLOTS : FNTECH3_ALICE_CGAME_EXPORT_SLOTS;
+	const int exportSlots = fakk2 ? (int)FNTECH3_FAKK2_CGAME_EXPORT_SLOTS : (int)FNTECH3_ALICE_CGAME_EXPORT_SLOTS;
 	for ( int i = 0; i < exportSlots; i++ ) {
 		if ( !exports[i] ) {
 			VM_Free( vm );

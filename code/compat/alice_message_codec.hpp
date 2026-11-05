@@ -437,10 +437,15 @@ bool WriteCommand( Writer &io, const Command *from, const Command *to ) {
 	if ( !to ) return io.Fail();
 	const Command empty{};
 	if ( !from ) from = &empty;
-	const std::int32_t step = to->serverTime - from->serverTime;
-	if ( step >= 0 && step < 256 ) {
+	/* The step in 32-bit modular arithmetic, as the other titles' codecs
+	 * form it: a signed difference from 0 to 255 is exactly an unsigned
+	 * one below 256, so the bits sent are unchanged, and times far apart
+	 * (a hostile server's snapshot times) no longer overflow an int. */
+	const std::uint32_t step = static_cast<std::uint32_t>( to->serverTime )
+		- static_cast<std::uint32_t>( from->serverTime );
+	if ( step < 256u ) {
 		io.Write( 1, 1 );
-		io.Write( static_cast<std::uint32_t>( step ), 8 );
+		io.Write( step, 8 );
 	} else {
 		io.Write( 0, 1 );
 		io.Write( static_cast<std::uint32_t>( to->serverTime ), 32 );
@@ -459,7 +464,10 @@ bool ReadCommand( Reader &io, const Command *from, Command *to ) {
 	if ( !from ) from = &empty;
 	Command result = *from;
 	if ( io.Read( 1 ) ) {
-		result.serverTime = from->serverTime + static_cast<std::int32_t>( io.Read( 8 ) );
+		/* Modular, as written: a client's full time of 0x7fffffff and then
+		 * a step of 255 no longer overflows an int. */
+		result.serverTime = static_cast<std::int32_t>(
+			static_cast<std::uint32_t>( from->serverTime ) + io.Read( 8 ) );
 	} else {
 		result.serverTime = static_cast<std::int32_t>( io.Read( 32 ) );
 	}

@@ -102,6 +102,27 @@ void TestRefusals() {
 	// A block that ends early.
 	text = "height 10 aspect 1 indirections { 1 2 3";
 	CHECK( !Parse( text.data(), text.size(), font, &error ) );
+	// Metrics an int cannot carry (found by fuzzing, 2026-11-04): atof reads
+	// nan, inf and 1e10, which the metrics had converted to int.
+	for ( const char *height : { "nan", "inf", "1e10", "-1e10" } ) {
+		text = Fixture();
+		text.replace( text.find( "height 12" ), 9, std::string( "height " ) + height );
+		CHECK( !Parse( text.data(), text.size(), font, &error ) );
+		CHECK( error.find( "out of range" ) != std::string::npos );
+	}
+	text = Fixture();
+	text.replace( text.find( "{ 30 6 8 12 }" ), 13, "{ 30 6 1e10 12 }" );
+	CHECK( !Parse( text.data(), text.size(), font, &error ) );
+	CHECK( error.find( "location out of range" ) != std::string::npos );
+	text = Fixture();
+	text.replace( text.find( "{ 30 6 8 12 }" ), 13, "{ 30 6 nan 12 }" );
+	CHECK( !Parse( text.data(), text.size(), font, &error ) );
+	// Widths a font may hold still add up past an int over a long line.
+	text = Fixture();
+	CHECK( Parse( text.data(), text.size(), font, &error ) );
+	font.locations[0].width = 65000.0f;
+	const std::string wide( 200, 'A' );
+	CHECK( StringWidth( &font, wide.c_str() ) == 2147483647 );
 	// Nothing at all.
 	CHECK( !Parse( "", 0, font, &error ) );
 	CHECK( !Parse( nullptr, 0, font, &error ) );

@@ -62,6 +62,65 @@ static void WriteArchive(const char *path, const byte *data, unsigned length, in
 	assert(fclose(file) == 0);
 }
 
+/* Two stored entries whose first central-directory record carries an extra
+ * field of 0x8000 bytes. A zip's 16-bit sizes are unsigned; the in-memory
+ * header reader had loaded them through `short`, so this one read as
+ * 0xffff8000 and stepping to the next record moved back 32 KiB instead of
+ * forward. */
+static void WriteWideExtraArchive(const char *path) {
+	static const char *const names[2] = { "first.bin", "second.bin" };
+	static const byte payload[2][4] = { { 1, 2, 3, 4 }, { 5, 6, 7, 8 } };
+	long offsets[2], directory, end;
+	unsigned i, extra;
+	FILE *file = fopen(path, "wb");
+	assert(file);
+	for (i = 0; i < 2; ++i) {
+		const unsigned crc = (unsigned)crc32(0, payload[i], 4);
+		offsets[i] = ftell(file);
+		Put32(file, 0x04034b50); Put16(file, 20); Put16(file, 0); Put16(file, 0);
+		Put32(file, 0); Put32(file, crc); Put32(file, 4); Put32(file, 4);
+		Put16(file, (unsigned)strlen(names[i])); Put16(file, 0);
+		fwrite(names[i], 1, strlen(names[i]), file);
+		fwrite(payload[i], 1, 4, file);
+	}
+	directory = ftell(file);
+	for (i = 0; i < 2; ++i) {
+		const unsigned crc = (unsigned)crc32(0, payload[i], 4);
+		extra = i == 0 ? 0x8000u : 0u;
+		Put32(file, 0x02014b50); Put16(file, 20); Put16(file, 20); Put16(file, 0); Put16(file, 0);
+		Put32(file, 0); Put32(file, crc); Put32(file, 4); Put32(file, 4);
+		Put16(file, (unsigned)strlen(names[i])); Put16(file, extra); Put16(file, 0);
+		Put16(file, 0); Put16(file, 0); Put32(file, 0); Put32(file, (unsigned long)offsets[i]);
+		fwrite(names[i], 1, strlen(names[i]), file);
+		for (; extra; --extra) fputc(0, file);
+	}
+	end = ftell(file);
+	Put32(file, 0x06054b50); Put16(file, 0); Put16(file, 0); Put16(file, 2); Put16(file, 2);
+	Put32(file, end - directory); Put32(file, directory); Put16(file, 0);
+	assert(fclose(file) == 0);
+}
+
+static void CheckWideExtraField(const char *path) {
+	unzFile archive;
+	unz_file_info info;
+	char name[64];
+	byte read[4];
+	WriteWideExtraArchive(path);
+	archive = unzOpen(path); assert(archive);
+	assert(unzGoToFirstFile(archive) == UNZ_OK);
+	assert(unzGetCurrentFileInfo(archive, &info, name, sizeof(name), NULL, 0, NULL, 0) == UNZ_OK);
+	assert(!strcmp(name, "first.bin") && info.size_file_extra == 0x8000u);
+	assert(unzGoToNextFile(archive) == UNZ_OK);
+	assert(unzGetCurrentFileInfo(archive, &info, name, sizeof(name), NULL, 0, NULL, 0) == UNZ_OK);
+	assert(!strcmp(name, "second.bin"));
+	assert(unzOpenCurrentFile(archive) == UNZ_OK);
+	assert(unzReadCurrentFile(archive, read, sizeof(read)) == 4 && read[0] == 5 && read[3] == 8);
+	assert(unzCloseCurrentFile(archive) == UNZ_OK);
+	assert(unzGoToNextFile(archive) == UNZ_END_OF_LIST_OF_FILE);
+	assert(unzLocateFile(archive, "SECOND.BIN", 2) == UNZ_OK);
+	assert(unzClose(archive) == UNZ_OK && allocations == 0);
+}
+
 int main(int argc, char **argv) {
 	byte data[163841], result[163842], packed[200000];
 	unsigned i, state = 0xaff23119u;
@@ -119,6 +178,7 @@ int main(int argc, char **argv) {
 		assert(QZ_Uncompress(NULL, &outputLength, packed, packedLength) == Z_STREAM_ERROR);
 		assert(allocations == 0);
 	}
+	CheckWideExtraField(argv[1]);
 	assert(remove(argv[1]) == 0);
 	return 0;
 }

@@ -30,6 +30,7 @@ extern "C" {
 #include "../shared/STVEFAmbient.h"
 #include "../shared/JKAAmbient.h"
 #include "../shared/AliceSound.h"
+#include "../shared/MOHAADistance.h"
 
 #include <AL/al.h>
 #include <AL/alc.h>

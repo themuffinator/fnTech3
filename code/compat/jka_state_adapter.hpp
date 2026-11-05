@@ -190,7 +190,9 @@ bool Entity( External &external, Internal &internal ) noexcept {
  * refused rather than truncated into a different entity. */
 template<class External, class Internal>
 bool TraceOut( External &external, const Internal &internal ) noexcept {
-	if ( internal.entityNum < INT16_MIN || internal.entityNum > INT16_MAX ) return false;
+	// Parenthesised: `entityNum < INT16_MIN || ... >` otherwise reads to GCC
+	// as a dependent template's argument list (-Wmissing-template-keyword).
+	if ( ( internal.entityNum < INT16_MIN ) || ( internal.entityNum > INT16_MAX ) ) return false;
 	std::uint32_t allsolid, startsolid;
 	static_assert( sizeof( allsolid ) == sizeof( internal.allsolid ) );
 	std::memcpy( &allsolid, &internal.allsolid, sizeof( allsolid ) );

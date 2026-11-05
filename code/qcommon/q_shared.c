@@ -1965,22 +1965,30 @@ void Info_Tokenize( const char *s )
 {
 	static char tokenBuffer[ MAX_INFO_STRING ];
 	char *o = tokenBuffer;
+	const char *limit = s;
+
+	// Only the first MAX_INFO_STRING - 1 characters are read. Within that,
+	// the output (at most one byte more than the input) fits tokenBuffer and
+	// the pairs (at least three characters each but the last) fit the token
+	// arrays; a longer string had written past both.
+	while ( *limit != '\0' && limit - s < MAX_INFO_STRING - 1 )
+		limit++;
 
 	info_tokens = 0;
 	*o = '\0';
 
 	for ( ;; )
 	{
-		while ( *s == '\\' ) // skip leading/trailing separators
+		while ( s < limit && *s == '\\' ) // skip leading/trailing separators
 			s++;
 
-		if ( *s == '\0' )
+		if ( s >= limit )
 			break;
 
 		info_keys[ info_tokens ] = o;
-		while ( *s != '\\' )
+		while ( s >= limit || *s != '\\' )
 		{
-			if ( *s == '\0' )
+			if ( s >= limit )
 			{
 				*o = '\0'; // terminate key
 				info_values[ info_tokens++ ] = o;
@@ -1992,7 +2000,7 @@ void Info_Tokenize( const char *s )
 		s++; // skip '\\'
 
 		info_values[ info_tokens++ ] = o;
-		while ( *s != '\\' && *s != '\0' )
+		while ( s < limit && *s != '\\' )
 		{
 			*o++ = *s++;
 		}
@@ -2268,7 +2276,11 @@ const char *Com_SkipTokens( const char *s, int numTokens, const char *sep )
 	int		sepCount = 0;
 	const char	*p = s;
 
-	while( sepCount < numTokens )
+	// Test for the end before stepping over a character: the step used to
+	// come first, so a string ending in separators with fewer tokens than
+	// asked ("bind x " for two) stepped over its own NUL and kept counting
+	// separators in whatever memory followed.
+	while( sepCount < numTokens && *p != '\0' )
 	{
 		if( Com_CharIsOneOfCharset( *p++, sep ) )
 		{
@@ -2276,8 +2288,6 @@ const char *Com_SkipTokens( const char *s, int numTokens, const char *sep )
 			while( Com_CharIsOneOfCharset( *p, sep ) )
 				p++;
 		}
-		else if( *p == '\0' )
-			break;
 	}
 
 	if( sepCount == numTokens )

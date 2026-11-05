@@ -344,7 +344,9 @@ void SV_IHVBuildClientSnapshot(int slot) {
     if(!selection.FromPoint(SV_IHVSnapshotHost(),origin,payload.areabits,payload.areabytes))
         Com_Error(ERR_DROP,"IHV client %i cannot select its snapshot entities",slot);
     selection.Sort();
-    const int first=ihvGameClientRecords.SnapshotCursor();
+    // The ring's cursor is 64-bit: an int wrapped after 2^31 states and
+    // the stale-frame check in SetFrame then took the frame as current.
+    const std::uint64_t first=ihvGameClientRecords.SnapshotCursor();
     for(int i=0;i<selection.Count();++i) {
         auto *selected=ihvGameEntities.At(selection.Number(i));
         if(!selected)Com_Error(ERR_DROP,"IHV snapshot selected entity %i outside the game array",selection.Number(i));

@@ -1130,10 +1130,31 @@ int64_t Sys_Microseconds( void )
 
 	return ((curr.QuadPart - base.QuadPart) * 1000000LL) / freq.QuadPart;
 #else
-	struct timeval curr;
-	gettimeofday( &curr, NULL );
+	// Counted from the first call on a monotonic clock, as the Windows branch
+	// counts from its first QueryPerformanceCounter reading. The wall clock
+	// counted from the epoch is about 1.8e12 ms, which the renderers' profile
+	// clock (R_ProfileMilliseconds) cut down to an int, and a clock step moved
+	// every delta taken across it.
+	static qboolean inited = qfalse;
+	static int64_t base;
+	int64_t curr;
+#ifdef CLOCK_MONOTONIC
+	struct timespec ts;
+	if ( clock_gettime( CLOCK_MONOTONIC, &ts ) == 0 ) {
+		curr = (int64_t)ts.tv_sec * 1000000LL + (int64_t)( ts.tv_nsec / 1000 );
+	} else
+#endif
+	{
+		struct timeval tv;
+		gettimeofday( &tv, NULL );
+		curr = (int64_t)tv.tv_sec * 1000000LL + (int64_t)tv.tv_usec;
+	}
 
-	return (int64_t)curr.tv_sec * 1000000LL + (int64_t)curr.tv_usec;
+	if ( !inited ) {
+		base = curr;
+		inited = qtrue;
+	}
+	return curr - base;
 #endif
 }
 

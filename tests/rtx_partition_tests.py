@@ -188,6 +188,17 @@ int main() {
         assert( g.numIndices == 30 );
         failAlloc = 0;
     }
+    // a count whose index-and-code scratch would not fit the allocator's int
+    // is refused before any size is computed, and the scratch kept
+    {
+        free( s_rt.partition ); s_rt.partition = NULL; s_rt.partitionCodes = NULL; s_rt.partitionCapacity = 0;
+        assert( RT_EnsurePartitionScratch( 4096u ) && s_rt.partitionCapacity == 4096u );
+        uint32_t *kept = s_rt.partition;
+        const uint32_t limit = (uint32_t)INT_MAX / 5u;
+        assert( !RT_EnsurePartitionScratch( limit + 1u ) );
+        assert( !RT_EnsurePartitionScratch( 1u << 29 ) );
+        assert( s_rt.partition == kept && s_rt.partitionCapacity == 4096u );
+    }
     printf( "partition %d cases\n", cases );
     return 0;
 }

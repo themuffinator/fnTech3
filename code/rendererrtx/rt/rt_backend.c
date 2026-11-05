@@ -665,7 +665,9 @@ static void RT_RemapMaterials( rtxRtCpuGeometry_t *geometry, uint32_t firstVerte
 
 static qboolean RT_EnsurePartitionScratch( uint32_t count )
 {
-	if ( count > ( 1u << 29 ) ) {
+	// Each triangle takes an index and a one-byte code, and the allocation
+	// is an int: keep the whole size representable.
+	if ( count > (uint32_t)INT_MAX / ( sizeof( uint32_t ) + 1u ) ) {
 		return qfalse;
 	}
 	if ( count <= s_rt.partitionCapacity ) {

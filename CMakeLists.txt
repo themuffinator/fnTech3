@@ -574,6 +574,12 @@ ADD_EXECUTABLE(fnql_huffman_decoder_tests
 target_include_directories(fnql_huffman_decoder_tests PRIVATE code/qcommon)
 add_test(NAME fnql_huffman_decoder COMMAND fnql_huffman_decoder_tests)
 
+ADD_EXECUTABLE(fntech3_q_shared_text_tests
+	tests/q_shared_text_tests.cpp
+	code/qcommon/q_shared.c)
+target_include_directories(fntech3_q_shared_text_tests PRIVATE code/qcommon)
+add_test(NAME fntech3_q_shared_text COMMAND fntech3_q_shared_text_tests)
+
 ADD_EXECUTABLE(fnql_qvm_header_tests tests/qvm_header_tests.c)
 target_include_directories(fnql_qvm_header_tests PRIVATE code/qcommon)
 add_test(NAME fnql_qvm_header_bounds COMMAND fnql_qvm_header_tests)

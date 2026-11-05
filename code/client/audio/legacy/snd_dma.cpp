@@ -1500,7 +1500,8 @@ static void S_Base_AddJKAAmbientLoopingSound( const vec3_t origin, sfxHandle_t h
 S_Base_StartMOHAASound and S_Base_AddMOHAALoopingSound
 
 Medal of Honor's sounds here keep their volume; this mixer has one distance
-model and no pitch, so the alias's distances and pitch go unused, and it keeps
+model and no pitch, so the alias's distances, pitch and streaming go unused
+(a sound starts wherever the mixer's own range lets it), and it keeps
 no channel of 2015's own, so a sound neither ends its entity channel's last
 nor is ended by the client game's stop.
 ==================
@@ -1508,8 +1509,8 @@ nor is ended by the client game's stop.
 static void S_Base_AddLoopingSound( int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfxHandle );
 
 static void S_Base_StartMOHAASound( const vec3_t origin, int entnum, int entchannel, sfxHandle_t sfx,
-	float volume, float minDist, float maxDist, float pitch, int mohaaChannel ) {
-	(void)minDist; (void)maxDist; (void)pitch; (void)mohaaChannel;
+	float volume, float minDist, float maxDist, float pitch, int mohaaChannel, qboolean streamed ) {
+	(void)minDist; (void)maxDist; (void)pitch; (void)mohaaChannel; (void)streamed;
 	S_Base_StartSound( origin, entnum, entchannel, sfx, volume < 0.0f ? 1.0f : volume );
 }
 

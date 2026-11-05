@@ -204,9 +204,9 @@ struct soundInterface_t {
 	// faded to out of 255 (shared/JKAAmbient.h).
 	void (*AddJKAAmbientLoopingSound)( const vec3_t origin, sfxHandle_t sfx, int volume );
 	// Medal of Honor's sounds and loops with their alias's volume, distances
-	// (full volume inside minDist, silent past maxDist) and pitch.
+	// (full volume inside minDist, silent past maxDist), pitch and streaming.
 	void (*StartMOHAASound)( const vec3_t origin, int entnum, int entchannel, sfxHandle_t sfx,
-		float volume, float minDist, float maxDist, float pitch, int mohaaChannel );
+		float volume, float minDist, float maxDist, float pitch, int mohaaChannel, qboolean streamed );
 	void (*StopMOHAASound)( int entnum, int mohaaChannel );
 	// Ends what one entity is playing on one channel (Academy's import 36).
 	void (*StopEntityChannelSound)( int entnum, int entchannel );

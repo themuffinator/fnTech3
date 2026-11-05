@@ -84,6 +84,21 @@ class RendererProfileClockTests(unittest.TestCase):
                 source, r"r_motionBlurStrength->value, ri\.Milliseconds\(\)", path
             )
 
+    def test_posix_microseconds_are_monotonic_and_process_relative(self) -> None:
+        # R_ProfileMilliseconds casts ri.Microseconds() / 1000 to an int. The
+        # Windows clock counts from its first reading; the POSIX one counted
+        # from the epoch (~1.8e12 ms), so every Linux profile reading wrapped,
+        # and a wall-clock step moved deltas taken across it.
+        common = read_source("code/qcommon/common.c")
+        start = common.index("int64_t Sys_Microseconds( void )")
+        body = common[start : common.index("\n}\n", start)]
+        posix = body[body.index("#else") :]
+        self.assertIn("clock_gettime( CLOCK_MONOTONIC, &ts )", posix)
+        self.assertIn("#ifdef CLOCK_MONOTONIC", posix)
+        self.assertIn("base = curr;", posix)
+        self.assertIn("return curr - base;", posix)
+        self.assertNotIn("return (int64_t)curr.tv_sec", posix)
+
 
 if __name__ == "__main__":
     unittest.main()

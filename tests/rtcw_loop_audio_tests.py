@@ -223,6 +223,7 @@ struct SoundVoice{
  bool active=false,looping=false,occlusionInitialized=false,fixedOrigin=false,killWhenUnrefreshed=false,refreshedThisFrame=false,doppler=false,rtcwLoop=false,stvefAmbient=false;
  int stvefVolume=0;
  int handle=0,entnum=0,entchannel=0,lastOcclusionSmoothTime=0,nextEnvironmentUpdateTime=0;float occlusion=0,occlusionTarget=0;
+ float mohaaMinDist=0,mohaaMaxDist=0;
  unsigned source=0,directFilter=0,sendFilter=0;
  SoundSample *sample=nullptr;VoiceKind kind=VoiceKind::Loop;Vec origin,velocity;Loop rtcwLoopData;
  void ReleaseSource(Device &){source=0;}

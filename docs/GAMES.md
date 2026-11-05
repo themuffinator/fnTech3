@@ -870,6 +870,16 @@ against the original game. See the
   fastest ([details](fntech3/2026-10-25-mohaa-frame-time.md)). Since
   2026-10-26 a light behind you, such as the lantern in the truck, no
   longer costs a shadow ([details](fntech3/2026-10-26-mohaa-truck-ride-lights.md)).
+- Mouse sensitivity starts at 5, the game's own setting; it had started at
+  2, which made turning feel slow. A value you already saved stays, so if
+  turning still feels slow, raise the Controls menu's mouse sensitivity
+  slider or enter `sensitivity 5` in the console
+  ([details](fntech3/2026-10-31-mohaa-speech-and-sensitivity.md)).
+- Speech carries as far as the game asks: soldiers near you speak at full
+  volume, and lines meant for the whole level are heard from anywhere in it.
+  Before 2026-10-31 such a line went unheard more than about 1,500 units
+  away, and nearby speech was quieter than the game sets it
+  ([details](fntech3/2026-10-31-mohaa-speech-and-sensitivity.md)).
 - The HUD grows with the screen's height; `ui_hudScale 0` draws it at the
   original's pixel sizes. On a widescreen display the view widens and keeps
   its 4:3 height ([Widescreen guide](ASPECT_CORRECTION.md)).

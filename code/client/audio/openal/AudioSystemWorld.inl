@@ -728,8 +728,9 @@ public:
 	bool alice = false;
 	fntech3::audio::alice::sfx::Placement alicePlacement;
 	// Medal of Honor's voices carry their alias's distances and pitch: full
-	// volume inside mohaaMinDist and the device's rolloff to mohaaMaxDist
-	// (none set: the engine's range), at mohaaPitch times the rate.
+	// volume inside mohaaMinDist and the device's rolloff out to mohaaMaxDist,
+	// silent from there (shared/MOHAADistance.h; a max of 0, no Medal of
+	// Honor voice: the engine's range), at mohaaPitch times the rate.
 	float mohaaMinDist = 0.0f;
 	float mohaaMaxDist = 0.0f;
 	float mohaaPitch = 1.0f;
@@ -1083,7 +1084,7 @@ public:
 	// Medal of Honor's one-shots and loops, placed with their alias's
 	// distances and pitch.
 	void StartMOHAASound( int entityNum, int entchannel, sfxHandle_t handle, SoundSample *sample, const float *origin,
-		float volume, float minDist, float maxDist, float pitch, int mohaaChannel );
+		float volume, float minDist, float maxDist, float pitch, int mohaaChannel, bool streamed );
 	void StopMOHAASound( int entityNum, int mohaaChannel );
 	void StopEntityChannelSound( int entityNum, int entchannel );
 	void AddMOHAALoopingSound( int slot, const float *origin, const float *velocity, sfxHandle_t handle,
@@ -1129,8 +1130,11 @@ private:
 	const SoundVoice *AliceVoice( int voice ) const;
 	void PlayOneShot( SoundVoice *voice, int entityNum, int entchannel, sfxHandle_t handle,
 		SoundSample *sample, const float *origin, float volume, int startTime );
-	// The distances, pitch and channel the next one-shot takes (StartMOHAASound).
+	// The distances, pitch and channel the next one-shot takes, and whether
+	// its alias streams (StartMOHAASound).
 	struct MOHAASpan {
+		bool active = false;
+		bool streamed = false;
 		float minDist = 0.0f;
 		float maxDist = 0.0f;
 		float pitch = 1.0f;
@@ -1423,21 +1427,26 @@ void Q3SoundWorld::AddWolfETLoopingSound( const float *origin, const float *velo
 }
 
 /* Medal of Honor's sounds are the engine's own one-shots and loops, placed
- * with the distances and pitch of the alias that chose them. A distance below
- * zero is the game's "none": 200 units of full volume, and silence 64 times
- * that far (OpenMoHAA snd_openal_new.cpp S_OPENAL_StartSound, reference). */
+ * with the distances and pitch of the alias that chose them
+ * (shared/MOHAADistance.h): the device's distance model across the alias's
+ * span, faded out toward its max distance, where none starts. */
 void Q3SoundWorld::StartMOHAASound( int entityNum, int entchannel, sfxHandle_t handle, SoundSample *sample,
-	const float *origin, float volume, float minDist, float maxDist, float pitch, int mohaaChannel ) {
-	if ( minDist < 0.0f ) minDist = 200.0f;
-	if ( maxDist < 0.0f ) maxDist = minDist * 64.0f;
+	const float *origin, float volume, float minDist, float maxDist, float pitch, int mohaaChannel, bool streamed ) {
+	const fntech3::audio::mohaa::Span span = fntech3::audio::mohaa::Resolve( minDist, maxDist );
 	// An entity's sound on a channel of its own ends the one before it there,
-	// as 2015's channel picker takes that channel over; the automatic
-	// channel, and sounds that belong to no entity, stack.
+	// as 2015's channel picker takes that channel over, even for a sound
+	// that then does not start; the automatic channel, and sounds that
+	// belong to no entity, stack.
 	if ( entityNum != ENTITYNUM_NONE && mohaaChannel > 0 ) {
 		StopMOHAASound( entityNum, mohaaChannel );
 	}
-	mohaaNext_.minDist = minDist;
-	mohaaNext_.maxDist = maxDist;
+	if ( !( span.silent > 0.0f ) ) {
+		return;	// silent wherever it is heard from
+	}
+	mohaaNext_.active = true;
+	mohaaNext_.streamed = streamed;
+	mohaaNext_.minDist = span.full;
+	mohaaNext_.maxDist = span.silent;
 	mohaaNext_.pitch = pitch > 0.0f ? pitch : 1.0f;
 	mohaaNext_.channel = mohaaChannel;
 	StartSound( entityNum, entchannel, handle, sample, origin, volume < 0.0f ? 1.0f : volume );
@@ -1464,15 +1473,13 @@ void Q3SoundWorld::StopEntityChannelSound( int entityNum, int entchannel ) {
 void Q3SoundWorld::AddMOHAALoopingSound( int slot, const float *origin, const float *velocity, sfxHandle_t handle,
 	SoundSample *sample, float volume, float minDist, float maxDist, float pitch ) {
 	if ( !sample || slot < 0 || slot >= static_cast<int>( loopVoices_.size() ) ) return;
+	const fntech3::audio::mohaa::Span span = fntech3::audio::mohaa::Resolve( minDist, maxDist );
+	if ( !( span.silent > 0.0f ) ) return;	// silent wherever it is heard from
 	AddLoopingSound( slot, origin, velocity, handle, sample, qfalse );
 	SoundVoice &voice = loopVoices_[slot];
-	if ( minDist < 0.0f ) {
-		minDist = 200.0f;
-		maxDist = 12800.0f;
-	}
 	voice.volumeScale = ClampFloat( volume < 0.0f ? 1.0f : volume, 0.0f, 2.0f );
-	voice.mohaaMinDist = minDist;
-	voice.mohaaMaxDist = maxDist;
+	voice.mohaaMinDist = span.full;
+	voice.mohaaMaxDist = span.silent;
 	voice.mohaaPitch = pitch > 0.0f ? pitch : 1.0f;
 }
 
@@ -1576,9 +1583,11 @@ SoundVoice *Q3SoundWorld::FindFreeOneShot() {
 
 static float EstimateVoiceAudibility( const SoundVoice &voice ) {
 	// Inverse-model estimate of what the mix actually hears, so eviction
-	// steals the least audible voice instead of merely the oldest one.
-	const float distance = ( std::max )( voice.debugDistance, kOpenALReferenceDistance );
-	return voice.debugGain * voice.debugDryGain * ( kOpenALReferenceDistance / distance );
+	// steals the least audible voice instead of merely the oldest one. A
+	// Medal of Honor voice is at full volume inside its alias's min distance.
+	const float reference = voice.mohaaMaxDist > 0.0f ? ( std::max )( voice.mohaaMinDist, 1.0f ) : kOpenALReferenceDistance;
+	const float distance = ( std::max )( voice.debugDistance, reference );
+	return voice.debugGain * voice.debugDryGain * ( reference / distance );
 }
 
 SoundVoice *Q3SoundWorld::FindEvictionCandidate() {
@@ -1679,7 +1688,19 @@ void Q3SoundWorld::StartSound( int entityNum, int entchannel, sfxHandle_t handle
 	}
 
 	// Never spend a voice on a one-shot the legacy mixer would render silent.
-	if ( !IsLocalOnlyChannel( entchannel ) && entityNum != listenerNumber_ && lastListenerUpdateTime_ > 0 ) {
+	// A Medal of Honor sound keeps its alias's rule instead: a streamed one
+	// starts wherever the listener is, as its line may come into earshot,
+	// and any other only inside its max distance (shared/MOHAADistance.h).
+	if ( mohaaNext_.active ) {
+		if ( !mohaaNext_.streamed && !IsLocalOnlyChannel( entchannel ) && entityNum != listenerNumber_ &&
+			lastListenerUpdateTime_ > 0 ) {
+			const float *soundOrigin = ( origin != nullptr ) ? origin : entityOrigins_[entityNum].Data();
+			if ( !fntech3::audio::mohaa::Audible( DistanceBetweenPoints( soundOrigin, listenerOrigin_.Data() ),
+				fntech3::audio::mohaa::Span{ mohaaNext_.minDist, mohaaNext_.maxDist } ) ) {
+				return;
+			}
+		}
+	} else if ( !IsLocalOnlyChannel( entchannel ) && entityNum != listenerNumber_ && lastListenerUpdateTime_ > 0 ) {
 		const float *soundOrigin = ( origin != nullptr ) ? origin : entityOrigins_[entityNum].Data();
 		const SoundShaderSettings &shader = sample->Shader();
 		const float rangeScale = shader.enabled ? shader.rangeScale : kDefaultSoundShaderScale;
@@ -2098,13 +2119,8 @@ void Q3SoundWorld::ApplyVoice( SoundVoice &voice, qboolean softMuted ) {
 	const bool useOpenALDistance = worldDistance && device_->UsesOpenALDistanceAttenuation();
 	const SoundShaderSettings &shader = voice.sample->Shader();
 	const float gainScale = shader.enabled && !retailPanned ? shader.gainScale : kDefaultSoundShaderScale;
-	// Medal of Honor's alias distances stand in for the sound shader's.
-	const bool mohaaSpan = voice.mohaaMinDist > 0.0f;
-	const float referenceScale = mohaaSpan ? voice.mohaaMinDist / kOpenALReferenceDistance
-		: shader.enabled ? shader.referenceScale : kDefaultSoundShaderScale;
-	const float rangeScale = mohaaSpan && voice.mohaaMaxDist > voice.mohaaMinDist
-		? voice.mohaaMaxDist / kOpenALMaxDistance
-		: shader.enabled ? shader.rangeScale : kDefaultSoundShaderScale;
+	const float referenceScale = shader.enabled ? shader.referenceScale : kDefaultSoundShaderScale;
+	const float rangeScale = shader.enabled ? shader.rangeScale : kDefaultSoundShaderScale;
 	const float wetScale = shader.enabled ? shader.wetScale : kDefaultSoundShaderScale;
 	const float pitchScale = shader.enabled && !retailPanned ? shader.pitchScale : kDefaultSoundShaderScale;
 	// The span of the Wolfenstein law: the one-shots' fixed range, or the
@@ -2112,6 +2128,12 @@ void Q3SoundWorld::ApplyVoice( SoundVoice &voice, qboolean softMuted ) {
 	const fntech3::audio::rtcw::LawDistances wolfensteinSpan = wolfenstein ?
 		fntech3::audio::rtcw::Distances( voice.rtcwLoop ? voice.rtcwLoopData.range : fntech3::audio::rtcw::OneShotRange ) :
 		fntech3::audio::rtcw::LawDistances{};
+	// A Medal of Honor voice's alias span, which stands in for the sound
+	// shader's distances (shared/MOHAADistance.h).
+	const bool mohaa = voice.mohaaMaxDist > 0.0f;
+	const fntech3::audio::mohaa::Span mohaaSpan{ voice.mohaaMinDist, voice.mohaaMaxDist };
+	// Where the law of a game that brings its own falls silent.
+	const float lawSilent = wolfenstein ? wolfensteinSpan.silent : mohaa ? mohaaSpan.silent : 0.0f;
 	// What a world voice the device attenuates is played at: unity, or a
 	// Wolfenstein loop's own level.
 	float fullLevel = 1.0f;
@@ -2149,6 +2171,11 @@ void Q3SoundWorld::ApplyVoice( SoundVoice &voice, qboolean softMuted ) {
 		if ( voice.rtcwLoop ) {
 			fullLevel = static_cast<float>( fntech3::audio::rtcw::LoopLevel( voice.rtcwLoopData ) ) / 127.0f;
 		}
+	} else if ( mohaa ) {
+		// The alias's own law where the device measures no distance of its
+		// own, without a pan; the device places the voice either way.
+		spatial.gain = fntech3::audio::mohaa::Gain( DistanceBetweenPoints( voiceOrigin, listenerOrigin_.Data() ), mohaaSpan );
+		spatial.pan = 0.0f;
 	} else {
 		spatial = ComputeSpatialParams( voiceOrigin, listenerOrigin_.Data(), listenerAxis_, 127, referenceScale, rangeScale );
 	}
@@ -2171,18 +2198,18 @@ void Q3SoundWorld::ApplyVoice( SoundVoice &voice, qboolean softMuted ) {
 		const float distance = listenerAttached ? 0.0f : DistanceBetweenPoints( voiceOrigin, listenerOrigin_.Data() );
 		if ( listenerAttached || pvsCulled ) {
 			ResetVoiceOcclusion( voice, 0.0f, now );
-		} else if ( wolfenstein ) {
+		} else if ( wolfenstein || mohaa ) {
 			// Nothing is traced for a voice the law has silenced. The device's
 			// model keeps a floor past its max distance, so the voice is faded
 			// out toward the law's silent end.
-			if ( distance < wolfensteinSpan.silent ) {
+			if ( distance < lawSilent ) {
 				UpdateVoiceEnvironment( voice, voiceOrigin );
 				SmoothVoiceOcclusion( voice, now );
 			} else {
 				ResetVoiceOcclusion( voice, 0.0f, now );
 			}
 			if ( useOpenALDistance ) {
-				horizonGain = HorizonGainAt( distance, wolfensteinSpan.silent );
+				horizonGain = HorizonGainAt( distance, lawSilent );
 			}
 		} else {
 			UpdateVoiceEnvironment( voice, voiceOrigin );
@@ -2240,6 +2267,8 @@ void Q3SoundWorld::ApplyVoice( SoundVoice &voice, qboolean softMuted ) {
 		device_->AL().alSourcei( voice.source, AL_SOURCE_RELATIVE, AL_FALSE );
 		if ( wolfenstein && useOpenALDistance ) {
 			device_->ConfigureSourceDistanceRange( voice.source, wolfensteinSpan.full, wolfensteinSpan.silent );
+		} else if ( mohaa && useOpenALDistance ) {
+			device_->ConfigureSourceDistanceRange( voice.source, mohaaSpan.full, mohaaSpan.silent );
 		} else {
 			device_->ConfigureSourceDistance( voice.source, worldDistance, referenceScale, rangeScale );
 		}
@@ -3132,7 +3161,9 @@ void Q3SoundWorld::Update( qboolean softMuted ) {
 			const float *voiceOrigin = voice.fixedOrigin ? voice.origin.Data() : entityOrigins_[voice.entnum].Data();
 			const SoundShaderSettings &shader = voice.sample->Shader();
 			const float rangeScale = shader.enabled ? shader.rangeScale : kDefaultSoundShaderScale;
-			if ( DistanceBetweenPoints( voiceOrigin, listenerOrigin_.Data() ) >= AudibilityHorizonDistance( rangeScale ) ) {
+			// A Medal of Honor loop is silent from its alias's max distance.
+			const float horizon = voice.mohaaMaxDist > 0.0f ? voice.mohaaMaxDist : AudibilityHorizonDistance( rangeScale );
+			if ( DistanceBetweenPoints( voiceOrigin, listenerOrigin_.Data() ) >= horizon ) {
 				if ( voice.source != 0 ) {
 					voice.ReleaseSource( *device_ );
 				}

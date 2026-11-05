@@ -1,0 +1,171 @@
+{
+ "record": "2026-10-31-mohaa-speech-and-sensitivity.md",
+ "date": "2026-10-31",
+ "profiles": [
+  "mohaa (changed and measured)",
+  "every other profile: unchanged paths, by unit tests"
+ ],
+ "evidence": [
+  "Source",
+  "Unit",
+  "Build",
+  "Live"
+ ],
+ "gatesClosed": [],
+ "report": "Medal of Honor still sluggish and unresponsive in m1l1's truck ride and on foot after it, launched from VS Code F5 (debugger); some speech missing, lines cut short; sounds not late",
+ "baseCommit": "a5b9ba530429ca0e0511c35412e54781ec081f91",
+ "platform": {
+  "os": "Windows 11 Home 10.0.26200",
+  "toolchain": "MSVC 2022 x86, strict warnings; GCC i686 -fsyntax-only -Wall -Wextra (WSL Ubuntu) on the five changed client sources",
+  "openal": "Creative router, Generic Software (wrap_oal.dll)"
+ },
+ "installation": {
+  "path": "E:\\Games\\Medal of Honor Allied Assault",
+  "version": "1.00 US",
+  "readOnly": true,
+  "mixer": "snddrivers/Mss32.dll and Mssfast.m3d (Miles)"
+ },
+ "runtimes": {
+  "before": {
+   "dir": ".tmp/runtime/mohaa-speech-before",
+   "source": "git archive of a5b9ba53 built like meson/build/win32-dev (debugoptimized, strict warnings, every development option, build-server false); renderer DLLs and packages copied from win32-dev, which this change does not touch",
+   "fntech3.exe": "ce58bdad7c5968f7dc041a681245650c1020ad9b0af807e057aad76e41e94006"
+  },
+  "after": {
+   "dir": "meson/build/win32-dev",
+   "source": "working tree: a5b9ba53 plus this change",
+   "fntech3.exe": "363884cad062cd6f5e9c9f4d8003b45dd5d3db787274cbd7798b4d8d7dd484bf",
+   "fnql_glx_x86.dll": "4db485f820b7c65ba7fd46bde90bbb4bfc3fe72ccd47ea2b5e89c48b614b61ec"
+  }
+ },
+ "commonCommandLine": "fntech3.exe +set fs_basepath <installation> +set fs_homepath <isolated> +set logfile 2 +set developer 0 +set r_fullscreen 0 +set r_mode -1 +set r_customwidth 1280 +set r_customheight 720 +set net_enabled 1 +set net_ip 127.0.0.1 +set net_port 12391 +set rconPassword probe +set sv_pure 0 +set g_gametype 0 +set s_volume 0 +set s_musicvolume 0 +set thereisnomonkey 1 +set in_synthetic 1 +set com_maxfpsUnfocused 0 +devmap m1l1; an empty configs/unnamedsoldier.cfg in the home; private desktop; rcon: finishloadingscreen, cmd god, cmd give all, cmd coord, three 'cmd script *1022 playsound dfr_M1L1_add0N', com_speeds 1; no input",
+ "frameTimeRuledOut": {
+  "note": "2026-10-31 runs of the build of 2026-10-29 (fntech3.exe sha256 prefix 9e902b1c17845bb8), m1l1 truck ride, no input; four uncapped runs comparing a debugger launch drove unapproved engine-queued input and are excluded",
+  "visibleDesktopDefaultCap": {
+   "glx": {
+    "fps": 124.8,
+    "meanMs": 2.26
+   },
+   "vk": {
+    "fps": 124.9,
+    "meanMs": 2.81
+   }
+  },
+  "vsyncForced": false,
+  "outputDebugStringTraffic": false
+ },
+ "sensitivity": {
+  "before": {
+   "sensitivity": "2 CVAR_ARCHIVE",
+   "cl_run": "1 CVAR_ARCHIVE_ND"
+  },
+  "after": {
+   "sensitivity": "5 CVAR_ARCHIVE",
+   "cl_run": "1 CVAR_ARCHIVE"
+  },
+  "sources": [
+   "OpenMoHAA code/client/cl_main.cpp CL_Init: cl_run 1 and sensitivity 5, both CVAR_ARCHIVE [O]",
+   "1.00 Pak0.pk3 av.cfg, decapitator.cfg, jason.cfg, nate.cfg, powzer.cfg: seta sensitivity \"5.000000\" (Observed)",
+   "1.00 Pak0.pk3 ui/controls.urc: slider linkcvar sensitivity, setrange 1 20, stepsize 1; Default button stuffcommand \"ui_resetcvars;exec default.cfg\"; no default.cfg sets sensitivity (Observed)"
+  ],
+  "live": {
+   "afterFreshHomeSaves": [
+    "seta cl_run \"1\"",
+    "seta sensitivity \"5\""
+   ],
+   "beforeFreshHomeSaves": [
+    "seta sensitivity \"2\""
+   ]
+  },
+  "savedValuesKept": "a config holding seta sensitivity \"2\" keeps it; the user's three VS Code MoHAA homes (.tmp/vscode/mohaa/glx, rtx, vk) do"
+ },
+ "aliasCensus": {
+  "tool": "every alias/aliascache line with soundparms in 1.00's ubersound scripts",
+  "total": 6443,
+  "minBelowMax": 6290,
+  "minEqualsMax": 153,
+  "minEqualsMaxValue": "10000/10000",
+  "minZero": 0,
+  "negative": 0,
+  "maxBelowMin": 0,
+  "m1l1": {
+   "160/1200 dialog streamed": 1528,
+   "300/1000 dialog streamed": 80,
+   "10000/10000 dialog streamed": 14,
+   "100/500 dialog streamed": 6
+  }
+ },
+ "lawBefore": {
+  "startCull": "one-shot refused beyond 1.15 x 1330 x sound-shader rangeScale (no Medal of Honor sound shaders: 1530 units), whatever the alias",
+  "loopCull": "no source beyond 1330 x rangeScale",
+  "reference": "min / 80 clamped to 0.5..2 times 80 units (at most 160)",
+  "range": "max / 1330 clamped to 0.5..3 times 1330 units (at most 3990), rolloff 1 / rangeScale; max <= min took 1330",
+  "eviction": "every voice judged against an 80-unit reference",
+  "example": "300/1000 line at 500 units, inverse clamped: 160 / (160 + 1.33 x 340) = 0.26"
+ },
+ "lawAfter": {
+  "header": "code/client/audio/shared/MOHAADistance.h (Resolve, Audible, Gain)",
+  "starts": "streamed: always; loaded: refused only beyond max (not the listener's own sounds, not local channels); max 0: never",
+  "device": "ConfigureSourceDistanceRange(min, max), unclamped, rolloff 1, HorizonGainAt(distance, max), nothing traced beyond max; no device model: straight line 1 - (d - min) / (max - min)",
+  "loops": "no source from max",
+  "eviction": "reference = the voice's min",
+  "example": "300/1000 line at 500 units: 0.6 inverse clamped, 0.714 linear clamped",
+  "reference": "OpenMoHAA snd_openal_new.cpp S_OPENAL_ShouldStart, S_OPENAL_Start2DSound, S_OPENAL_Respatialize, openal_channel::set_3d [O]"
+ },
+ "truckRide": {
+  "tool": "cdb -cf trace: CL_MOHAASoundStarted for 2015 channels 4, 7, 8 (request) and Q3SoundWorld::PlayOneShot for the engine voice channel (voice), FindEvictionCandidate; paired by entity, the voice logged just before its request",
+  "before": {
+   "requests": 85,
+   "voiced": 53,
+   "unvoiced": 32,
+   "evictions": 0,
+   "cutByNextOnSameChannel": 30,
+   "cutWithin40ms": 25
+  },
+  "after": {
+   "requests": 57,
+   "voiced": 57,
+   "unvoiced": 0,
+   "evictions": 0,
+   "cutByNextOnSameChannel": 2,
+   "cutAfterMs": [
+    454,
+    845
+   ]
+  },
+  "beforeUnvoicedByAliasSpans": {
+   "160/1200 only": 21,
+   "also 3000..10000 (160/1200+200/4000: 4; 10000/10000+160/3000: 1; 100/8000+160/1200: 1; 320/4000: 1; 320/3200: 1)": 8,
+   "300/1000": 3
+  },
+  "playerStart": [
+   1305.68,
+   -873.91,
+   843.52
+  ],
+  "caveat": "the two battles ran at different paces, so the requests are not the same lines; 'script *1022 playsound' raised no request in either run",
+  "earlierTrace": {
+   "build": "9e902b1c17845bb8 (2026-10-29)",
+   "requests": 77,
+   "cutByNextOnSameChannel": 16
+  }
+ },
+ "tests": {
+  "new": [
+   "tests/mohaa_sound_distance_tests.py"
+  ],
+  "updated": [
+   "tests/wolfenstein_openal_voice_tests.py",
+   "tests/rtcw_one_shot_tests.py",
+   "tests/rtcw_loop_audio_tests.py",
+   "tests/input_system_source_tests.py"
+  ],
+  "run": "50 test files that read or compile the changed audio, input and Medal of Honor client sources and the edited docs, the new one included: 375 passed, 1,103 subtests",
+  "build": "meson compile -C meson/build/win32-dev -j 4: 218 targets, strict warnings"
+ },
+ "notRun": [
+  "nobody listened to the output",
+  "the full pytest suite",
+  "1.00's own Miles distance law and takeover behaviour (MOHAA.exe is SafeDisc-encrypted)"
+ ]
+}

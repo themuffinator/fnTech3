@@ -228,16 +228,20 @@ inline NextSnapshot ScheduleSnapshot(int now, bool loopback, int lastPacketTime,
  * time that is not negative, over all 32 frames, unused ones included; 999 when
  * none qualifies or the mean is larger. */
 inline int Ping(const int *sent, const int *acked, int frames) {
-	int total = 0, count = 0;
+	/* Summed wide: an unused frame's send time is 0, so a client acking
+	 * unused frames on a level some 19 hours old adds sv.time 32 times,
+	 * which overflowed an int and gave a negative ping. */
+	std::int64_t total = 0;
+	int count = 0;
 	for (int i = 0; i < frames; ++i) {
-		const int delta = acked[i] - sent[i];
+		const std::int64_t delta = static_cast<std::int64_t>(acked[i]) - sent[i];
 		if (delta < 0) continue;
 		total += delta;
 		++count;
 	}
 	if (!count) return 999;
-	const int ping = total / count;
-	return ping > 999 ? 999 : ping;
+	const std::int64_t ping = total / count;
+	return ping > 999 ? 999 : static_cast<int>(ping);
 }
 
 } // namespace fntech3::q3ihv::server

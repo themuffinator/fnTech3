@@ -2141,6 +2141,14 @@ menu_blur_tests = executable('fnql_menu_blur_tests',
   cpp_args: common_cpp_args,
 )
 test('fnql_menu_blur', menu_blur_tests)
+
+q_shared_text_tests = executable('fntech3_q_shared_text_tests',
+  'tests/q_shared_text_tests.cpp',
+  'code/qcommon/q_shared.c',
+  c_args: common_c_args,
+  cpp_args: common_cpp_args,
+)
+test('fntech3_q_shared_text', q_shared_text_tests)
 test('fnql_menu_blur_source', python,
   args: files('tests/menu_blur_source_tests.py'),
 )

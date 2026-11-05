@@ -63,6 +63,15 @@ inline Hsv RgbToHsv( const Rgba &c ) {
 	return out;
 }
 
+/* Whether a float is finite, read from its bits so that a fast-math build
+ * cannot assume it away. */
+inline bool FiniteColor( float value ) {
+	std::uint32_t bits;
+	std::memcpy( &bits, &value, sizeof( bits ) );
+	volatile std::uint32_t encoded = bits;
+	return ( encoded & 0x7f800000u ) != 0x7f800000u;
+}
+
 /* HSV to RGB (0x004cd950): six sectors of sixty degrees. */
 inline Rgba HsvToRgb( const Hsv &c ) {
 	Rgba out;
@@ -72,6 +81,14 @@ inline Rgba HsvToRgb( const Hsv &c ) {
 		return out;
 	}
 	const float h = ( c.h == 360.0f ? 0.0f : c.h ) * ( 1.0f / 60.0f );
+	/* A `.urc` colour of `nan` or `inf` (atof reads both) gives a hue no
+	 * sector holds, and converting it to an int is undefined: such a hue
+	 * takes retail's unknown-sector path and leaves the colour as it was.
+	 * Every finite hue keeps retail's sector (truncation toward zero puts
+	 * (-1, 0) in sector 0, and anything else outside 0..5 in none). */
+	if ( !FiniteColor( h ) || h <= -1.0f || h >= 6.0f ) {
+		return out;
+	}
 	const int sector = static_cast<int>( h );
 	const float f = h - static_cast<float>( sector );
 	const float p = ( 1.0f - c.s ) * c.v;

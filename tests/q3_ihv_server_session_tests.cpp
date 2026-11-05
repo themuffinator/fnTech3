@@ -171,7 +171,24 @@ static void Gamestate() {
 	std::printf("IHV server gamestate: %zu bytes, ok\n",message.Size());
 }
 
+/* SV_CalcPings' mean over 32 frames (found by fuzzing, 2026-11-04): an
+ * unused frame was sent at 0, so on a level ~19 hours old a client acking
+ * unused frames summed sv.time 32 times and overflowed an int. */
+static void Pings() {
+	int sent[32]={},acked[32]={};
+	for(int i=0;i<32;++i)acked[i]=70000000;
+	CHECK(sv::Ping(sent,acked,32)==999);
+	for(int i=0;i<32;++i){sent[i]=1000*i;acked[i]=1000*i+40+i;}
+	CHECK(sv::Ping(sent,acked,32)==40+31/2);
+	for(int i=0;i<32;++i){sent[i]=0;acked[i]=0x7fffff00;}
+	CHECK(sv::Ping(sent,acked,32)==999);
+	sent[0]=10;acked[0]=5;for(int i=1;i<32;++i){sent[i]=100;acked[i]=100;}
+	CHECK(sv::Ping(sent,acked,32)==0);
+	for(int i=0;i<32;++i){sent[i]=50;acked[i]=10;}
+	CHECK(sv::Ping(sent,acked,32)==999);
+}
+
 int main() {
-	Writes();Reads();Moves();Replies();Gamestate();
+	Writes();Reads();Moves();Replies();Gamestate();Pings();
 	return 0;
 }

@@ -121,6 +121,21 @@ static int unzlocal_getByte(FILE *fin,int *pi)
 }
 */
 
+/* Little-endian fields of a header already read into memory, assembled a
+   byte at a time: the buffer's offsets (38 and 42 among them) are not
+   aligned for a type-punned load, and a zip's 16-bit fields are unsigned,
+   as unzlocal_getShort reads them, where a load through short sign-extended
+   any value of 0x8000 or more. */
+static uLong unzlocal_le16( const byte *p )
+{
+	return (uLong)p[0] | ( (uLong)p[1] << 8 );
+}
+
+static uLong unzlocal_le32( const byte *p )
+{
+	return (uLong)p[0] | ( (uLong)p[1] << 8 ) | ( (uLong)p[2] << 16 ) | ( (uLong)p[3] << 24 );
+}
+
 /* ===========================================================================
    Reads a long in LSB order from the given gz_stream. Sets 
 */
@@ -525,22 +540,22 @@ static int unzlocal_GetCurrentFileInfoInternal (unzFile file,
 	//	return UNZ_BADZIPFILE;
 	if ( memcmp( buf, "\x50\x4b\x01\x02", 4 ) != 0 )
 		return UNZ_BADZIPFILE;
-	file_info.version = LittleShort( *(short*)(buf+4) );
-	file_info.version_needed  = LittleShort( *(short*)(buf+6) );
-	file_info.flag = LittleShort( *(short*)(buf+8) );
-	file_info.compression_method = LittleShort( *(short*)(buf+10) );
-	file_info.dosDate = LittleLong( *(int*)(buf+12) );
+	file_info.version = unzlocal_le16( buf+4 );
+	file_info.version_needed  = unzlocal_le16( buf+6 );
+	file_info.flag = unzlocal_le16( buf+8 );
+	file_info.compression_method = unzlocal_le16( buf+10 );
+	file_info.dosDate = unzlocal_le32( buf+12 );
 	unzlocal_DosDateToTmuDate( file_info.dosDate, &file_info.tmu_date );
-	file_info.crc = LittleLong( *(int*)(buf+16) );
-	file_info.compressed_size = LittleLong( *(int*)(buf+20) );
-	file_info.uncompressed_size = LittleLong( *(int*)(buf+24) );
-	file_info.size_filename = LittleShort( *(short*)(buf+28) );
-	file_info.size_file_extra = LittleShort( *(short*)(buf+30) );
-	file_info.size_file_comment = LittleShort( *(short*)(buf+32) );
-	file_info.disk_num_start = LittleShort( *(short*)(buf+34) );
-	file_info.internal_fa = LittleShort( *(short*)(buf+36) );
-	file_info.external_fa = LittleLong( *(int*)(buf+38) );
-	file_info_internal.offset_curfile = LittleLong( *(int*)(buf+42) );
+	file_info.crc = unzlocal_le32( buf+16 );
+	file_info.compressed_size = unzlocal_le32( buf+20 );
+	file_info.uncompressed_size = unzlocal_le32( buf+24 );
+	file_info.size_filename = unzlocal_le16( buf+28 );
+	file_info.size_file_extra = unzlocal_le16( buf+30 );
+	file_info.size_file_comment = unzlocal_le16( buf+32 );
+	file_info.disk_num_start = unzlocal_le16( buf+34 );
+	file_info.internal_fa = unzlocal_le16( buf+36 );
+	file_info.external_fa = unzlocal_le32( buf+38 );
+	file_info_internal.offset_curfile = unzlocal_le32( buf+42 );
 #else
 
 	/* we check the magic */

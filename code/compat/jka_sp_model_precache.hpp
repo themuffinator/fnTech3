@@ -69,7 +69,12 @@ public:
 		return entry && entry->skeleton.version==model::SkeletonVersion
 			? entries_[std::size_t(handle)]->internalName.data() : emptyName_;
 	}
-	PrecacheResult Register(const char *name) {
+	/* A mesh's animation is registered with skeletonOnly: the file it names
+	 * must be a skeleton. Without that, a .gla that was itself a mesh naming
+	 * the next one recursed once a link, 1,022 deep through every slot in a
+	 * crafted pak's chain (~200 KB of stack at -O2, more in debug builds),
+	 * before the first link's skeleton check refused it anyway. */
+	PrecacheResult Register(const char *name,bool skeletonOnly=false) {
 		char folded[64]{};
 		if (!name || !name[0]) return {0,PrecacheError::Name};
 		std::size_t length=0;
@@ -120,7 +125,7 @@ public:
 			if (model::ParseSkeleton(entry->bytes.data(),size,entry->skeleton)!=model::Error::None)
 				return Fail(*entry);
 			std::memcpy(entry->internalName.data(),entry->bytes.data()+8,64);
-		} else if (reader.Unsigned(0)==model::MeshIdent) {
+		} else if (reader.Unsigned(0)==model::MeshIdent && !skeletonOnly) {
 			if (model::ParseMesh(entry->bytes.data(),size,0,entry->mesh)!=model::Error::None)
 				return Fail(*entry);
 			std::memcpy(entry->animationName.data(),entry->bytes.data()+entry->mesh.animNameOffset,64);
@@ -131,7 +136,7 @@ public:
 			}
 			if (!at || at>59) return Fail(*entry);
 			std::memcpy(animation+at,".gla",5);
-			const PrecacheResult registered=Register(animation);
+			const PrecacheResult registered=Register(animation,true);
 			if (!registered.handle) {
 				entry->error=registered.error;
 				return Fail(*entry);

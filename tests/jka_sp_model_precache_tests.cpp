@@ -131,5 +131,14 @@ int main() {
 	assert(registry.Count()==1023 && registry.Register("overflow").error==sp::PrecacheError::Full);
 	assert(registry.Register("MISSING1").error==sp::PrecacheError::Missing && files.reads==fullReads);
 	registry.Clear();assert(registry.Register("models/test/animation.gla").handle==1);
+	/* A mesh's animation must be a skeleton (2026-11-04): a .gla that is
+	 * itself a mesh naming the next stops at the first link, where it had
+	 * recursed once per link through every slot. */
+	registry.Clear();
+	for (int i=0;i<16;++i)
+		files.files["chain/"+std::to_string(i)+".gla"]=Mesh(("chain/"+std::to_string(i+1)).c_str());
+	files.files["chain.glm"]=Mesh("chain/0");
+	assert(registry.Register("chain.glm").error==sp::PrecacheError::Malformed);
+	assert(registry.Count()==2 && registry.Register("chain/0.gla").error==sp::PrecacheError::Malformed);
 	return 0;
 }

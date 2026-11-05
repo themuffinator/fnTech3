@@ -30,10 +30,25 @@ historical upstream records, not fnTech3 release history. See the
   Steam install is found from the game's own folder. In every game, the
   Vulkan renderers survive a minimised window or a renderer restart after a
   driver fault, and `com_speeds` reports renderer time again.
+- Harden the readers that take files and packets from outside. An Elite
+  Force single-player save can no longer change settings other than the
+  player's own (a crafted save could turn on cheats or point the game at
+  another driver), a pk3 whose entries carry large extra data is read in
+  full, and console commands, Jedi Academy scripts and models, Alice's menus
+  and Ritual fonts with damaged values are refused instead of misread. On
+  Linux, `com_speeds` and the renderers' timings read a steady clock
+  ([record](docs/fntech3/2026-11-04-hardening-round.md)).
 - Fade Medal of Honor's sound when a level ends or restarts, as the game asks.
   The command had reached the client game, which reported it as unknown, and
   the loading bar now recognises model definitions that are already loaded
   ([record](docs/fntech3/2026-10-14-compatibility-round.md)).
+- Let Medal of Honor's speech carry as far as the game asks. A line meant for
+  the whole level was never started more than about 1,500 units away, and
+  nearby speech was quieter than its sound list sets; each sound now plays
+  across its own range, and a spoken line starts wherever you are. Mouse
+  sensitivity now starts at the game's own 5 rather than 2, which turned the
+  view slowly; a saved setting is kept
+  ([record](docs/fntech3/2026-10-31-mohaa-speech-and-sensitivity.md)).
 - Draw Jedi Academy's lightsaber glow and core lines as the original renderer
   builds them, checked against its own vertices; a recorded match no longer
   stops at the first lit saber

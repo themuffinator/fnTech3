@@ -415,7 +415,7 @@ void CheckCommandRoundTrip() {
 				command.angles[i] = static_cast<std::int16_t>( Next( seed ) );
 				command.move[i] = static_cast<std::int8_t>( Next( seed ) );
 			}
-			if ( near ) command.serverTime = from.serverTime + 17;
+			if ( near ) command.serverTime = static_cast<std::int32_t>( static_cast<std::uint32_t>( from.serverTime ) + 17u );
 		};
 		fill( from, false );
 		fill( to, trial % 2 == 0 );
@@ -438,6 +438,25 @@ void CheckCommandRoundTrip() {
 	Expect( WriteCommand( distant, &from, &far ), "write a far command" );
 	Expect( close.Cursor() == 9u + 8u, "a near time costs a flag and a byte" );
 	Expect( distant.Cursor() == 33u + 8u, "a far time costs a flag and a long" );
+
+	/* Times at the ends of an int (found by fuzzing, 2026-11-04): the step
+	 * is taken in 32-bit modular arithmetic, so a step across 0x7fffffff
+	 * neither overflows nor changes the bits a near or far time costs. */
+	Command top{}, past{}, bottom{}, decoded{};
+	top.serverTime = INT32_MAX;
+	past.serverTime = INT32_MIN + 254;	/* 255 after INT32_MAX */
+	bottom.serverTime = INT32_MIN;
+	Bits wrap, span;
+	Expect( WriteCommand( wrap, &top, &past ), "write a step across the top" );
+	Expect( wrap.Cursor() == 9u + 8u, "a step of 255 across the top costs a byte" );
+	wrap.Rewind();
+	Expect( ReadCommand( wrap, &top, &decoded ) && decoded.serverTime == past.serverTime,
+		"a step of 255 from INT32_MAX reads back modular" );
+	Expect( WriteCommand( span, &bottom, &top ), "write the widest difference" );
+	Expect( span.Cursor() == 33u + 8u, "the widest difference is sent whole" );
+	span.Rewind();
+	Expect( ReadCommand( span, &bottom, &decoded ) && decoded.serverTime == INT32_MAX,
+		"the whole time reads back" );
 }
 
 /* The engine's command crossing into Alice's twenty bytes. The retail

@@ -3935,7 +3935,8 @@ class EliteForceInputSourceTests(unittest.TestCase):
             'cl_maxpackets = Cvar_Get( "cl_maxpackets", "125", CVAR_ARCHIVE | CVAR_CHEAT );',
         )
         # Single player walks unless +speed is held; Holomatch runs. Both
-        # register sensitivity 5.
+        # register sensitivity 5, and so does Medal of Honor, whose 1.00
+        # player configs all save 5.000000 (OpenMoHAA's CL_Init agrees).
         assert_order(
             self,
             init,
@@ -3943,6 +3944,9 @@ class EliteForceInputSourceTests(unittest.TestCase):
             'cl_run = Cvar_Get( "cl_run", "0", CVAR_ARCHIVE );',
             'cl_sensitivity = Cvar_Get( "sensitivity", "5", CVAR_ARCHIVE );',
             "} else if ( eliteForce ) {",
+            'cl_run = Cvar_Get( "cl_run", "1", CVAR_ARCHIVE );',
+            'cl_sensitivity = Cvar_Get( "sensitivity", "5", CVAR_ARCHIVE );',
+            "} else if ( Com_GameIsMOHAA() ) {",
             'cl_run = Cvar_Get( "cl_run", "1", CVAR_ARCHIVE );',
             'cl_sensitivity = Cvar_Get( "sensitivity", "5", CVAR_ARCHIVE );',
             "} else {",

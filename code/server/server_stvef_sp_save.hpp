@@ -285,12 +285,25 @@ void SV_STVEFSPReadCvars( STVEFSPSaveReader &reader ) {
 	for ( std::int32_t i = 0; i < count; ++i ) {
 		char *name = nullptr;
 		char *string = nullptr;
+		char cvarName[MAX_STRING_CHARS];
 		SV_STVEFSPReadChunk( reader, savegame::CvarName, nullptr, 0, reinterpret_cast<void **>( &name ), false );
-		SV_STVEFSPReadChunk( reader, savegame::CvarValue, nullptr, 0, reinterpret_cast<void **>( &string ), false );
-		if ( name && string ) {
-			Cvar_Set( name, string );
+		if ( !name ) {
+			continue;
 		}
-		if ( name ) Z_Free( name );
+		// Kept on the stack and freed before the value is read: a damaged
+		// value chunk drops the load (ERR_DROP), which used to leak the name.
+		Q_strncpyz( cvarName, name, sizeof( cvarName ) );
+		Z_Free( name );
+		SV_STVEFSPReadChunk( reader, savegame::CvarValue, nullptr, 0, reinterpret_cast<void **>( &string ), false );
+		// Only the userinfo cvars the writer saves (retail's SG_WriteCvars
+		// writes the same set) are restored. Cvar_Set forces past ROM, INIT,
+		// CHEAT and protection, so a crafted save had been able to set any
+		// cvar at all -- sv_cheats, fs_game, or a GL driver path that the
+		// next vid_restart loads.
+		const unsigned flags = Cvar_Flags( cvarName );
+		if ( string && flags != CVAR_NONEXISTENT && ( flags & CVAR_USERINFO ) ) {
+			Cvar_Set( cvarName, string );
+		}
 		if ( string ) Z_Free( string );
 	}
 }

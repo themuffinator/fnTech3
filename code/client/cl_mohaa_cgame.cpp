@@ -684,12 +684,12 @@ std::map<sfxHandle_t, std::string> soundNames;
 constexpr int kSoundWaitedFlag = 0x400;
 
 /* A sound with its alias's volume, distances and pitch; a value below zero is
- * the alias's "none", which the backend fills in. Streaming is the backend's
- * own choice. A waited sound is its entity's like any other, and the local
- * server's game is told which channel took it. */
+ * the alias's "none", which the backend fills in. Whether the alias streams
+ * decides only where the sound may start (shared/MOHAADistance.h); how it is
+ * read is the backend's own choice. A waited sound is its entity's like any
+ * other, and the local server's game is told which channel took it. */
 void QDECL StartSound( const vec3_t origin, int entityNumber, int channel, sfxHandle_t sfx, float volume,
 	float minDist, float pitch, float maxDist, int streamed ) {
-	(void)streamed;
 	if ( sfx <= 0 ) {
 		return;
 	}
@@ -700,7 +700,8 @@ void QDECL StartSound( const vec3_t origin, int entityNumber, int channel, sfxHa
 	if ( entityNumber < 0 || entityNumber >= MAX_GENTITIES ) {
 		entityNumber = ENTITYNUM_WORLD;
 	}
-	S_StartMOHAASound( origin, entityNumber, EngineChannel( channel ), sfx, volume, minDist, maxDist, pitch, channel );
+	S_StartMOHAASound( origin, entityNumber, EngineChannel( channel ), sfx, volume, minDist, maxDist, pitch, channel,
+		streamed ? qtrue : qfalse );
 	const auto name = soundNames.find( sfx );
 	const char *sound = name != soundNames.end() ? name->second.c_str() : "";
 	const int id = CL_MOHAASoundStarted( entityNumber, channel, sound, pitch, waited );

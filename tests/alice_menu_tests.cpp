@@ -24,6 +24,7 @@ General Public License, version 2 or (at your option) any later version.
 
 #include <cmath>
 #include <iostream>
+#include <limits>
 
 #define CHECK( x ) do { if ( !( x ) ) { \
 	std::cerr << __LINE__ << ": " #x "\n"; std::exit( 1 ); } } while ( 0 )
@@ -59,6 +60,19 @@ void TestColours() {
 	const Rgba flat = HsvToRgb( { 120.0f, 0.03f, 0.4f, 0.5f } );
 	// Cast inexact literals: GCC's i686 x87 C++ keeps a bare 0.4f at long double precision.
 	CHECK( flat.r == float( 0.4f ) && flat.g == float( 0.4f ) && flat.b == float( 0.4f ) && flat.a == 0.5f );
+	// A hue no sector holds -- a `.urc` colour of nan or inf, which atof reads
+	// (found by fuzzing, 2026-11-04) -- takes retail's unknown-sector path and
+	// leaves the colour as it was, without converting the hue to an int.
+	for ( const float hue : { std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::infinity(),
+		-std::numeric_limits<float>::infinity(), 1.0e30f, 360.5f, -60.0f } ) {
+		const Rgba none = HsvToRgb( { hue, 0.5f, 0.5f, 0.25f } );
+		CHECK( none.r == 0.0f && none.g == 0.0f && none.b == 0.0f && none.a == 0.25f );
+	}
+	// A hue just below zero (a grey's -1 degree) keeps retail's sector 0.
+	const Rgba belowZero = HsvToRgb( { -1.0f, 0.5f, 0.8f, 1.0f } );
+	CHECK( belowZero.r == float( 0.8f ) && belowZero.b == float( 0.4f ) );
+	const BorderColor nanBorder = MakeBorderColor( { std::numeric_limits<float>::quiet_NaN(), 5.0f, 0.0f, 1.0f } );
+	CHECK( nanBorder.original.a == 1.0f );
 
 	BoxEdge raised[6], indented[6];
 	Box3DEdges( 10.0f, 20.0f, 100.0f, 16.0f, false, raised );

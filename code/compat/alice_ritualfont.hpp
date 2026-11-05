@@ -33,6 +33,7 @@
 
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <string>
@@ -128,6 +129,18 @@ inline bool EqualsNoCase( const std::string &a, const char *b ) {
 inline int ToInt( const std::string &token ) { return std::atoi( token.c_str() ); }
 inline float ToFloat( const std::string &token ) { return static_cast<float>( std::atof( token.c_str() ) ); }
 
+/* A metric the layout code can carry in an int whatever atof made of the
+ * file: finite (read from the bits, which a fast-math build cannot assume
+ * away) and within 65,536 pixels. Retail fonts' metrics are a few hundred at
+ * most; a NaN, an infinity or 1e10 had reached the int conversions in the
+ * metrics below, which is undefined. */
+inline bool Usable( float value ) {
+	std::uint32_t bits;
+	std::memcpy( &bits, &value, sizeof( bits ) );
+	volatile std::uint32_t encoded = bits;
+	return ( encoded & 0x7f800000u ) != 0x7f800000u && value > -65536.0f && value < 65536.0f;
+}
+
 } // namespace detail
 
 /* Parses a font file. On failure `error` names the reason and the font must
@@ -164,6 +177,9 @@ inline bool Parse( const char *text, std::size_t length, Font &font, std::string
 				glyph.t = detail::ToFloat( tokens.Next() ) * font.aspect * ( 1.0f / 256.0f );
 				glyph.width = detail::ToFloat( tokens.Next() ) * ( 1.0f / 256.0f );
 				glyph.height = detail::ToFloat( tokens.Next() ) * font.aspect * ( 1.0f / 256.0f );
+				if ( !detail::Usable( glyph.s ) || !detail::Usable( glyph.t )
+					|| !detail::Usable( glyph.width ) || !detail::Usable( glyph.height ) )
+					return fail( "location out of range" );
 				if ( tokens.Next() != "}" ) return fail( "location without '}'" );
 			}
 			if ( tokens.Next() != "}" ) return fail( "locations without '}'" );
@@ -180,6 +196,8 @@ inline bool Parse( const char *text, std::size_t length, Font &font, std::string
 		return fail( "unknown token '" + token + "'" );
 	}
 	if ( font.height == 0.0f || font.aspect == 0.0f ) return fail( "zero height or aspect" );
+	if ( !detail::Usable( font.height ) || !detail::Usable( font.aspect ) )
+		return fail( "height or aspect out of range" );
 	return true;
 }
 
@@ -207,7 +225,9 @@ inline int StringWidth( const Font *font, const char *text, int maxLength = -1 )
 		line += font->locations[index].width * ( c == '\t' ? 3.0f : 1.0f );
 		if ( line > widest ) widest = line;
 	}
-	return static_cast<int>( widest * 256.0f );
+	/* Usable widths can still add up past an int over a long enough line. */
+	const float pixels = widest * 256.0f;
+	return pixels >= 2147483520.0f ? 2147483647 : static_cast<int>( pixels );
 }
 
 /* One character's width in unscaled pixels (UIFont::charWidth 0x004c5860):

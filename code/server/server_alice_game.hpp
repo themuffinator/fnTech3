@@ -678,7 +678,7 @@ int QDECL SV_AliceSoundIndex( const char *name ) {
  * zero means none -- retail's own table at 0x006a0070 holds it that way. The
  * array holds Alice's 512; F.A.K.K.2's block is 384, and its layout bounds it. */
 enum { FNTECH3_ALICE_MAX_MODELS = 0x200 };
-static_assert( FNTECH3_FAKK2_MAX_MODELS <= FNTECH3_ALICE_MAX_MODELS,
+static_assert( (int)FNTECH3_FAKK2_MAX_MODELS <= (int)FNTECH3_ALICE_MAX_MODELS,
 	"one table serves both titles' model blocks" );
 int aliceModelTiki[FNTECH3_ALICE_MAX_MODELS];
 

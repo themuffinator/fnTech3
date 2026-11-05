@@ -259,8 +259,11 @@ def spatial():
     declarations = scope[scope.index('\tconst bool listenerAttached'):scope.index('\tconst bool stereoSample')]
     block = scope[scope.index('\tSpatialParams spatial;'):scope.index('\n\tfloat gain =')]
     return COMMON + r'''
+#include "code/client/audio/shared/MOHAADistance.h"
 struct SpatialParams {float gain=0,pan=0;};
 static bool IsLocalOnlyChannel(int channel){return channel==1||channel==6||channel==7;}
+// Medal of Honor's alias law is checked by wolfenstein_openal_voice_tests.
+static float DistanceBetweenPoints(const float *,const float *){assert(false);return 0;}
 // Elite Force's own measuring is checked by stvef_sp_sound_distance_tests.
 static bool Com_GameIsSTVEFSP(){return false;}
 static float S_STVEFSeparation(){return 0.5f;}
@@ -271,6 +274,7 @@ static SpatialParams calculate(bool shot,bool loop,int entity,int channel,const 
   voice{shot,loop,entity,channel,{},false,0,false};
  voice.rtcwLoopData.volume=255;
  const int listenerNumber_=0;const float referenceScale=1,rangeScale=1;
+ const bool mohaa=false;const fntech3::audio::mohaa::Span mohaaSpan{};
  struct {float value[3]{};const float *Data()const{return value;}}listenerOrigin_;
  const float listenerAxis_[3][3]={{1,0,0},{0,1,0},{0,0,1}};
  float fullLevel=1.0f;

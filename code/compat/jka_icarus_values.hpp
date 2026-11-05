@@ -173,8 +173,11 @@ inline ValueError ReadValues( const void *data, std::size_t bytes, ScriptValues 
 		if ( !next( typeMember ) ) return false;
 		float tag = 0.0f;
 		if ( !number( typeMember, tag ) ) return false;
-		const std::int32_t whole = static_cast<std::int32_t>( tag );
-		if ( float( whole ) != tag || !IsTypeNumber( whole ) ) {
+		/* Range first: converting a float an int cannot hold (a huge value,
+		 * an infinity, a NaN, which fails both comparisons) is undefined. */
+		const bool inRange = tag >= -2147483648.0f && tag < 2147483648.0f;
+		const std::int32_t whole = inRange ? static_cast<std::int32_t>( tag ) : 0;
+		if ( !inRange || float( whole ) != tag || !IsTypeNumber( whole ) ) {
 			failure = ValueError::Type;
 			return false;
 		}

@@ -299,6 +299,86 @@ class STVEFSPSavegameTests(unittest.TestCase):
             ran = subprocess.run([str(binary)], capture_output=True, text=True, timeout=60, **options)
             self.assertEqual(ran.returncode, 0, ran.stdout + ran.stderr)
 
+    def test_a_save_restores_only_its_userinfo_cvars(self):
+        """A save's cvar chunks reach only existing userinfo cvars (found
+        2026-11-04): Cvar_Set forces past ROM, INIT, CHEAT and protection, so
+        a crafted save had set sv_cheats, fs_game or a GL driver path. The
+        writer, retail's included, saves the userinfo cvars alone, and a value
+        chunk that drops the load must not leak the name read before it."""
+        compiler = shutil.which('clang++') or shutil.which('g++')
+        if not compiler:
+            self.skipTest('C++17 compiler unavailable')
+        reader = function(self.save, 'void SV_STVEFSPReadCvars( STVEFSPSaveReader &reader )')
+        source = r'''
+#include <csetjmp>
+#include <cstdint>
+#include <cstdlib>
+#include <cstring>
+#include <map>
+#include <string>
+#include <vector>
+#define MAX_STRING_CHARS 1024
+#define CVAR_USERINFO 0x0002
+#define CVAR_ROM 0x0040
+#define CVAR_NONEXISTENT 0x80000000u
+struct STVEFSPSaveReader { int unused; };
+namespace savegame { enum : std::uint32_t { CvarCount = 1, CvarName, CvarValue }; }
+static std::vector<std::pair<std::uint32_t, std::string>> chunks;
+static std::size_t next;
+static std::map<std::string, unsigned> flags;
+static std::map<std::string, std::string> values;
+static int live;
+static std::jmp_buf dropped;
+static void Z_Free( void *memory ) { --live; std::free( memory ); }
+static void Q_strncpyz( char *to, const char *from, int size ) { std::strncpy( to, from, size - 1 ); to[size - 1] = 0; }
+static unsigned Cvar_Flags( const char *name ) { auto found = flags.find( name ); return found == flags.end() ? CVAR_NONEXISTENT : found->second; }
+static void Cvar_Set( const char *name, const char *value ) { values[name] = value; }
+static std::int32_t SV_STVEFSPReadChunk( STVEFSPSaveReader &, std::uint32_t id, void *address, std::int32_t,
+	void **pointer, bool ) {
+	if ( next >= chunks.size() || chunks[next].first != id ) std::longjmp( dropped, 1 );
+	const std::string &data = chunks[next++].second;
+	if ( address ) { std::memcpy( address, data.data(), data.size() ); return (std::int32_t)data.size(); }
+	char *copy = (char *)std::calloc( 1, data.size() + 1 ); ++live;
+	std::memcpy( copy, data.data(), data.size() ); *pointer = copy;
+	return (std::int32_t)data.size();
+}
+READER
+static void Count( int count ) { chunks.push_back( { savegame::CvarCount, std::string( (const char *)&count, 4 ) } ); }
+static void Pair( const char *name, const char *value ) {
+	chunks.push_back( { savegame::CvarName, name } ); chunks.push_back( { savegame::CvarValue, value } );
+}
+int main() {
+	flags = { { "name", CVAR_USERINFO }, { "model", CVAR_USERINFO | CVAR_ROM },
+		{ "sv_cheats", CVAR_ROM }, { "fs_game", 0x10 }, { "r_glDriver", 0x20 } };
+	STVEFSPSaveReader reader{};
+	Count( 6 );
+	Pair( "name", "Munro" ); Pair( "model", "munro/default" ); Pair( "sv_cheats", "1" );
+	Pair( "fs_game", "evil" ); Pair( "r_glDriver", "C:/evil.dll" ); Pair( "invented", "x" );
+	if ( setjmp( dropped ) ) return 10;
+	SV_STVEFSPReadCvars( reader );
+	if ( values.size() != 2 || values["name"] != "Munro" || values["model"] != "munro/default" ) return 11;
+	if ( live != 0 ) return 12;
+	// a value chunk missing after its name drops the load without a leak
+	chunks.clear(); next = 0; values.clear();
+	Count( 1 ); chunks.push_back( { savegame::CvarName, "name" } );
+	if ( !setjmp( dropped ) ) { SV_STVEFSPReadCvars( reader ); return 13; }
+	if ( live != 0 || !values.empty() ) return 14;
+	return 0;
+}
+'''.replace('READER', reader)
+        target = compiler_target_args(compiler)
+        (ROOT / '.tmp').mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix='stvef-sp-cvars-', dir=ROOT / '.tmp') as folder:
+            cpp = Path(folder) / 'probe.cpp'
+            binary = Path(folder) / ('probe.exe' if os.name == 'nt' else 'probe')
+            cpp.write_text(source, encoding='utf-8')
+            built = subprocess.run([compiler, *target, '-std=c++17', str(cpp), '-o', str(binary)],
+                                   capture_output=True, text=True, timeout=180, cwd=ROOT)
+            self.assertEqual(built.returncode, 0, built.stdout + built.stderr)
+            options = {'creationflags': subprocess.CREATE_NO_WINDOW} if os.name == 'nt' else {}
+            ran = subprocess.run([str(binary)], capture_output=True, text=True, timeout=60, **options)
+            self.assertEqual(ran.returncode, 0, ran.stdout + ran.stderr)
+
     def test_retail_messages_are_kept(self):
         text = self.save
         for message in RETAIL_MESSAGES:

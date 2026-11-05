@@ -50,6 +50,7 @@ def prelude():
 #include "code/client/audio/shared/RTCWLoops.h"
 #include "code/client/audio/shared/RTCWMix.h"
 #include "code/client/audio/shared/STVEFAmbient.h"
+#include "code/client/audio/shared/MOHAADistance.h"
 #include "code/client/audio/shared/AudioOcclusion.h"
 #include "code/client/audio/shared/AudioTonePolicy.h"
 #include <array>
@@ -309,6 +310,14 @@ int main() {
 	SoundVoice silent = shot( 200, CHAN_WEAPON, 1400, 0, 0 );
 	apply( silent );
 	assert( world.device.gain == 0.0f );
+	// A Medal of Honor voice plays its alias's straight line from its min
+	// distance to its max, without a pan.
+	SoundVoice moh; moh.sample = &mono; moh.entchannel = CHAN_VOICE;
+	const float midway[3] = { 650, 0, 0 }; moh.origin.Set( midway );
+	moh.mohaaMinDist = 300.0f; moh.mohaaMaxDist = 1000.0f;
+	apply( moh );
+	assert( world.device.rangeCalls == 0 && world.device.distanceCalls == 1 && world.device.spatialize == 1 );
+	assert( near( world.device.gain, 0.5f ) && moh.debugPan == 0.0f && !generic );
 	world.device.distanceModel = true;
 }
 ''',
@@ -334,20 +343,33 @@ int main() {
 	assert( world.device.spatialize == 1 && world.device.rangeCalls == 0 && world.device.distanceCalls == 1 );
 	assert( world.device.worldDistance && world.device.referenceScale == 1.0f && world.device.gain == 1.0f && generic == 1 );
 	assert( world.device.rangeScale == 1.0f && world.device.pitch == 1.0f );
-	// A Medal of Honor voice carries its alias's distances and pitch into the
-	// device's reference and range scales: full volume inside its min distance,
-	// the device's rolloff out to its max.
-	SoundVoice moh; moh.sample = &mono; moh.origin.Set( at ); moh.entchannel = CHAN_WEAPON;
-	moh.mohaaMinDist = 2.0f * kOpenALReferenceDistance; moh.mohaaMaxDist = 3.0f * kOpenALMaxDistance; moh.mohaaPitch = 1.25f;
+	// A Medal of Honor voice carries its alias's span, unclamped, into the
+	// device's own model: full volume inside its min distance, the device's
+	// rolloff out to its max, traced and sent to the room, at its pitch.
+	SoundVoice moh; moh.sample = &mono; moh.origin.Set( at ); moh.entchannel = CHAN_VOICE;
+	moh.mohaaMinDist = 300.0f; moh.mohaaMaxDist = 1000.0f; moh.mohaaPitch = 1.25f;
+	traces = 0;
 	apply( moh );
-	assert( world.device.spatialize == 1 && world.device.distanceCalls == 1 && world.device.rangeCalls == 0 && world.device.worldDistance );
-	assert( near( world.device.referenceScale, 2.0f ) && near( world.device.rangeScale, 3.0f ) && world.device.pitch == 1.25f );
-	// A max distance no farther than its min keeps the engine's range, and the
-	// pitch stays within the voices' clamp.
-	moh.mohaaMaxDist = moh.mohaaMinDist; moh.mohaaPitch = 4.0f;
+	assert( world.device.spatialize == 1 && world.device.rangeCalls == 1 && world.device.distanceCalls == 0 );
+	assert( world.device.reference == 300.0f && world.device.maximum == 1000.0f && world.device.pitch == 1.25f );
+	assert( world.device.gain == 1.0f && traces == 1 && moh.debugWetGain > 0.0f && same( moh.debugToneClass, "voice" ) );
+	// A line meant for everyone is heard at full volume far past the engine's
+	// own range, and the pitch stays within the voices' clamp.
+	moh.mohaaMinDist = moh.mohaaMaxDist = 10000.0f; moh.mohaaPitch = 4.0f;
+	const float across[3] = { 5000, 0, 0 }; moh.origin.Set( across );
 	apply( moh );
-	assert( near( world.device.referenceScale, 2.0f ) && world.device.rangeScale == 1.0f && world.device.pitch == 2.0f );
-	assert( generic == 3 );
+	assert( world.device.reference == 10000.0f && world.device.maximum == 10000.0f );
+	assert( world.device.gain == 1.0f && world.device.pitch == 2.0f );
+	// Faded out toward its max distance, and nothing traced from there on.
+	moh.mohaaMinDist = 300.0f; moh.mohaaMaxDist = 1000.0f; moh.mohaaPitch = 1.0f;
+	const float edge[3] = { 950, 0, 0 }; moh.origin.Set( edge );
+	apply( moh );
+	assert( near( world.device.gain, HorizonGainAt( 950.0f, 1000.0f ) ) && world.device.gain > 0.0f && world.device.gain < 1.0f );
+	traces = 0;
+	const float beyond[3] = { 1000, 0, 0 }; moh.origin.Set( beyond );
+	apply( moh );
+	assert( world.device.gain == 0.0f && traces == 0 && moh.occlusion == 0.0f );
+	assert( generic == 1 );
 	// Elite Force single player's ambient loops are not Wolfenstein's: they keep
 	// retail's head-relative pan here, or leave for a path of their own.
 	eliteForce = true;

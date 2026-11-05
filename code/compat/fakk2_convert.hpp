@@ -30,7 +30,7 @@
 
 namespace fntech3::fakk2::convert {
 
-static_assert( FNTECH3_FAKK2_BONE_CONTROLLERS == FNTECH3_ALICE_BONE_CONTROLLERS,
+static_assert( (int)FNTECH3_FAKK2_BONE_CONTROLLERS == (int)FNTECH3_ALICE_BONE_CONTROLLERS,
 	"both titles carry five controllers" );
 static_assert( sizeof( fntech3_alice_bonemod_t::unnamed ) == sizeof( float[4] ),
 	"Alice keeps sixteen unsent bytes between a controller's angles and scale" );

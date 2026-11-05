@@ -660,9 +660,9 @@ extern "C" const int *S_STVEFSPMouths( void )
 
 
 extern "C" void S_StartMOHAASound( const vec3_t origin, int entnum, int entchannel, sfxHandle_t sfx,
-	float volume, float minDist, float maxDist, float pitch, int mohaaChannel )
+	float volume, float minDist, float maxDist, float pitch, int mohaaChannel, qboolean streamed )
 {
-	if ( si.StartMOHAASound ) si.StartMOHAASound( origin, entnum, entchannel, sfx, volume, minDist, maxDist, pitch, mohaaChannel );
+	if ( si.StartMOHAASound ) si.StartMOHAASound( origin, entnum, entchannel, sfx, volume, minDist, maxDist, pitch, mohaaChannel, streamed );
 }
 
 extern "C" void S_StopMOHAASound( int entnum, int mohaaChannel )

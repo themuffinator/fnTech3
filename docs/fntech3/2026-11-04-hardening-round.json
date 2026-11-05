@@ -1,0 +1,221 @@
+{
+  "date": "2026-11-04",
+  "scope": "whole-tree hardening round: clean baseline, fuzzed readers, review fixes, GCC warnings",
+  "baseline": "bd209ffaca928bb22a2617e07343115d0ffac168",
+  "record": "docs/fntech3/2026-11-04-hardening-round.md",
+  "baseline_validation": [
+    {
+      "platform": "Windows x86",
+      "compiler": "MSVC 2022, strict warnings",
+      "build_steps": 1550,
+      "native_tests": {
+        "passed": 282,
+        "skipped": 2,
+        "failed": 0
+      },
+      "python_test_files": {
+        "passed": 645,
+        "failed": 0,
+        "seconds": 1014
+      }
+    },
+    {
+      "platform": "Linux i686 (WSL Ubuntu)",
+      "compiler": "GCC 13 -m32",
+      "workflow": "linux-verification.yml CMake steps, verbatim",
+      "build_steps": 518,
+      "ctest": {
+        "passed": 84,
+        "skipped": 1,
+        "failed": 0
+      },
+      "gcc_warnings": 38
+    }
+  ],
+  "fuzzing": {
+    "toolchain": "clang 18 libFuzzer + AddressSanitizer + UndefinedBehaviorSanitizer, -m32, WSL Ubuntu",
+    "sources": "git archive of the baseline; harnesses under .tmp/round-2026-11-04/fuzz (not committed)",
+    "com_error": "caught as the engine's defined rejection, not a finding",
+    "targets": [
+      {
+        "reader": "code/qcommon/msg.cpp delta readers, 18 wire profiles and per-title readers",
+        "executions": 21304011,
+        "findings": 0
+      },
+      {
+        "reader": "code/qcommon/mohaa_msg.cpp protocol 6 and MSG_SetJKAFieldOverrides",
+        "executions": 9852955,
+        "findings": 0
+      },
+      {
+        "reader": "code/qcommon/net_chan.cpp Netchan_Process, every wire profile",
+        "executions": 34126325,
+        "findings": 0
+      },
+      {
+        "reader": "code/qcommon/cmd.c Cmd_TokenizeString and argument accessors",
+        "executions": 4958064,
+        "findings": 0
+      },
+      {
+        "reader": "code/qcommon/unzip.c",
+        "executions": 7109116,
+        "findings": 1,
+        "finding": "misaligned, sign-extending central-directory field loads"
+      },
+      {
+        "reader": "code/qcommon/q_shared.c info strings and tokenisers",
+        "findings": 2,
+        "finding": "Com_SkipTokens read past its NUL; Info_Tokenize wrote past its buffer for strings over MAX_INFO_STRING (no engine caller passes one)",
+        "executions": 22881848,
+        "note": "rerun after both fixes: 69847060 executions, clean"
+      },
+      {
+        "reader": "code/compat wire codecs (Alice, F.A.K.K.2, JK2, JKA, RTCW SP/MP, ET, Holomatch, EF SP, ioEF), round trips",
+        "executions": 5080000,
+        "findings": 1,
+        "finding": "Alice command time step overflowed int"
+      },
+      {
+        "reader": "code/compat/ieee_delta_float.hpp CompactFloatInteger",
+        "exhaustive_words": 4294967296,
+        "findings": 0
+      },
+      {
+        "reader": "code/compat/gamespy_query.hpp server and browser",
+        "executions": 6230000,
+        "findings": 0
+      },
+      {
+        "reader": "code/compat q3_ihv_netchan, q3test_netchan, q3_ihv_server_session/clients/configstrings",
+        "executions": 4550000,
+        "findings": 2,
+        "finding": "IHV Ping sum overflow; snapshot cursor held in int"
+      },
+      {
+        "reader": "code/compat jka/jk2 string packages",
+        "executions": 2230000,
+        "findings": 0
+      },
+      {
+        "reader": "Ritual formats: ska, skb, tan, TIKI, LOD, urc, bind scripts, RitualFont",
+        "executions": 23270000,
+        "findings": 2,
+        "finding": "NaN hue to int; font metrics to int",
+        "note": "urc and RitualFont rerun after the fixes: 1673409 and 13499718 executions, clean"
+      },
+      {
+        "reader": "Raven/id formats: glm, gla, rof, skins, ICARUS blocks, animation.cfg, fontdat, Raven menus, effects, mdm/mdx, aas, rcd, BSP queries, Bink",
+        "executions": 142570000,
+        "findings": 0
+      },
+      {
+        "reader": "savegames and records: Alice/MoHAA ssv, RTCW save and cache, EF SP chunks, MoHAA .min, ET gameinfo, ambient sets, F.A.K.K.2 inventory, ICARUS values, JKA SP precache",
+        "executions": 22350000,
+        "findings": 2,
+        "finding": "ICARUS type float-to-int; precache recursion (directed test)"
+      }
+    ]
+  },
+  "fixes": [
+    {
+      "file": "code/qcommon/q_shared.c",
+      "function": "Com_SkipTokens",
+      "defect": "stepped over a character before testing for the end, reading past the string",
+      "regression": "tests/q_shared_text_tests.cpp"
+    },
+    {
+      "file": "code/qcommon/q_shared.c",
+      "function": "Info_Tokenize",
+      "defect": "no bound of its own: a string longer than MAX_INFO_STRING wrote past the token buffer and arrays; every caller passes a bounded userinfo",
+      "regression": "tests/q_shared_text_tests.cpp",
+      "observed_before": "ASan global-buffer-overflow with only this function reverted to HEAD"
+    },
+    {
+      "file": "code/qcommon/unzip.c",
+      "function": "unzlocal_GetCurrentFileInfoInternal",
+      "defect": "unaligned type-punned loads; 16-bit sizes sign-extended",
+      "regression": "tests/unzip_tests.c",
+      "observed_before": "HEAD reports a 0x8000-byte extra field as 0xffff8000 and fails the check"
+    },
+    {
+      "file": "code/qcommon/common.c",
+      "function": "Sys_Microseconds (POSIX)",
+      "defect": "epoch wall clock cut to int by R_ProfileMilliseconds",
+      "regression": "tests/renderer_profile_clock_tests.py",
+      "observed_after": "first reading 0, 20 ms later 20111 us (i686 Linux)"
+    },
+    {
+      "file": "code/rendererrtx/rt/rt_backend.c",
+      "function": "RT_EnsurePartitionScratch",
+      "defect": "admitted counts whose int allocation size overflows",
+      "regression": "tests/rtx_partition_tests.py"
+    },
+    {
+      "file": "code/server/server_stvef_sp_save.hpp",
+      "function": "SV_STVEFSPReadCvars",
+      "defect": "a save's cvar chunks force-set any cvar; name leaked when the value read drops",
+      "regression": "tests/stvef_sp_savegame_tests.py",
+      "observed_before": "HEAD sets sv_cheats, fs_game and r_glDriver from the scripted save"
+    },
+    {
+      "file": "code/compat/alice_message_codec.hpp",
+      "function": "WriteCommand/ReadCommand",
+      "defect": "signed time step overflow",
+      "regression": "tests/alice_message_codec_tests.cpp"
+    },
+    {
+      "file": "code/compat/q3_ihv_server_session.hpp",
+      "function": "Ping",
+      "defect": "32-frame int sum overflow",
+      "regression": "tests/q3_ihv_server_session_tests.cpp"
+    },
+    {
+      "file": "code/server/server_q3_ihv_game.hpp",
+      "function": "snapshot record",
+      "defect": "64-bit ring cursor narrowed to int"
+    },
+    {
+      "file": "code/compat/jka_sp_model_precache.hpp",
+      "function": "ModelPrecache::Register",
+      "defect": "mesh-to-mesh animation chain recursion through every slot",
+      "regression": "tests/jka_sp_model_precache_tests.cpp"
+    },
+    {
+      "file": "code/compat/jka_icarus_values.hpp",
+      "function": "ReadValues typedName",
+      "defect": "out-of-range float type number converted to int",
+      "regression": "tests/jka_icarus_value_tests.cpp"
+    },
+    {
+      "file": "code/compat/alice_menu.hpp",
+      "function": "HsvToRgb",
+      "defect": "NaN or infinite hue converted to int",
+      "regression": "tests/alice_menu_tests.cpp"
+    },
+    {
+      "file": "code/compat/alice_ritualfont.hpp",
+      "function": "Parse, StringWidth",
+      "defect": "non-finite or huge metrics converted to int",
+      "regression": "tests/alice_ritualfont_tests.cpp",
+      "retail_check": "all 40 RitualFont files in the Alice, F.A.K.K.2 and MoHAA installations still parse"
+    }
+  ],
+  "warnings_cleared": [
+    "code/compat/jka_state_adapter.hpp",
+    "code/compat/fakk2_convert.hpp",
+    "code/compat/alice_picker.hpp",
+    "code/server/sv_init.cpp",
+    "code/server/server_alice_game.hpp",
+    "code/client/client_alice_cgame.hpp",
+    "code/client/cl_fakk2_inventory.cpp"
+  ],
+  "compatibility_gates_changed": [],
+  "not_changed": [
+    "server_stvef_sp_save.hpp: an own-memory chunk is allocated at the file's claimed length (bounded by the file size); a chunk larger than the zone is fatal",
+    "alice_hud.hpp: float written by the retail game module converted without a range check",
+    "gamespy_query.hpp: gamever nan accepted as 1.00, as OpenMoHAA's browser [O]",
+    "jka_model_format.hpp: ParseMesh work can grow quadratically for hostile .glm files",
+    "R_MOHAATraceable: quadratic in a model's surface count per entity; recorded, not cached"
+  ]
+}

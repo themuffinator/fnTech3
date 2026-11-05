@@ -39,7 +39,7 @@ public:
 	void AddSTVEFAmbientLoopingSound( const float *origin, sfxHandle_t handle, int volume );
 	void AddJKAAmbientLoopingSound( const float *origin, sfxHandle_t handle, int volume );
 	void StartMOHAASound( const float *origin, int entnum, int entchannel, sfxHandle_t handle,
-		float volume, float minDist, float maxDist, float pitch, int mohaaChannel );
+		float volume, float minDist, float maxDist, float pitch, int mohaaChannel, bool streamed );
 	void StopMOHAASound( int entnum, int mohaaChannel );
 	void StopEntityChannelSound( int entnum, int entchannel );
 	void AddMOHAALoopingSound( int slot, const float *origin, const float *velocity, sfxHandle_t handle,
@@ -443,9 +443,9 @@ bool AudioSystem::Init( soundInterface_t *si ) {
 	si->AddSTVEFAmbientLoopingSound = []( const vec3_t origin, sfxHandle_t handle, int volume ) { AudioSystem::Get().AddSTVEFAmbientLoopingSound( origin, handle, volume ); };
 	si->AddJKAAmbientLoopingSound = []( const vec3_t origin, sfxHandle_t handle, int volume ) { AudioSystem::Get().AddJKAAmbientLoopingSound( origin, handle, volume ); };
 	si->StartMOHAASound = []( const vec3_t origin, int entnum, int entchannel, sfxHandle_t handle,
-		float volume, float minDist, float maxDist, float pitch, int mohaaChannel ) {
+		float volume, float minDist, float maxDist, float pitch, int mohaaChannel, qboolean streamed ) {
 		AudioSystem::Get().StartMOHAASound( origin, entnum, entchannel, handle, volume, minDist, maxDist, pitch,
-			mohaaChannel );
+			mohaaChannel, streamed != qfalse );
 	};
 	si->StopMOHAASound = []( int entnum, int mohaaChannel ) { AudioSystem::Get().StopMOHAASound( entnum, mohaaChannel ); };
 	si->StopEntityChannelSound = []( int entnum, int entchannel ) { AudioSystem::Get().StopEntityChannelSound( entnum, entchannel ); };
@@ -1048,7 +1048,7 @@ const int *AudioSystem::STVEFSPMouths() {
 }
 
 void AudioSystem::StartMOHAASound( const float *origin, int entnum, int entchannel, sfxHandle_t handle,
-	float volume, float minDist, float maxDist, float pitch, int mohaaChannel ) {
+	float volume, float minDist, float maxDist, float pitch, int mohaaChannel, bool streamed ) {
 	if ( !started_ || hardMuted_ ) {
 		return;
 	}
@@ -1063,7 +1063,8 @@ void AudioSystem::StartMOHAASound( const float *origin, int entnum, int entchann
 	if ( !sample->EnsureLoaded( device_, handle == 0 ) ) {
 		return;
 	}
-	world_.StartMOHAASound( entnum, entchannel, handle, sample, origin, volume, minDist, maxDist, pitch, mohaaChannel );
+	world_.StartMOHAASound( entnum, entchannel, handle, sample, origin, volume, minDist, maxDist, pitch, mohaaChannel,
+		streamed );
 }
 
 void AudioSystem::StopMOHAASound( int entnum, int mohaaChannel ) {

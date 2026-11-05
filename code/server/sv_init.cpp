@@ -275,7 +275,7 @@ void SV_UpdateRTCWCvarConfigstrings( qboolean force ) {
 	}
 	qboolean truncated = qfalse;
 	const char *info = Cvar_InfoString( CVAR_RTCW_WOLFINFO, &truncated );
-	SV_SetConfigstring( Com_GameIsWolfET() ? FNTECH3_WOLFET_CS_WOLFINFO : FNTECH3_RTCW_MP_CS_WOLFINFO, info );
+	SV_SetConfigstring( Com_GameIsWolfET() ? (int)FNTECH3_WOLFET_CS_WOLFINFO : (int)FNTECH3_RTCW_MP_CS_WOLFINFO, info );
 	cvar_modifiedFlags &= ~CVAR_RTCW_WOLFINFO;
 	if ( truncated ) {
 		Com_Printf( S_COLOR_YELLOW "WARNING: truncated %s WOLFINFO configstring\n", Com_GameProfile()->key );

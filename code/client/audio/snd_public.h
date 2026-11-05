@@ -113,9 +113,10 @@ void S_AddJKAAmbientLoopingSound( const vec3_t origin, sfxHandle_t sfx, int volu
 // Medal of Honor's sounds and loops, with their alias's volume, distances and
 // pitch; a loop's slot is its voice, as an entity number is. A sound names
 // 2015's own channel too: one on an entity's channel, but for the automatic
-// channel 0, ends the one before it, and a stop ends it.
+// channel 0, ends the one before it, and a stop ends it. A streamed alias's
+// sound starts wherever the listener is; any other only inside its maxDist.
 void S_StartMOHAASound( const vec3_t origin, int entnum, int entchannel, sfxHandle_t sfx,
-	float volume, float minDist, float maxDist, float pitch, int mohaaChannel );
+	float volume, float minDist, float maxDist, float pitch, int mohaaChannel, qboolean streamed );
 void S_StopMOHAASound( int entnum, int mohaaChannel );
 void S_AddMOHAALoopingSound( int slot, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx,
 	float volume, float minDist, float maxDist, float pitch );

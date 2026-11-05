@@ -17,6 +17,7 @@ General Public License, version 2 or (at your option) any later version.
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -261,6 +262,18 @@ static void CheckRejections()
 	AppendNumber( fractionalType, 4.5f );
 	AppendText( fractionalType, icarus::MemberText, "name" );
 	CHECK( arena.Read( fractionalType ) == ValueError::Type );
+
+	/* Type numbers no int can hold (found by fuzzing, 2026-11-04): refused
+	 * before any conversion, which for these is undefined. */
+	for ( const float huge : { -1.70141e38f, 3.0e9f, std::numeric_limits<float>::infinity(),
+		std::numeric_limits<float>::quiet_NaN() } ) {
+		Bytes outOfRange = Header();
+		AppendBlock( outOfRange, 38, 3 );
+		AppendMarker( outOfRange, icarus::MemberTyped );
+		AppendNumber( outOfRange, huge );
+		AppendText( outOfRange, icarus::MemberText, "name" );
+		CHECK( arena.Read( outOfRange ) == ValueError::Type );
+	}
 
 	/* A comparison with something after the value it takes. */
 	Bytes trailingAfterCompare = Header();

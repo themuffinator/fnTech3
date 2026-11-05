@@ -2375,6 +2375,12 @@ void CL_InitInput( void ) {
 		// Holomatch runs (stvoyHM.exe 0x40f97e) with sensitivity 5.
 		cl_run = Cvar_Get( "cl_run", "1", CVAR_ARCHIVE );
 		cl_sensitivity = Cvar_Get( "sensitivity", "5", CVAR_ARCHIVE );
+	} else if ( Com_GameIsMOHAA() ) {
+		// Medal of Honor runs with sensitivity 5, both archived (OpenMoHAA's
+		// CL_Init [O]; every player config in 1.00's Pak0 saves 5.000000).
+		// Its Controls menu Default button resets the slider to this value.
+		cl_run = Cvar_Get( "cl_run", "1", CVAR_ARCHIVE );
+		cl_sensitivity = Cvar_Get( "sensitivity", "5", CVAR_ARCHIVE );
 	} else {
 		cl_run = Cvar_Get( "cl_run", "1", CVAR_ARCHIVE_ND );
 		cl_sensitivity = Cvar_Get( "sensitivity", "2", CVAR_ARCHIVE );

@@ -108,7 +108,7 @@ inline std::string MapCommand( const std::string &full ) {
  * month, day, year, the hour as (hour + 12) % 12 -- noon and midnight print
  * 0 -- the minute, and `a` before noon or `p` after it. */
 inline std::string DateText( const std::tm &when ) {
-	char text[32];
+	char text[64];
 	std::snprintf( text, sizeof( text ), "%2d/%02d/%04d %2d:%02d%c", when.tm_mon + 1, when.tm_mday,
 		when.tm_year + 1900, ( when.tm_hour + 12 ) % 12, when.tm_min, when.tm_hour < 12 ? 'a' : 'p' );
 	return text;
