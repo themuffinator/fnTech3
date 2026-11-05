@@ -800,11 +800,20 @@ class RtxRendererContractSourceTests(unittest.TestCase):
         self.assertIn("if (dot(N, L) <= 0.0 || dot(Ng, L) <= 0.0) {", pdf)
         self.assertIn("return ggx_d(NdotH, alpha) * NdotH / (4.0 * VdotH);", pdf)
         bounce = source_section(path, "vec3 bounce_radiance(", "\n}\n")
-        self.assertIn("if (seen && g_mis && (material.flags & RT_MF_SURFACE_LIGHT) != 0u && !tri.dynamic) {",
-                      bounce)
+        self.assertIn("if (seen && g_mis && hitLight != ~0u) {\n"
+                      "\t\t\tlightSeen = rt_reflected_light(hit, hitLight, origin, dir);", bounce)
         main = source_section(path, "void rt_path_main(", "\n}\n")
         self.assertIn("bool mis = reflections && (u_frame.flags.x & RT_FRAME_MIS) != 0u;", main)
         self.assertLess(main.index("g_mis = !liquid && lobe == 1u && g_misLights;"), main.index("bounce_radiance(rayOrigin, L,"))
+        # without multiple importance sampling the reflection still sees the
+        # sky, which the light sample then leaves to it, and leaves the q3map
+        # surface lights to the light sample: neither is counted twice
+        self.assertIn("ShadeResult direct = shade_direct(material, surf, sh, P, geometric, V, 16u, bakedLighting, "
+                      "reflections, mis, false,", main)
+        self.assertIn("if ((word & RT_LIGHT_TRACED) == 0u || !mis) {\n\t\treturn 1.0;", weight)
+        direct = source_section(path, "ShadeResult shade_direct(", "\n}\n")
+        self.assertIn("if (reflections && mis) {\n\t\tg_misLights = true;", direct)
+        self.assertIn("if ((u_frame.flags.x & RT_FRAME_SPECULAR) != 0u && (sky == 0u || !reflections)) {", direct)
 
         # The resampling's normalizer is random, so the reflection side takes
         # the light sampler's density with the point it met in place of the

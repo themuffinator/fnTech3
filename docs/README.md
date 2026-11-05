@@ -298,6 +298,10 @@ Release packages include them as web pages in their `manual` folder, built by
 - [RTX forest speckle follow-up](fntech3/2026-10-23-rtx-speckles.md)
   -- variance-guided direct-light filtering, with forest quality, timing
   and moving-shadow comparisons at unchanged ray counts.
+- [RTX path tracer round, November 5](fntech3/2026-11-05-rtx-round.md)
+  -- still views that keep their brightness, reflection, light-table and
+  frame-lifetime fixes, and faster compute bounce light, timed on Quake III,
+  Return to Castle Wolfenstein and Medal of Honor views.
 - [Liquid feeds for every profile](fntech3/2026-10-22-liquid-feeds-all-profiles.md)
   -- each game's water, slime, lava and moving entities supplied to the
   shared underwater effects, ripples and spatial audio.

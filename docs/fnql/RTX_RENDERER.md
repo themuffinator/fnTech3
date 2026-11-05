@@ -160,7 +160,15 @@ The renderer also treats retail content as untrusted input:
   for a pair of textures, through the shader image policy, and a map the
   shader draws as a stage of its own is never taken as a companion;
 - trace/copy failures leave render-pass state recoverable for fallback, or
-  terminate a strict-RT run explicitly.
+  terminate a strict-RT run explicitly. A world whose build fails is tried
+  again after a wait that doubles from 0.5 s to about a minute, or at once
+  for a new map, restart or setting it is built for; until then, and after a
+  pipeline failure, its views are drawn by raster alone, without a traced
+  base pass to draw over;
+- a frame's dynamic acceleration structures count as built only for a frame
+  recorded to the end: one whose plan fails or whose commands are discarded
+  (a growing raster geometry buffer) builds them afresh, and its history,
+  camera, tone-mapper clear and timestamps are dropped with it.
 
 Debug and experimental paths must not weaken those checks. A diagnostic cvar
 may expose more information, but it may not convert malformed content into a
@@ -485,7 +493,13 @@ surface light, it and the light sample share the light by multiple importance
 sampling (Veach's balance heuristic), so a mirror shows a lamp's shape and a
 rough surface a soft highlight, without the noise of either alone. A sky's
 light is left to the reflection, which sees the sky itself. Set `rtx_rt_mis 0`
-to leave surface lights to the light sample alone.
+to leave surface lights to the light sample alone; the reflection then leaves
+out their glow, and still takes the sky. A glowing surface the light sampler
+holds no light for (a mover's, or one the light build left out) shows its
+glow where a reflection meets it. The reflection's hit is lit like a
+bounce's, with one light sample of four candidates; only what a liquid shows
+through its interface takes the primary hit's sixteen. No reflection is
+traced where the shading normal turns away from the view.
 
 **Fog.** Fog volumes are drawn by the raster fog pass over the traced colour,
 exactly as over raster surfaces. RTCW's and Enemy Territory's global fog, and
@@ -508,7 +522,16 @@ both the post-blend residual and the incoming sample's difference from old
 history, so a sparse sample cannot erase its own uncertainty at low FPS.
 Stationary view and game
 clock can still accumulate, but changing geometry, lights or relevant
-settings invalidates that frozen estimate.
+settings invalidates that frozen estimate. A still view keeps the plain
+average of its jittered samples, up to 2,048 deep, as its history: the
+spatial passes filter it for display with the average's own variance (the
+samples' over their number), so they step back as it settles, and never feed
+their result back into it. The motion vector includes the jitter, so each
+pixel reprojects onto itself. The average is stored in half floats rounded
+up or down to a whole step at random, with the chance that keeps its expected
+value: a store that rounds would lose part of each sample's small move, and
+a still view darkened by a fifth over a minute
+([round record](../fntech3/2026-11-05-rtx-round.md)).
 
 Spatial depth stops measure departure from a local reciprocal-depth plane.
 The smaller valid one-sided slope avoids using a foreground/background edge
@@ -540,7 +563,10 @@ seed all pixels. `rtx_rt_checkerboard 0` additionally checkerboards 8 x 8
 tiles only on compute at divisor 1; `1` forces it, `2` disables it. Its phase
 changes after a complete divisor cycle, so combinations leave no permanently
 unsampled pixels. Primary visibility, direct shadows and current entity poses
-remain full rate. `rtx_rt_frame_budget_ms` optionally adjusts the divisor from
+remain full rate. Above divisor 1 the compute trace gives each 8 x 8
+workgroup the pixels at one place in 8 x 8 of the divisor's blocks, so a
+frame's bouncing pixels fill whole workgroups rather than a few lanes of
+every warp. `rtx_rt_frame_budget_ms` optionally adjusts the divisor from
 measured GPU pass time with hysteresis and a 45-frame cooldown. Its default,
 0, disables adaptation; the direct/primary cost can exceed any requested target.
 
@@ -620,7 +646,10 @@ Reinhard compression; `13` shows temporal reactivity.
 `rtx_rt_perf_timing 1` prints GPU and CPU timings every
 `rtx_rt_perf_interval` frames, including rolling 256-sample p50/p95/p99,
 active backend and indirect divisor, image storage, geometry cache/refit
-counters, upload memory heaps and input-to-submit/present-call intervals.
+counters, upload memory heaps and input-to-submit/present-call intervals,
+and the path tracer's CPU time split into the models' extraction, the
+scene's upload and BVH or acceleration-structure builds, and the rest, with
+the traced triangles of the dynamic, weapon and body classes.
 `2` also prints every frame's monotonic input, simulation, fence/acquire,
 submit and present CPU events. These are API timestamps, not display latency.
 `rtx_rt_device_local 0` with `vid_restart` selects portable host-visible

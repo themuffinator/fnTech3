@@ -31,11 +31,12 @@ RtBvhTri rt_sw_tri(bool dynamic, uint index)
 }
 
 // The slab test: the distance at which the ray enters the box within
-// [tMin, tMax], or -1.
-float rt_sw_box(vec3 origin, vec3 invDir, RtBvhNode node, float tMin, float tMax)
+// [tMin, tMax], or -1. originScaled is origin * invDir, the same for every
+// box the ray meets, so each slab takes one fused multiply-add.
+float rt_sw_box(vec3 originScaled, vec3 invDir, RtBvhNode node, float tMin, float tMax)
 {
-	vec3 t0 = (node.bmin.xyz - origin) * invDir;
-	vec3 t1 = (node.bmax.xyz - origin) * invDir;
+	vec3 t0 = fma(node.bmin.xyz, invDir, -originScaled);
+	vec3 t1 = fma(node.bmax.xyz, invDir, -originScaled);
 	vec3 lo = min(t0, t1);
 	vec3 hi = max(t0, t1);
 	float enter = max(max(lo.x, lo.y), max(lo.z, tMin));
@@ -93,6 +94,7 @@ bool rt_sw_trace(vec3 origin, vec3 dir, float tMin, float tMax, uint mask, bool 
 		abs(dir.y) > 1e-12 ? dir.y : (dir.y < 0.0 ? -1e-12 : 1e-12),
 		abs(dir.z) > 1e-12 ? dir.z : (dir.z < 0.0 ? -1e-12 : 1e-12));
 	vec3 invDir = 1.0 / safeDir;
+	vec3 originScaled = origin * invDir;
 	float best = tMax;
 	bool found = false;
 	uint instanceCount = min(u_frame.swInfo.x, RT_SW_MAX_INSTANCES);
@@ -108,7 +110,7 @@ bool rt_sw_trace(vec3 origin, vec3 dir, float tMin, float tMax, uint mask, bool 
 		}
 		bool dynamic = b.z != 0u;
 		RtBvhNode node = rt_sw_node(dynamic, a.x);
-		if (rt_sw_box(origin, invDir, node, tMin, best) < 0.0) {
+		if (rt_sw_box(originScaled, invDir, node, tMin, best) < 0.0) {
 			continue;
 		}
 		uint sp = 0u;
@@ -119,8 +121,8 @@ bool rt_sw_trace(vec3 origin, vec3 dir, float tMin, float tMax, uint mask, bool 
 				// interior: descend into the nearer child, keep the farther
 				RtBvhNode left = rt_sw_node(dynamic, a.x + first);
 				RtBvhNode right = rt_sw_node(dynamic, a.x + first + 1u);
-				float tl = rt_sw_box(origin, invDir, left, tMin, best);
-				float tr = rt_sw_box(origin, invDir, right, tMin, best);
+				float tl = rt_sw_box(originScaled, invDir, left, tMin, best);
+				float tr = rt_sw_box(originScaled, invDir, right, tMin, best);
 				if (tl >= 0.0 && tr >= 0.0) {
 					bool leftFirst = tl <= tr;
 					if (sp < RT_SW_STACK) {
@@ -234,6 +236,7 @@ vec3 rt_trace_filter(vec3 origin, vec3 dir, float tMin, float tMax)
 		abs(dir.y) > 1e-12 ? dir.y : (dir.y < 0.0 ? -1e-12 : 1e-12),
 		abs(dir.z) > 1e-12 ? dir.z : (dir.z < 0.0 ? -1e-12 : 1e-12));
 	vec3 invDir = 1.0 / safeDir;
+	vec3 originScaled = origin * invDir;
 	vec3 transmission = vec3(1.0);
 	uint instanceCount = min(u_frame.swInfo.x, RT_SW_MAX_INSTANCES);
 	uint stack[RT_SW_STACK];
@@ -246,7 +249,7 @@ vec3 rt_trace_filter(vec3 origin, vec3 dir, float tMin, float tMax)
 		}
 		bool dynamic = b.z != 0u;
 		RtBvhNode node = rt_sw_node(dynamic, a.x);
-		if (rt_sw_box(origin, invDir, node, tMin, tMax) < 0.0) {
+		if (rt_sw_box(originScaled, invDir, node, tMin, tMax) < 0.0) {
 			continue;
 		}
 		uint sp = 0u;
@@ -257,8 +260,8 @@ vec3 rt_trace_filter(vec3 origin, vec3 dir, float tMin, float tMax)
 				// every hit counts, in any order: visit both children
 				RtBvhNode left = rt_sw_node(dynamic, a.x + first);
 				RtBvhNode right = rt_sw_node(dynamic, a.x + first + 1u);
-				bool reachLeft = rt_sw_box(origin, invDir, left, tMin, tMax) >= 0.0;
-				bool reachRight = rt_sw_box(origin, invDir, right, tMin, tMax) >= 0.0;
+				bool reachLeft = rt_sw_box(originScaled, invDir, left, tMin, tMax) >= 0.0;
+				bool reachRight = rt_sw_box(originScaled, invDir, right, tMin, tMax) >= 0.0;
 				if (reachLeft && reachRight) {
 					if (sp < RT_SW_STACK) {
 						stack[sp++] = first + 1u;

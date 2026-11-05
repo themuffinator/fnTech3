@@ -21,7 +21,14 @@ layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
 void main()
 {
 	ivec2 size = imageSize(u_outColor);
-	ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
+	// The pixels a workgroup shades (RT_TraceGroupDivisor): those at one place
+	// in each of 8 x 8 of the indirect divisor's blocks, so a frame's bouncing
+	// pixels (one place in every block, rt_indirect_sampling.glsl) fill whole
+	// workgroups and the rest skip the bounce together. With divisor 1, the
+	// 8 x 8 pixels at the workgroup's place.
+	uint divisor = clamp(u_frame.swInfo.y, 1u, 4u);
+	uvec2 group = gl_WorkGroupID.xy;
+	ivec2 pixel = ivec2((group / divisor) * (8u * divisor) + gl_LocalInvocationID.xy * divisor + group % divisor);
 	if (pixel.x >= size.x || pixel.y >= size.y) {
 		return;
 	}

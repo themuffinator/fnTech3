@@ -44,6 +44,10 @@ uint g_lightReuseMaterial = 0u; // nonzero only while shading the primary hit
 // point, normals, view direction and GGX alpha its reflection leaves from.
 bool g_misLights = false;	// the primary hit sampled lights for a reflecting point
 bool g_mis = false;			// and its reflection ray is being traced
+// The secondary ray being traced left a liquid's interface along its one
+// reflected or transmitted direction (a delta path): nothing at the interface
+// sampled the lights its hit shows, so the hit shows them itself.
+bool g_delta = false;
 RtLightChoice g_misChoice;
 vec3 g_misP;
 vec3 g_misN;
@@ -113,7 +117,8 @@ vec3 specular_weight(vec3 N, vec3 V, vec3 L, float roughness, vec3 F0)
 	}
 	vec3 H = normalize(V + L);
 	float alpha = max(roughness * roughness, 0.002);
-	vec3 F = F0 + (1.0 - F0) * pow(1.0 - max(dot(V, H), 0.0), 5.0);
+	// V.H can round past 1, and pow's base must not be negative
+	vec3 F = F0 + (1.0 - F0) * pow(clamp(1.0 - dot(V, H), 0.0, 1.0), 5.0);
 	float D = ggx_d(max(dot(N, H), 0.0), alpha);
 	float G = smith_g1(NdotL, alpha) * smith_g1(NdotV, alpha);
 	return PI * F * (D * G / (4.0 * NdotL * NdotV));
@@ -138,9 +143,10 @@ float ggx_reflection_pdf(vec3 N, vec3 Ng, vec3 V, vec3 L, float alpha)
 
 // The light sample's share of its specular light where a glossy reflection is
 // traced too. Against a q3map surface light the reflection can meet, the
-// balance heuristic; a sky's emitters are left to the reflection alone, which
-// sees the sky itself.
-float rt_light_weight(RtLightChoice choice, vec3 N, vec3 Ng, vec3 V, vec3 L, float alpha)
+// balance heuristic, or all of it without multiple importance sampling (mis),
+// where the reflection leaves that light out; a sky's emitters are left to
+// the reflection alone, which sees the sky itself.
+float rt_light_weight(RtLightChoice choice, vec3 N, vec3 Ng, vec3 V, vec3 L, float alpha, bool mis)
 {
 	if (choice.index == ~0u) {
 		return 1.0;
@@ -152,7 +158,7 @@ float rt_light_weight(RtLightChoice choice, vec3 N, vec3 Ng, vec3 V, vec3 L, flo
 	if ((word & RT_LIGHT_SKY) != 0u) {
 		return 0.0;
 	}
-	if ((word & RT_LIGHT_TRACED) == 0u) {
+	if ((word & RT_LIGHT_TRACED) == 0u || !mis) {
 		return 1.0;
 	}
 	float pLight = rt_chosen_light_pdf(choice, N, L);
@@ -253,7 +259,8 @@ RtShading rt_shading(RtMaterial material, RtTriangle tri, RtHitAttribs h, RtSurf
 		s.images.x = material.maps.y | (RT_NO_IMAGE << 16u);
 		vec4 texel = rt_stage_texel(s, h, time, lodBias);
 		if (material.maps.z == RT_MATERIAL_MAP_SPECGLOSS) {
-			sh.F0 = texel.rgb;
+			// a colour, decoded as the surface's own colour is for linear light
+			sh.F0 = (u_frame.flags.x & RT_FRAME_LINEAR_LIGHT) != 0u ? rt_linear(texel.rgb) : texel.rgb;
 			sh.roughness = 1.0 - texel.a;
 		} else {
 			bool rmo = material.maps.z == RT_MATERIAL_MAP_RMO;
@@ -292,15 +299,17 @@ vec3 apply_min_light(RtMaterial material, vec3 irradiance)
 
 // Direct light at a surface point, split into diffuse irradiance and
 // specular radiance.
-// reflections: a glossy reflection ray is traced from P as well, so the
-// light sample shares its specular light with it (rt_light_weight).
+// reflections: a glossy reflection ray is traced from P as well, which sees
+// the sky itself and, with mis, shares the specular light of the q3map
+// surface lights it can meet with the light sample (rt_light_weight); without
+// mis it leaves them to the light sample.
 // worldOrBrush: a world or brush-model surface, which an additive Ritual
 // light (RT_LIGHT_ADDITIVE) lights from white: the raster light pass draws
 // it with a white image in place of the texture (tr_ritual_additive_light.h),
 // as retail adds such a light GL_ONE GL_ONE whatever the surface. Its sample
 // is kept apart, as radiance the surface's reflectance does not scale.
 ShadeResult shade_direct(RtMaterial material, RtSurface surf, RtShading sh, vec3 P, vec3 Ng, vec3 V,
-	uint candidates, bool bakedLighting, bool reflections, bool oneSample, bool worldOrBrush, inout uint seed)
+	uint candidates, bool bakedLighting, bool reflections, bool mis, bool oneSample, bool worldOrBrush, inout uint seed)
 {
 	ShadeResult r;
 	r.shadowReactive = 0.0;
@@ -387,7 +396,7 @@ ShadeResult shade_direct(RtMaterial material, RtSurface surf, RtShading sh, vec3
 			r.irradiance += E;
 		}
 		if (found && (u_frame.flags.x & RT_FRAME_SPECULAR) != 0u) {
-			float weight = (reflections && !baked) ? rt_light_weight(passChoice, N, Ng, V, L, roughness * roughness) : 1.0;
+			float weight = (reflections && !baked) ? rt_light_weight(passChoice, N, Ng, V, L, roughness * roughness, mis) : 1.0;
 			r.specular += E * specular_weight(N, V, L, roughness, F0) * weight;
 		}
 		// a reflection is weighed against the first sample, the map's lights'
@@ -398,7 +407,7 @@ ShadeResult shade_direct(RtMaterial material, RtSurface surf, RtShading sh, vec3
 	if (baked) {
 		return r;
 	}
-	if (reflections) {
+	if (reflections && mis) {
 		g_misLights = true;
 		g_misChoice = choice;
 		g_misP = P;
@@ -452,13 +461,25 @@ void orient_normals(RtTriangle tri, vec3 dir, inout RtHitAttribs h, out vec3 geo
 	}
 }
 
+// The light the light sampler holds a world triangle as, ~0 for none: the
+// light build makes lights of the world's surface lights and glowing shaders
+// alone, and leaves out what it cannot use (rt/rt_lights.c), so a material
+// marked as a light is not always one.
+uint rt_hit_light(RtHitPayload hit, RtTriangle tri)
+{
+	if (tri.dynamic) {
+		return ~0u;
+	}
+	uint prim = rt_global_primitive(hit.customIndex, hit.geometry & 0xFFFFu, hit.primitive);
+	return prim < uint(u_primitiveLights.lights.length()) ? u_primitiveLights.lights[prim] : ~0u;
+}
+
 // A q3map surface light a glossy reflection ray from origin meets: its
 // radiance (pi times the light's, which folds Lambert's 1 / pi into the
 // light), weighed against the light sampler's chance of the same path. Both
 // shares are taken along the path from the reflecting point.
-vec3 rt_reflected_light(RtHitPayload hit, vec3 origin, vec3 dir)
+vec3 rt_reflected_light(RtHitPayload hit, uint index, vec3 origin, vec3 dir)
 {
-	uint index = u_primitiveLights.lights[rt_global_primitive(hit.customIndex, hit.geometry & 0xFFFFu, hit.primitive)];
 	if (index == ~0u) {
 		return vec3(0.0);
 	}
@@ -559,24 +580,38 @@ vec3 bounce_radiance(vec3 origin, vec3 dir, float coneWidthAtOrigin, bool bakedL
 				dir = reflected ? liq.reflected : liq.transmitted;
 				origin = P + geometric * (reflected ? 0.05 : -0.05);
 				g_mis = false; // the previous GGX density no longer describes this path
+				g_delta = true;
 				continue;
 			}
 		}
 		if (d == 0u) receiverReflectance = max(sh.diffuse + surf.emission, vec3(0.05));
-		ShadeResult direct = shade_direct(material, surf, sh, P, geometric, -dir, seen ? 16u : 4u, bakedLighting, false, !seen,
-			rt_world_or_brush(tri), seed);
+		// What a liquid shows through its interface is lit as fully as a
+		// surface the camera sees; a glossy reflection's hit, blurred by its
+		// lobe and filtered as specular light, and a bounce's point take one
+		// sample of fewer candidates.
+		bool full = seen && g_delta;
+		ShadeResult direct = shade_direct(material, surf, sh, P, geometric, -dir, full ? 16u : 4u, bakedLighting, false, false,
+			!full, rt_world_or_brush(tri), seed);
 		bool baked = baked_light(material, surf, bakedLighting);
 		vec3 irradiance = baked ? direct.irradiance : apply_min_light(material, direct.irradiance);
-		// q3map's surface lights reach the scene through light sampling; their
-		// glow stages would count them twice. A glossy reflection sees the
-		// light itself, shared with the light sample (rt_reflected_light).
-		vec3 emission = (material.flags & RT_MF_SURFACE_LIGHT) != 0u ? vec3(0.0) : surf.emission;
-		// A delta reflection/transmission sees the authored lamp itself;
-		// no competing area-light specular sample was taken at the interface.
-		if (seen && !g_mis) emission = surf.emission;
+		// q3map's surface lights, and the glowing shaders the light build made
+		// lights, reach the scene through light sampling: their glow stages
+		// would count them twice. A glossy reflection sees such a light itself,
+		// shared with the light sample by multiple importance sampling
+		// (rt_reflected_light), or leaves it to the light sample without; a
+		// delta path, which took no light sample at its interface, sees the
+		// glow. A marked surface the light sampler does not hold (a mover's,
+		// or one the light build left out) still shows its glow where a
+		// reflection meets it.
+		bool lightMaterial = (material.flags & RT_MF_SURFACE_LIGHT) != 0u;
+		uint hitLight = lightMaterial && seen ? rt_hit_light(hit, tri) : ~0u;
+		vec3 emission = surf.emission;
+		if (lightMaterial && !(seen && (g_delta || hitLight == ~0u))) {
+			emission = vec3(0.0);
+		}
 		vec3 lightSeen = vec3(0.0);
-		if (seen && g_mis && (material.flags & RT_MF_SURFACE_LIGHT) != 0u && !tri.dynamic) {
-			lightSeen = rt_reflected_light(hit, origin, dir);
+		if (seen && g_mis && hitLight != ~0u) {
+			lightSeen = rt_reflected_light(hit, hitLight, origin, dir);
 		}
 		radiance += throughput * (sh.diffuse * irradiance + direct.additive + emission * u_frame.params0.y + lightSeen);
 		if (baked || !surf.lit || d + 1u >= depth) {
@@ -600,7 +635,10 @@ vec3 bounce_radiance(vec3 origin, vec3 dir, float coneWidthAtOrigin, bool bakedL
 
 void rt_path_main(ivec2 pixel, vec2 size)
 {
-	vec2 uv = (vec2(pixel) + 0.5) / size;
+	// where the ray leaves the view: still-view accumulation jitters it within
+	// the pixel, and the motion below is the surface's own, so a still view
+	// reprojects each pixel onto itself
+	vec2 uv = (vec2(pixel) + 0.5 + u_frame.jitter.xy) / size;
 	vec3 origin = u_frame.camOrigin.xyz;
 	vec3 dir = camera_ray(vec2(pixel) + 0.5 + u_frame.jitter.xy, size);
 	uint seed = hash_u32(uint(pixel.x) * 1973u + uint(pixel.y) * 9277u + uint(u_frame.time.y) * 26699u);
@@ -681,7 +719,7 @@ void rt_path_main(ivec2 pixel, vec2 size)
 	bool mis = reflections && (u_frame.flags.x & RT_FRAME_MIS) != 0u;
 
 	g_lightReuseMaterial = tri.v0.materialIndex + 1u;
-	ShadeResult direct = shade_direct(material, surf, sh, P, geometric, V, 16u, bakedLighting, mis, false,
+	ShadeResult direct = shade_direct(material, surf, sh, P, geometric, V, 16u, bakedLighting, reflections, mis, false,
 		rt_world_or_brush(tri), seed);
 	g_lightReuseMaterial = 0u;
 	float shadowReactive = direct.shadowReactive;
@@ -743,6 +781,10 @@ void rt_path_main(ivec2 pixel, vec2 size)
 			}
 		} else {
 			if (lobe != 1u || !reflections) continue;
+			// No reflection where the shading normal turns from the view: its
+			// weight's 1 / (N.V) would grow without bound (specular_weight
+			// takes none there either).
+			if (dot(N, V) <= 0.0) continue;
 			// One GGX reflection, weighted F G (V.H) / ((N.V)(N.H)).
 			float alpha = roughness * roughness;
 			float u1 = rand01(seed);
@@ -757,16 +799,18 @@ void rt_path_main(ivec2 pixel, vec2 size)
 			float NdotL = dot(N, L);
 			float NdotV = max(dot(N, V), 1e-4);
 			if (NdotL <= 0.0 || dot(L, geometric) <= 0.0) continue;
-			float VdotH = max(dot(V, H), 0.0);
+			float VdotH = clamp(dot(V, H), 0.0, 1.0);
 			vec3 F = sh.F0 + (1.0 - sh.F0) * pow(1.0 - VdotH, 5.0);
 			float G = smith_g1(NdotL, alpha) * smith_g1(NdotV, alpha);
 			weight = F * (G * VdotH / (NdotV * max(cosTheta, 1e-4)));
 		}
 		vec3 rayOrigin = P + geometric * (side * max(0.05, 1e-6 * length(P)));
 		g_mis = !liquid && lobe == 1u && g_misLights;
+		g_delta = liquid && lobe != 0u;
 		vec3 receiverReflectance;
 		vec3 radiance = weight * bounce_radiance(rayOrigin, L, h.coneWidth, bakedLighting, visible, depth, medium, footprint, receiverReflectance, seed);
 		g_mis = false;
+		g_delta = false;
 		if (lobe == 0u) indirect = radiance;
 		else if (lobe == 2u) {
 			// Demodulate the transmitted receiver just like a directly visible

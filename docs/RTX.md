@@ -104,14 +104,18 @@ games' original colour handling, for comparing pictures with the original.
   cast shadows too.
 - **Bounced light.** Light reflects off walls and floors, so a sunlit floor
   lights the room around it. One bounce is the default.
-- **Reflections** on shiny surfaces, which show the lights around them.
+- **Reflections** on shiny surfaces, which show the lights around them,
+  glowing doors and screens included.
 - **Ray-traced liquids.** Water bends the view into the pool and reflects
   the room, including things behind you and outside the screen. Deeper water
   absorbs more colour; looking up from below can reflect the underwater room.
   Opaque slime and lava keep their colour and glow, with traced reflections.
 - **A clean picture.** Ray tracing starts out grainy, and fnTech3 smooths it
   as you play. When everything stands still -- a paused demo, say -- it keeps
-  refining towards a perfectly clean image.
+  refining towards a perfectly clean image. That image now keeps its
+  brightness and sharpness however long you wait; before, a still view slowly
+  grew darker and softer
+  ([details](fntech3/2026-11-05-rtx-round.md#a-still-view-no-longer-darkens)).
 
 Some things are always drawn the normal way, on top of the traced picture:
 see-through and glowing effects, smoke and sparks, sprites, the sky,
@@ -217,7 +221,10 @@ or `rtx_rt_bounces 0` to test the cost of bounced light. If direct tracing
 is still too expensive, reduce `r_renderScale` (see the
 [Graphics guide](DISPLAY.md#sharper-edges-and-render-resolution)).
 `rtx_rt_frame_budget_ms` can adjust bounced-light quality automatically,
-but cannot make an expensive direct pass meet the target.
+but cannot make an expensive direct pass meet the target. Tracing with
+compute, bounced light costs about a quarter less than it used to, and
+shiny surfaces' reflections less too, with the same settings
+([measurements](fntech3/2026-11-05-rtx-round.md#faster-tracing)).
 
 **Input feels delayed.** Keep `rtx_rt_low_latency 1`. This moves GPU waits
 before input polling; it cannot remove the delay caused by a very long

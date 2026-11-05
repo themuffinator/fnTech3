@@ -198,7 +198,18 @@ class RtxEmitterLightingTests(unittest.TestCase):
         flag = flag[:flag.index('// Quake III materials carry no reflectance model')]
         self.assertIn('out->flags |= RT_MF_SURFACE_LIGHT;', flag)
         path = read('code/rendererrtx/shaders/rt_path.glsl')
-        self.assertIn('vec3 emission = (material.flags & RT_MF_SURFACE_LIGHT) != 0u ? vec3(0.0) : surf.emission;', path)
+        # a bounce leaves a marked surface's glow to light sampling; a
+        # reflection keeps it only on a delta path or where the light sampler
+        # holds no light for the triangle it meets (a mover's, one left out)
+        bounce = function(path, 'vec3 bounce_radiance(')
+        self.assertIn('bool lightMaterial = (material.flags & RT_MF_SURFACE_LIGHT) != 0u;', bounce)
+        self.assertIn('uint hitLight = lightMaterial && seen ? rt_hit_light(hit, tri) : ~0u;', bounce)
+        self.assertIn('if (lightMaterial && !(seen && (g_delta || hitLight == ~0u))) {\n'
+                      '\t\t\temission = vec3(0.0);', bounce)
+        hit_light = function(path, 'uint rt_hit_light(')
+        self.assertIn('if (tri.dynamic) {\n\t\treturn ~0u;', hit_light)
+        self.assertIn('return prim < uint(u_primitiveLights.lights.length()) ? u_primitiveLights.lights[prim] : ~0u;',
+                      hit_light)
         init = read('code/rendererrtx/tr_init.c')
         self.assertIn('rtx_rt_emissive_light = ri.Cvar_Get( "rtx_rt_emissive_light", "2.0", CVAR_ARCHIVE_ND );', init)
         # the compilers' stand-in for a fixture's bounced light is not added
@@ -457,7 +468,7 @@ class RtxEmitterLightingTests(unittest.TestCase):
         # a lightmapped surface takes no sun or sky sample of its own
         self.assertLess(direct.index('if (baked) {\n\t\treturn r;\n\t}'),
                         direct.index('rt_sample_sun(P, N, Ng, seed, Lsky)'))
-        self.assertIn('float weight = (reflections && !baked) ? rt_light_weight(passChoice, N, Ng, V, L, roughness * roughness) : 1.0;',
+        self.assertIn('float weight = (reflections && !baked) ? rt_light_weight(passChoice, N, Ng, V, L, roughness * roughness, mis) : 1.0;',
                       direct)
 
     def test_the_light_can_be_seen_alone(self):

@@ -858,7 +858,7 @@
       "source": "rt_denoise_temporal.comp",
       "stage": "comp",
       "defines": [],
-      "byte_size": 45992,
+      "byte_size": 49092,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -1180,7 +1180,7 @@
       "source": "rt_trace.comp",
       "stage": "comp",
       "defines": [],
-      "byte_size": 271304,
+      "byte_size": 274416,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -1264,7 +1264,7 @@
             "descriptor_count": 1
           },
           {
-            "name": "id_1692",
+            "name": "id_1712",
             "set": 0,
             "binding": 10,
             "storage_class": "Uniform",
@@ -1392,7 +1392,7 @@
       "source": "rt_main.rgen",
       "stage": "rgen",
       "defines": [],
-      "byte_size": 237184,
+      "byte_size": 239480,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -1476,7 +1476,7 @@
             "descriptor_count": 1
           },
           {
-            "name": "id_1587",
+            "name": "id_1607",
             "set": 0,
             "binding": 10,
             "storage_class": "Uniform",
@@ -1748,7 +1748,7 @@
       "source": "rt_main.rahit",
       "stage": "rahit",
       "defines": [],
-      "byte_size": 54704,
+      "byte_size": 54908,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -1832,7 +1832,7 @@
             "descriptor_count": 1
           },
           {
-            "name": "id_938",
+            "name": "id_949",
             "set": 0,
             "binding": 10,
             "storage_class": "Uniform",
@@ -1872,7 +1872,7 @@
       "source": "rt_shadow.rahit",
       "stage": "rahit",
       "defines": [],
-      "byte_size": 55364,
+      "byte_size": 55568,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -1956,7 +1956,7 @@
             "descriptor_count": 1
           },
           {
-            "name": "id_942",
+            "name": "id_953",
             "set": 0,
             "binding": 10,
             "storage_class": "Uniform",

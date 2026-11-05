@@ -56,7 +56,8 @@ layout(push_constant) uniform DenoisePush {
 	vec4 params;		// elapsed seconds (0: frozen average), luminance sigma, normal power, depth sigma
 	uvec4 state;		// x: current parity, y: iteration, z: step size, w: flags
 	uvec4 extra;		// x: max history, y: debug view, z: iterations, w: RT_COMPOSITE_* flags
-	uvec4 view;			// x, y: the traced view's corner in the scene colour; z: the tone mapper's pass
+	uvec4 view;			// x, y: the traced view's corner in the scene colour; z: the frame's number,
+						// or the tone mapper's pass in its own passes
 	vec4 fog;			// the view's fog colour, blended in by each pixel's visibility (emission alpha)
 	vec4 exposure;		// x: mode (0 none, 1 auto, 2 fixed), y: bias (stops) or multiplier, z: tone curve share
 } pc;

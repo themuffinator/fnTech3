@@ -36,7 +36,9 @@ struct vec3 {
     vec3(float a,float b,float c):x(a),y(b),z(c){}
 };
 vec3 operator-(vec3 a,vec3 b) {return {a.x-b.x,a.y-b.y,a.z-b.z};}
+vec3 operator-(vec3 a) {return {-a.x,-a.y,-a.z};}
 vec3 operator*(vec3 a,vec3 b) {return {a.x*b.x,a.y*b.y,a.z*b.z};}
+vec3 fma(vec3 a,vec3 b,vec3 c) {return {std::fma(a.x,b.x,c.x),std::fma(a.y,b.y,c.y),std::fma(a.z,b.z,c.z)};}
 vec3 operator/(double a,vec3 b) {return {float(a/b.x),float(a/b.y),float(a/b.z)};}
 vec3 min(vec3 a,vec3 b) {return {min(a.x,b.x),min(a.y,b.y),min(a.z,b.z)};}
 vec3 max(vec3 a,vec3 b) {return {max(a.x,b.x),max(a.y,b.y),max(a.z,b.z)};}

@@ -11,6 +11,7 @@
 #include "rt_common.glsl"
 #include "rt_denoise_common.glsl"
 #include "rt_temporal_response.glsl"
+#include "rt_half_dither.glsl"
 
 layout(local_size_x = 8, local_size_y = 8) in;
 
@@ -239,6 +240,23 @@ void main()
 		// signal so the spatial passes blur until history builds up
 		varD = max(varD, lD * lD * (4.0 - len) * 0.25);
 		varS = max(varS, lS * lS * (4.0 - len) * 0.25);
+	}
+	if (pc.params.x <= 0.0) {
+		// A still view keeps the plain average of its samples as history (the
+		// spatial passes leave it, rt_backend.c): that average's own variance
+		// is its samples' over their number, so the filter steps back as it
+		// converges instead of blurring what has already settled.
+		varD /= max(len, 1.0);
+		varS /= max(len, 1.0);
+		varI /= max(lenI, 1.0);
+	}
+
+	if (pc.params.x <= 0.0) {
+		// the still view's averages, stored without drifting (rt_half_dither)
+		uint hash = hash_u32(uint(p.x) * 0x8da6b343u ^ uint(p.y) * 0xd8163841u ^ pc.view.z * 0xcb1ab31fu);
+		accD = rt_half_dither(accD, hash);
+		accS = rt_half_dither(accS, hash_u32(hash ^ 0x68e31da4u));
+		accI = rt_half_dither(accI, hash_u32(hash ^ 0xb5297a4du));
 	}
 
 	imageStore(u_filterDiffuse[0], p, vec4(accD, varD));

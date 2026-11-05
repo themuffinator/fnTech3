@@ -38,6 +38,14 @@ historical upstream records, not fnTech3 release history. See the
   and Ritual fonts with damaged values are refused instead of misread. On
   Linux, `com_speeds` and the renderers' timings read a steady clock
   ([record](docs/fntech3/2026-11-04-hardening-round.md)).
+- RTX: a still view no longer grows darker and softer the longer it is held
+  (it lost a fifth of its brightness over a minute), glowing doors and
+  screens show in reflections, `rtx_rt_mis 0` no longer counts lamps and the
+  sky twice, and a map whose ray-traced world cannot be built no longer
+  stalls every frame retrying. Bounced light and reflections trace faster
+  with compute: 2-9% off the trace in Quake III, Return to Castle
+  Wolfenstein and Medal of Honor views
+  ([record](docs/fntech3/2026-11-05-rtx-round.md)).
 - Fade Medal of Honor's sound when a level ends or restarts, as the game asks.
   The command had reached the client game, which reported it as unknown, and
   the loading bar now recognises model definitions that are already loaded

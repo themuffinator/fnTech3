@@ -1,0 +1,785 @@
+{
+ "schemaVersion": 1,
+ "date": "2026-11-05",
+ "scope": "RTX path tracer fixes and optimisations; no compatibility gate closes",
+ "baseCommit": "6cad618cf576b6fdef46ec8e12b5235ff8963360",
+ "changedSourceBlobs": {
+  "CHANGELOG.md": "41ae4c944f396637393446786c03344869a7092d",
+  "code/rendererrtx/rt/rt_backend.c": "1c8732de83d9c21a190d84e54ab2834ea4686913",
+  "code/rendererrtx/rt/rt_lights.c": "8f30840d0f18d68fc2ce262abc5da26d22cb2081",
+  "code/rendererrtx/rt/rt_material.c": "ad1d3e9e0f3b51c2fca3f72c911c10684436549f",
+  "code/rendererrtx/shaders/rt_denoise_common.glsl": "d97ed7b29062fdffc66842125674a6ac4f4059ee",
+  "code/rendererrtx/shaders/rt_denoise_temporal.comp": "c5ac16a794d2a7513f671889fa7dc4a20156ffa1",
+  "code/rendererrtx/shaders/rt_half_dither.glsl": "74515c73808013d9ef35f132d34b35465d8f3ba8",
+  "code/rendererrtx/shaders/rt_material.glsl": "3715e1f7112ab7d2f2be1fb2c4738506791215b9",
+  "code/rendererrtx/shaders/rt_path.glsl": "8799528abdfe6f751745936d280e9a3d949b7109",
+  "code/rendererrtx/shaders/rt_trace.comp": "6ebaca37ec85f4e926ccb306bc7fe91b325ba11c",
+  "code/rendererrtx/shaders/rt_trace_sw.glsl": "3bc966b3db5a53cc106681d75dcf2a60843f680a",
+  "code/rendererrtx/shaders/spirv/shader_data.c": "8a2e20d7da2725a519af1cc868aa1229b31d9e5b",
+  "code/rendererrtx/shaders/spirv/shader_reflection.json": "88590b7d3d93ab61a2e194adac1288b67894ecec",
+  "code/rendererrtx/vk.c": "eb8f009925d79d7703e9215f9fce7c46294b1137",
+  "tests/rtx_emitter_lighting_tests.py": "d51ea085ad3719f4ecbe6685e15733d92a064691",
+  "tests/rtx_half_dither_tests.py": "3d3e0f08af259ff34ebfb3ee4dc69d7c83e2adc7",
+  "tests/rtx_renderer_contract_source_tests.py": "55bb40b6de05eb00eedb90510f97fce726383eb1",
+  "tests/rtx_sw_traversal_tests.py": "4d586ee1719bd423d99c1671243a02be8a6863fd"
+ },
+ "runtimes": {
+  "before": {
+   "directory": ".tmp/runtime/rtx-round-before",
+   "builtFrom": "baseCommit",
+   "sha256": {
+    "fntech3.exe": "c20a7da158206f1642b2cb5cd39854bcaf6e4484058904be2ccb979ee63dcb7b",
+    "fnql_rtx_x86.dll": "4b96ca1d3ee58889d8480d9a55bca337bf19b499cec2653e095bc0e85b502dbc",
+    "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+   }
+  },
+  "after": {
+   "directory": ".tmp/runtime/rtx-round-after",
+   "builtFrom": "baseCommit plus changedSourceBlobs",
+   "sha256": {
+    "fntech3.exe": "c20a7da158206f1642b2cb5cd39854bcaf6e4484058904be2ccb979ee63dcb7b",
+    "fnql_rtx_x86.dll": "84be576eafee1dbe526d73eaa25a4d3102ddf8ed53cb7074bd2c62c518454857",
+    "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+   }
+  },
+  "note": "fntech3.exe and the package are identical; only the RTX renderer differs. After the probes, vk.c changed only by moving one comment and its static below the forward declarations; the rebuilt renderer was not probed again."
+ },
+ "platform": "Windows 11 x86 client, meson win32-dev (debugoptimized, /O2, strict warnings)",
+ "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU; the 32-bit driver offers no ray-tracing pipeline, so the compute backend traced every probe",
+ "probeConditions": "private desktop, windowed, no input injected, isolated fs_homepath with empty configs, read-only installations, rtx_rt_mode 2 with rtx_rt_require 1 (Q3/RTCW/MoHAA), engine screenshotPNG captures",
+ "installations": {
+  "q3": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena (demo four, q3dm1)",
+  "rtcw-sp": "forest",
+  "rtcw-mp": "mp_beach",
+  "mohaa": "E:\\Games\\Medal of Honor Allied Assault (m1l1)"
+ },
+ "fixes": [
+  "still-view history stored as exact half floats by unbiased stochastic rounding (rt_half_dither.glsl)",
+  "still view keeps its plain average as history and filters with the average's variance",
+  "motion vector includes the accumulation jitter",
+  "history length capped at 2048 (half-float integers)",
+  "rtx_rt_mis 0 double counting of surface lights and sky in glossy reflections",
+  "unsampled glowing surfaces keep their glow in reflections (u_primitiveLights lookup, bounds-checked)",
+  "no GGX reflection where N.V <= 0; Fresnel base clamped",
+  "specGloss F0 linearised under linear light",
+  "frame index wrapped below 2^23 for the float uniform and the denoiser phase",
+  "image-average cache reset with the material table; lights reuse the averages",
+  "failed light build keeps the lighting mode and sky colour",
+  "emissive surface lights follow shader remaps",
+  "zero-area autosprite surface light skipped",
+  "motion records keyed by material-table rebuilds, not growth",
+  "hardware backend: dynamic BLASes abandoned when a frame's plan fails or its commands are discarded",
+  "discarded frame resets history, camera, tone clear and timestamps",
+  "texture table rewritten when an image view is replaced",
+  "failed world build retried after a doubling delay (0.5 s to 64 s), view left to raster meanwhile; build arrays freed",
+  "lighting change handled before patch-shadow change, materials rebuilt after a failed world, pending on a failed wait"
+ ],
+ "optimisations": [
+  "compute trace workgroups grouped by the indirect divisor's pixel class (RT_TraceGroupDivisor)",
+  "glossy reflection hits take one light sample of four candidates; liquid delta paths keep sixteen",
+  "compute slab test with one fma per slab",
+  "alpha-test LOD skips footprint arithmetic without a footprint"
+ ],
+ "diagnostics": "rtx_rt_perf_timing reports the RT CPU time split (extract, scene, rest) and dynamic/weapon/body triangle counts",
+ "measurements": {
+  "q3Four1280x720Frozen": {
+   "before": {
+    "base": {
+     "build": 0.0,
+     "trace": 25.79,
+     "denoise": 3.62,
+     "composite": 0.11,
+     "total": 29.52,
+     "cpu": 2.82,
+     "n": 13
+    },
+    "nospec": {
+     "build": 0.0,
+     "trace": 27.255,
+     "denoise": 3.685,
+     "composite": 0.09,
+     "total": 31.035,
+     "cpu": 3.325,
+     "n": 6
+    },
+    "nobounce": {
+     "build": 0.0,
+     "trace": 16.87,
+     "denoise": 3.57,
+     "composite": 0.08,
+     "total": 20.52,
+     "cpu": 2.785,
+     "n": 6
+    }
+   },
+   "beforeRepeat": {
+    "base": {
+     "build": 0.0,
+     "trace": 25.8,
+     "denoise": 3.62,
+     "composite": 0.11,
+     "total": 29.52,
+     "cpu": 2.91,
+     "n": 13
+    },
+    "nospec": {
+     "build": 0.0,
+     "trace": 25.72,
+     "denoise": 3.57,
+     "composite": 0.09,
+     "total": 29.375,
+     "cpu": 2.77,
+     "n": 6
+    },
+    "nobounce": {
+     "build": 0.0,
+     "trace": 16.865,
+     "denoise": 3.56,
+     "composite": 0.08,
+     "total": 20.51,
+     "cpu": 2.965,
+     "n": 6
+    }
+   },
+   "after": {
+    "base": {
+     "build": 0.0,
+     "trace": 23.38,
+     "denoise": 3.53,
+     "composite": 0.13,
+     "total": 27.04,
+     "cpu": 2.89,
+     "n": 13,
+     "extract": 1.63,
+     "scene": 1.14,
+     "rest": 0.03
+    },
+    "nospec": {
+     "build": 0.0,
+     "trace": 23.32,
+     "denoise": 3.47,
+     "composite": 0.09,
+     "total": 26.89,
+     "cpu": 3.125,
+     "n": 6,
+     "extract": 1.875,
+     "scene": 1.2,
+     "rest": 0.03
+    },
+    "nobounce": {
+     "build": 0.0,
+     "trace": 16.71,
+     "denoise": 3.46,
+     "composite": 0.09,
+     "total": 20.25,
+     "cpu": 2.845,
+     "n": 6,
+     "extract": 1.72,
+     "scene": 1.095,
+     "rest": 0.03
+    }
+   }
+  },
+  "fixedViews800x600NoAccumulation": {
+   "before-forest": {
+    "timingSamples": 13,
+    "medianTiming": {
+     "build": 0.0,
+     "trace": 21.73,
+     "denoise": 1.75,
+     "composite": 0.05,
+     "total": 23.53,
+     "cpu": 2.34
+    },
+    "medianFramePercentiles": [
+     28.13,
+     31.86,
+     73.56
+    ],
+    "groundRegion": {
+     "x": 320,
+     "y": 340,
+     "width": 460,
+     "height": 180
+    },
+    "imageSamples": [
+     {
+      "mean": 6.76042270531401,
+      "outliers10": 102,
+      "outliers30": 3
+     },
+     {
+      "mean": 6.863703703703704,
+      "outliers10": 110,
+      "outliers30": 1
+     },
+     {
+      "mean": 6.945483091787439,
+      "outliers10": 148,
+      "outliers30": 2
+     },
+     {
+      "mean": 6.966179549114333,
+      "outliers10": 138,
+      "outliers30": 1
+     },
+     {
+      "mean": 6.784412238325281,
+      "outliers10": 94,
+      "outliers30": 0
+     },
+     {
+      "mean": 6.786815619967794,
+      "outliers10": 103,
+      "outliers30": 2
+     }
+    ],
+    "meanTemporalStd": 0.6323162335547786
+   },
+   "after-forest": {
+    "timingSamples": 13,
+    "medianTiming": {
+     "build": 0.0,
+     "trace": 20.02,
+     "denoise": 1.75,
+     "composite": 0.06,
+     "total": 21.83,
+     "cpu": 2.65
+    },
+    "medianFramePercentiles": [
+     27.22,
+     31.59,
+     73.93
+    ],
+    "groundRegion": {
+     "x": 320,
+     "y": 340,
+     "width": 460,
+     "height": 180
+    },
+    "imageSamples": [
+     {
+      "mean": 6.773784219001611,
+      "outliers10": 91,
+      "outliers30": 2
+     },
+     {
+      "mean": 6.810100644122382,
+      "outliers10": 142,
+      "outliers30": 3
+     },
+     {
+      "mean": 6.919694041867953,
+      "outliers10": 138,
+      "outliers30": 2
+     },
+     {
+      "mean": 7.007314814814815,
+      "outliers10": 131,
+      "outliers30": 1
+     },
+     {
+      "mean": 6.902298711755233,
+      "outliers10": 127,
+      "outliers30": 0
+     },
+     {
+      "mean": 6.765261674718196,
+      "outliers10": 103,
+      "outliers30": 2
+     }
+    ],
+    "meanTemporalStd": 0.6291458280965965
+   },
+   "before-q3dm1": {
+    "timingSamples": 13,
+    "medianTiming": {
+     "build": 0.0,
+     "trace": 10.33,
+     "denoise": 1.6,
+     "composite": 0.05,
+     "total": 11.98,
+     "cpu": 0.61
+    },
+    "medianFramePercentiles": [
+     13.71,
+     14.94,
+     46.66
+    ],
+    "groundRegion": null,
+    "imageSamples": [],
+    "meanTemporalStd": null
+   },
+   "after-q3dm1": {
+    "timingSamples": 13,
+    "medianTiming": {
+     "build": 0.0,
+     "trace": 9.71,
+     "denoise": 1.6,
+     "composite": 0.05,
+     "total": 11.36,
+     "cpu": 0.65
+    },
+    "medianFramePercentiles": [
+     13.26,
+     14.81,
+     48.26
+    ],
+    "groundRegion": null,
+    "imageSamples": [],
+    "meanTemporalStd": null
+   },
+   "before-mp_beach": {
+    "timingSamples": 13,
+    "medianTiming": {
+     "build": 0.0,
+     "trace": 12.25,
+     "denoise": 1.36,
+     "composite": 0.04,
+     "total": 13.65,
+     "cpu": 0.89
+    },
+    "medianFramePercentiles": [
+     17.7,
+     20.33,
+     52.58
+    ],
+    "groundRegion": null,
+    "imageSamples": [],
+    "meanTemporalStd": null
+   },
+   "after-mp_beach": {
+    "timingSamples": 13,
+    "medianTiming": {
+     "build": 0.0,
+     "trace": 12.05,
+     "denoise": 1.36,
+     "composite": 0.04,
+     "total": 13.45,
+     "cpu": 0.87
+    },
+    "medianFramePercentiles": [
+     17.59,
+     21.65,
+     55.81
+    ],
+    "groundRegion": null,
+    "imageSamples": [],
+    "meanTemporalStd": null
+   }
+  },
+  "mohaaM1l1Frozen1280x720": {
+   "before": [
+    {
+     "time": {
+      "commands": "rtx_rt_perf_timing 1|rtx_rt_perf_interval 30",
+      "shot": "time.png",
+      "sha": "cd6aded59dc3cb57",
+      "seconds": 12.014434814453125,
+      "frames": 308,
+      "fps": 25.6,
+      "cl_mean": 7.49,
+      "cl_p95": 10,
+      "rt_reports": 13,
+      "gpu_build": 0.0,
+      "gpu_trace": 27.33,
+      "gpu_denoise": 2.79,
+      "gpu_composite": 0.1,
+      "gpu_total": 30.25,
+      "rt_cpu": 6.15,
+      "bvh_builds_refits_last": [
+       102,
+       1905
+      ]
+     }
+    },
+    {
+     "base": {
+      "commands": "rtx_rt_perf_timing 1|rtx_rt_perf_interval 30",
+      "shot": "base.png",
+      "sha": "33176aed84334884",
+      "seconds": 8.004204750061035,
+      "frames": 199,
+      "fps": 24.9,
+      "cl_mean": 8.9,
+      "cl_p95": 13,
+      "rt_reports": 9,
+      "gpu_build": 0.0,
+      "gpu_trace": 27.23,
+      "gpu_denoise": 2.78,
+      "gpu_composite": 0.09,
+      "gpu_total": 30.11,
+      "rt_cpu": 7.04,
+      "bvh_builds_refits_last": [
+       96,
+       1678
+      ]
+     },
+     "nobounce": {
+      "commands": "rtx_rt_bounces 0",
+      "shot": "nobounce.png",
+      "sha": "68ddc798797c464f",
+      "seconds": 8.003118991851807,
+      "frames": 213,
+      "fps": 26.6,
+      "cl_mean": 12.48,
+      "cl_p95": 19,
+      "rt_reports": 9,
+      "gpu_build": 0.0,
+      "gpu_trace": 20.73,
+      "gpu_denoise": 2.73,
+      "gpu_composite": 0.08,
+      "gpu_total": 23.54,
+      "rt_cpu": 10.02,
+      "bvh_builds_refits_last": [
+       107,
+       2927
+      ]
+     },
+     "nospec": {
+      "commands": "rtx_rt_bounces 1|rtx_rt_specular 0",
+      "shot": "nospec.png",
+      "sha": "23330a8c99fe8498",
+      "seconds": 8.004948377609253,
+      "frames": 196,
+      "fps": 24.5,
+      "cl_mean": 9.1,
+      "cl_p95": 14,
+      "rt_reports": 9,
+      "gpu_build": 0.0,
+      "gpu_trace": 27.6,
+      "gpu_denoise": 2.8,
+      "gpu_composite": 0.08,
+      "gpu_total": 30.47,
+      "rt_cpu": 6.64,
+      "bvh_builds_refits_last": [
+       117,
+       4237
+      ]
+     },
+     "neither": {
+      "commands": "rtx_rt_bounces 0",
+      "shot": "neither.png",
+      "sha": "8cb29edbaffc7540",
+      "seconds": 8.01168441772461,
+      "frames": 242,
+      "fps": 30.2,
+      "cl_mean": 8.2,
+      "cl_p95": 12,
+      "rt_reports": 11,
+      "gpu_build": 0.0,
+      "gpu_trace": 21.04,
+      "gpu_denoise": 2.74,
+      "gpu_composite": 0.07,
+      "gpu_total": 23.84,
+      "rt_cpu": 6.57,
+      "bvh_builds_refits_last": [
+       128,
+       5546
+      ]
+     },
+     "div1": {
+      "commands": "rtx_rt_bounces 1|rtx_rt_specular 1|rtx_rt_indirect_divisor 1",
+      "shot": "div1.png",
+      "sha": "d0af6c5b0beb8ab1",
+      "seconds": 8.00515604019165,
+      "frames": 188,
+      "fps": 23.5,
+      "cl_mean": 9.32,
+      "cl_p95": 13,
+      "rt_reports": 8,
+      "gpu_build": 0.0,
+      "gpu_trace": 28.995,
+      "gpu_denoise": 2.77,
+      "gpu_composite": 0.09,
+      "gpu_total": 31.855,
+      "rt_cpu": 7.045,
+      "bvh_builds_refits_last": [
+       139,
+       6915
+      ]
+     },
+     "dn0": {
+      "commands": "rtx_rt_indirect_divisor 0|rtx_rt_denoise 0",
+      "shot": "dn0.png",
+      "sha": "3b300c5b9c1fbcf7",
+      "seconds": 8.008332967758179,
+      "frames": 210,
+      "fps": 26.2,
+      "cl_mean": 8.92,
+      "cl_p95": 13,
+      "rt_reports": 9,
+      "gpu_build": 0.0,
+      "gpu_trace": 27.28,
+      "gpu_denoise": 0.44,
+      "gpu_composite": 0.13,
+      "gpu_total": 27.85,
+      "rt_cpu": 7.29,
+      "bvh_builds_refits_last": [
+       151,
+       8223
+      ]
+     }
+    }
+   ],
+   "after": {
+    "base": {
+     "commands": "rtx_rt_perf_timing 1|rtx_rt_perf_interval 30",
+     "shot": "base.png",
+     "sha": "01abe12fd6ac8764",
+     "seconds": 8.013870000839233,
+     "frames": 212,
+     "fps": 26.5,
+     "cl_mean": 7.16,
+     "cl_p95": 13,
+     "rt_reports": 9,
+     "gpu_build": 0.0,
+     "gpu_trace": 26.72,
+     "gpu_denoise": 2.7,
+     "gpu_composite": 0.1,
+     "gpu_total": 29.53,
+     "rt_cpu": 5.85,
+     "cpu_extract": 2.68,
+     "cpu_scene": 3.12,
+     "cpu_rest": 0.06,
+     "dyn_tris": [
+      29317,
+      0,
+      895
+     ],
+     "bvh_builds_refits_last": [
+      98,
+      1770
+     ]
+    },
+    "nobounce": {
+     "commands": "rtx_rt_bounces 0",
+     "shot": "nobounce.png",
+     "sha": "5e1f011f97693cab",
+     "seconds": 8.016640186309814,
+     "frames": 253,
+     "fps": 31.6,
+     "cl_mean": 7.32,
+     "cl_p95": 12,
+     "rt_reports": 11,
+     "gpu_build": 0.0,
+     "gpu_trace": 20.64,
+     "gpu_denoise": 2.64,
+     "gpu_composite": 0.08,
+     "gpu_total": 23.36,
+     "rt_cpu": 5.66,
+     "cpu_extract": 2.53,
+     "cpu_scene": 2.94,
+     "cpu_rest": 0.06,
+     "dyn_tris": [
+      29317,
+      0,
+      895
+     ],
+     "bvh_builds_refits_last": [
+      110,
+      3198
+     ]
+    },
+    "nosun": {
+     "commands": "rtx_rt_bounces 1|rtx_rt_sun_intensity 0",
+     "shot": "nosun.png",
+     "sha": "aae775dc442a04e6",
+     "seconds": 8.012418746948242,
+     "frames": 230,
+     "fps": 28.7,
+     "cl_mean": 7.36,
+     "cl_p95": 12,
+     "rt_reports": 10,
+     "gpu_build": 0.0,
+     "gpu_trace": 23.64,
+     "gpu_denoise": 2.7,
+     "gpu_composite": 0.1,
+     "gpu_total": 26.44,
+     "rt_cpu": 6.045,
+     "cpu_extract": 2.74,
+     "cpu_scene": 3.31,
+     "cpu_rest": 0.06,
+     "dyn_tris": [
+      29317,
+      0,
+      895
+     ],
+     "bvh_builds_refits_last": [
+      122,
+      4626
+     ]
+    },
+    "nosky": {
+     "commands": "rtx_rt_sun_intensity 1|rtx_rt_sky_intensity 0",
+     "shot": "nosky.png",
+     "sha": "5dba1ae3a28d8a6b",
+     "seconds": 8.013577938079834,
+     "frames": 204,
+     "fps": 25.5,
+     "cl_mean": 8.41,
+     "cl_p95": 16,
+     "rt_reports": 9,
+     "gpu_build": 0.0,
+     "gpu_trace": 26.72,
+     "gpu_denoise": 2.7,
+     "gpu_composite": 0.1,
+     "gpu_total": 29.52,
+     "rt_cpu": 6.46,
+     "cpu_extract": 2.92,
+     "cpu_scene": 3.33,
+     "cpu_rest": 0.06,
+     "dyn_tris": [
+      29317,
+      0,
+      895
+     ],
+     "bvh_builds_refits_last": [
+      133,
+      5995
+     ]
+    },
+    "div1": {
+     "commands": "rtx_rt_sky_intensity 1|rtx_rt_indirect_divisor 1",
+     "shot": "div1.png",
+     "sha": "a7f0278ed13c3ee6",
+     "seconds": 8.007711172103882,
+     "frames": 200,
+     "fps": 25.0,
+     "cl_mean": 7.28,
+     "cl_p95": 13,
+     "rt_reports": 9,
+     "gpu_build": 0.0,
+     "gpu_trace": 28.82,
+     "gpu_denoise": 2.69,
+     "gpu_composite": 0.1,
+     "gpu_total": 31.61,
+     "rt_cpu": 6.17,
+     "cpu_extract": 2.87,
+     "cpu_scene": 3.38,
+     "cpu_rest": 0.07,
+     "dyn_tris": [
+      29317,
+      0,
+      895
+     ],
+     "bvh_builds_refits_last": [
+      143,
+      7245
+     ]
+    }
+   }
+  },
+  "stillViewDriftQ3Four": {
+   "metric": "whole-frame luma mean of the final engine capture after N still frames",
+   "frames": [
+    400,
+    800,
+    1200,
+    1600
+   ],
+   "before": [
+    126.96,
+    116.28,
+    107.95,
+    101.1
+   ],
+   "afterRoundToNearestDither": [
+    131.58,
+    125.95,
+    120.17,
+    115.15
+   ],
+   "after": [
+    137.56,
+    138.51,
+    138.83,
+    138.98
+   ],
+   "unfilteredRunningMeanBefore": {
+    "view": "rtx_rt_debug_visualizer 11, iterations 0",
+    "values": [
+     172.62,
+     166.75,
+     161.73,
+     157.13
+    ]
+   },
+   "unfilteredRunningMeanNoJitterExperiment": [
+    172.07,
+    165.77,
+    159.94,
+    155.21
+   ],
+   "linearIrradianceAfter": {
+    "view": "rtx_rt_debug_visualizer 3, iterations 0, unclipped pixels",
+    "values": [
+     126.235,
+     128.972,
+     128.262
+    ],
+    "frames": [
+     400,
+     800,
+     1600
+    ]
+   },
+   "rawTraceStability": {
+    "view": "rtx_rt_debug_visualizer 4",
+    "meanOf20FramesEarly": 141.699,
+    "meanOf20FramesLate": 141.521,
+    "framesApart": 1200
+   },
+   "movingVersusSettled": {
+    "moving": 127.83,
+    "settled1600": 138.98,
+    "note": "open: no clean raw reference"
+   }
+  },
+  "ditherFixture": [
+   "to nearest, signal 0.52/0.00: truth 0.45471, stored 0.38640 (15.02%), dithered 0.45485 (0.032%)",
+   "to nearest, signal 0.03/1.90: truth 0.14783, stored 0.14991 (1.41%), dithered 0.14792 (0.063%)",
+   "to nearest, signal 3.10/0.40: truth 2.56074, stored 2.06889 (19.21%), dithered 2.56210 (0.053%)",
+   "toward zero, signal 0.52/0.00: truth 0.45471, stored 0.32852 (27.75%), dithered 0.45485 (0.032%)",
+   "toward zero, signal 0.03/1.90: truth 0.14783, stored 0.11771 (20.38%), dithered 0.14792 (0.063%)",
+   "toward zero, signal 3.10/0.40: truth 2.56074, stored 1.74834 (31.73%), dithered 2.56210 (0.053%)",
+   "half-float history dither: PASS"
+  ],
+  "cpuSplitM1l1TemporaryTimers": {
+   "msPerFrame": {
+    "appender": "1.1-1.4",
+    "stamp": 0.2,
+    "remap": 0.06,
+    "motionRecord": "0.35-0.47",
+    "partition": "0.35-0.46",
+    "stillHash": "0.42-0.48",
+    "upload": 0.26,
+    "previousPositions": "0.17-0.22",
+    "bvhRefit": "2.4-2.8",
+    "bvhBuildAndCopy": "0.24-0.74"
+   },
+   "stackSamples": "47 of 60 main-thread samples wait for the GPU",
+   "builderBenchmark": "RT_BvhAppend 7.2-8.5 ms, RT_BvhRefit 0.53-1.39 ms for 30,720 triangles (cl /O2, x86)"
+  }
+ },
+ "validation": {
+  "build": "fnql_rtx_x86 with strict warnings; 97 shader variants; spirv-val passes 13 embedded rt_* modules",
+  "rtxTests": "43 RTX test files pass (42 at HEAD plus rtx_half_dither_tests.py)",
+  "relatedTests": "17 renderer test files, shadow_projection_source_tests.py, tests/glx and tests/vulkan (234 tests) pass",
+  "traversalFixture": "rtx_sw_traversal_tests.py passes with the fma slab test"
+ },
+ "limits": [
+  "the hardware ray-tracing backend has not run the change",
+  "moving view reads about 8% darker than the settled still view on four; reference unmeasured",
+  "glowing movers and models light nothing",
+  "checkerboard disocclusion holes at non-default settings",
+  "rtx_rt_lighting 2 minlight floor applied to a noisy bounce sample",
+  "whole-class compute BVH rebuild on a model's appearance or LOD change"
+ ],
+ "unrelatedIssues": [
+  "RE_UploadCinematic and the QL web UI destroy image views without waiting for frames in flight",
+  "RT_MaterialIndexForShader returns material 0 on failure",
+  "RE_RemapShader invalidates the whole traced scene; vk_rt_invalidate does nothing when its wait fails",
+  "tr_backend.c comment on when a trace failure is known"
+ ]
+}

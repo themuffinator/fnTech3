@@ -172,9 +172,18 @@ static void RT_LightsFree( void )
 	if ( s_rtLights.cells ) RT_HostFree( s_rtLights.cells );
 	if ( s_rtLights.indices ) RT_HostFree( s_rtLights.indices );
 	{
+		// the lighting mode and the sky's light colour are what the frame was
+		// asked to trace, not what was built: a light build that fails keeps
+		// them, so the lightmaps (rtx_rt_lighting 1) or the emitters' sky and
+		// camera (3) stay in force without the lights
 		const uint32_t generation = s_rtLights.generation;
+		const int mode = s_rtLights.mode;
+		vec4_t skyColor;
+		Vector4Copy( s_rtLights.skyColor, skyColor );
 		Com_Memset( &s_rtLights, 0, sizeof( s_rtLights ) );
 		s_rtLights.generation = generation + 1;
+		s_rtLights.mode = mode;
+		Vector4Copy( skyColor, s_rtLights.skyColor );
 	}
 }
 
@@ -975,7 +984,13 @@ static void RT_AddSurfaceLights( void )
 		VectorNormalize( normal );
 
 		if ( autosprite ) {
-			// q3map lights an autosprite emitter as a point of intensity value
+			// q3map lights an autosprite emitter as a point of intensity value,
+			// at its area's centre: a surface of no area has none, and would
+			// put the light at the world's origin
+			if ( !( totalArea > 0.0f ) ) {
+				vk_rt_cpu_geometry_free( &geometry );
+				continue;
+			}
 			RT_AddPointLight( centroid, color, value * RT_LIGHT_POINT_SCALE, qfalse, qtrue, 1.0f, NULL, 0.0f, 0 );
 			vk_rt_cpu_geometry_free( &geometry );
 			continue;
@@ -1039,7 +1054,9 @@ static void RT_AddEmissiveSurfaces( void )
 	Com_Memset( known, 0, sizeof( known ) );
 	for ( i = 0; i < worldModel->numSurfaces; i++ ) {
 		const msurface_t *surface = &worldModel->firstSurface[i];
-		const shader_t *shader = surface->shader;
+		// the shader the surface draws, a remap's as its material takes it
+		// (RT_MaterialIndexForShader), so the glow it shows is the glow it gives
+		const shader_t *shader = surface->shader ? RT_ResolveShader( surface->shader ) : NULL;
 		rtxRtCpuGeometry_t geometry;
 		vec3_t radiance;
 		float value, peak;
@@ -2061,7 +2078,8 @@ static qboolean RT_BuildLights( void )
 	s_rtLights.q3map2Shaders = RT_WorldUsesQ3map2Shaders();
 	s_rtLights.q3map2 = s_rtLights.q3map2Shaders;
 	s_rtLights.mode = RT_LightingMode();
-	RT_ResetImageAverages();
+	// the image averages are the materials' too, and were reset with the last
+	// table (RT_MaterialsFree): the lights read the ones the materials read
 
 	if ( RT_LightingEmits( s_rtLights.mode ) ) {
 		// The sky, its sun and the surfaces that give off light, nothing

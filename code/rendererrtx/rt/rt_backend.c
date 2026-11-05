@@ -162,10 +162,13 @@ typedef struct {
 	VkDescriptorSet		rtSet;
 	VkDescriptorSet		denoiseSet;
 	int					textureCount;		// tr.numImages the texture array was written for
+	uint32_t			textureViews;		// ... and s_vkImageViewChanges
 	// the tone mapper's state as this slot's frame left it (rtToneBuffer_t),
 	// read when the slot is reused
 	rtMappedBuffer_t	tone;
 	qboolean			toneWritten;
+	qboolean			toneCleared;		// this slot's last frame cleared the tone mapper
+	int					tracedFrame;		// tr.frameCount this slot last traced
 } rtFrame_t;
 
 // Motion uses profile identities where the module supplies one; ambiguous
@@ -197,6 +200,11 @@ typedef struct {
 typedef struct {
 	qboolean			failed;				// a resource could not be created; stay raster
 	const world_t		*world;
+	// a world whose build failed, tried again after worldRetryDelay ms (at
+	// worldRetryTime, ri.Milliseconds), or at once when the map or the
+	// settings it is built for change (RT_TraceFrame)
+	const world_t		*failedWorld;
+	int					worldRetryTime, worldRetryDelay;
 	const shader_t		*defaultShader;
 
 	// static world
@@ -236,6 +244,7 @@ typedef struct {
 	qboolean			historyValid;
 	int					temporalTime;	// wall clock of the previous traced frame
 	int					indirectDivisor, budgetDivisor, budgetMinimum, budgetCooldown;
+	uint32_t			traceGroupDivisor;	// RT_TraceGroupDivisor, this frame's
 	qboolean			budgetSample;
 	rtFrameStats_t		gpuFrameStats;
 
@@ -299,10 +308,27 @@ typedef struct {
 	qboolean				timingWritten[RT_FRAMES];
 	float					gpuMs[RT_TIMING_STAGES];	// smoothed
 	float					cpuMs;						// smoothed extraction and upload
+	// of it, smoothed: the models' extraction, the scene's upload and
+	// BVHs or acceleration structure builds, and the rest
+	float					cpuStageMs[3];
 	int						timingReports;
 } rtBackend_t;
 
 static rtBackend_t s_rt;
+
+// The world is to be built at the next chance (RT_TraceFrame).
+static void RT_RetryWorld( void )
+{
+	s_rt.failedWorld = NULL;
+	s_rt.worldRetryDelay = 0;
+}
+
+// This map's world failed to build, and its next try is still to come.
+static qboolean RT_WorldRetryPending( void )
+{
+	return ( s_rt.failedWorld && s_rt.failedWorld == tr.world &&
+		ri.Milliseconds() - s_rt.worldRetryTime < 0 ) ? qtrue : qfalse;
+}
 
 static const uint32_t s_rtDynamicClass[RT_DYNAMIC_CLASSES] = {
 	RT_CLASS_DYNAMIC, RT_CLASS_WEAPON, RT_CLASS_BODY
@@ -1091,7 +1117,9 @@ static void RT_MotionRecord( const trRefEntity_t *ent, int cls, uint32_t first, 
 	if ( ri.gameId == COM_GAME_RTCW_SP || ri.gameId == COM_GAME_RTCW_MP ) identity = ent->e.rtcw.entityNum;
 	else if ( ri.gameId == COM_GAME_WOLFET ) identity = ent->e.wolfet.entityNum;
 	record->identity = identity >= 0 && identity < 1022 ? identity : -1;
-	record->materialGeneration = s_rtMaterials.generation;
+	// the topology below holds the global material indices, which keep their
+	// meaning while the table only grows; a new table renumbers them
+	record->materialGeneration = s_rtMaterialTables;
 	for ( v = firstIndex; v < geometry->numIndices; v++ ) {
 		topology = ( topology ^ ( geometry->indices[v] - first ) ) * 1099511628211ull;
 	}
@@ -1500,6 +1528,8 @@ static qboolean RT_BuildWorldTrees( const rtxRtCpuGeometry_t *geometry, const ui
 			if ( !RT_BvhAppend( &s_rt.bvh, geometry->vertices, geometry->numVertices,
 					geometry->indices + (size_t)firstTri[t] * 3u, count[t], firstTri[t],
 					&tree->nodeOffset, &tree->triOffset ) ) {
+				// nor keep the world-sized arrays of a build that failed
+				RT_BvhFree( &s_rt.bvh );
 				return qfalse;
 			}
 			tree->valid = qtrue;
@@ -1510,6 +1540,7 @@ static qboolean RT_BuildWorldTrees( const rtxRtCpuGeometry_t *geometry, const ui
 			VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, qfalse, "rt world bvh nodes" ) ||
 		!RT_CreateStatic( &s_rt.worldBvhTris, s_rt.bvh.tris, (size_t)s_rt.bvh.numTris * sizeof( rtBvhTri_t ),
 			VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, qfalse, "rt world bvh triangles" ) ) {
+		RT_BvhFree( &s_rt.bvh );
 		return qfalse;
 	}
 	ri.Printf( PRINT_ALL, "RTX RT: compute backend world BVH: %u nodes over %u triangles in %.1f ms\n",
@@ -1648,6 +1679,24 @@ static void RT_BarrierAccelerationBuilds( VkCommandBuffer cmd, VkPipelineStageFl
 Record the ray-tracing pipeline's scene into cmd: this frame's dynamic BLASes
 and the TLAS over every instance. Returns the number of TLAS instances.
 */
+/*
+A frame's dynamic BLASes are marked built, with the topology they were built
+from, as their builds are planned. A frame that is not recorded to the end,
+or whose recorded commands are thrown away (vk_rt_frame_discarded), never ran
+those builds: its slot must build them afresh, never update a structure the
+GPU did not build.
+*/
+static qboolean RT_AbandonDynamicBlases( rtFrame_t *frame )
+{
+	int c;
+	for ( c = 0; c < RT_DYNAMIC_CLASSES; c++ ) {
+		frame->blas[c].built = qfalse;
+		frame->blas[c].topologyCount = 0;
+		frame->blas[c].updateAge = 0;
+	}
+	return qfalse;
+}
+
 static qboolean RT_RecordAccelerationStructures( rtFrame_t *frame, VkCommandBuffer cmd, uint32_t totalVertices,
 	const uint32_t primBase[RT_DYNAMIC_CLASSES], uint32_t *outInstances )
 {
@@ -1682,7 +1731,7 @@ static qboolean RT_RecordAccelerationStructures( rtFrame_t *frame, VkCommandBuff
 			!blas->topology || memcmp( blas->topology, g->indices, (size_t)g->numIndices * sizeof( uint32_t ) ) ) {
 			blas->built = qfalse;
 		}
-		if ( !RT_BvhGrow( (void **)&blas->topology, &blas->topologyCapacity, 0, g->numIndices, sizeof( uint32_t ) ) ) return qfalse;
+		if ( !RT_BvhGrow( (void **)&blas->topology, &blas->topologyCapacity, 0, g->numIndices, sizeof( uint32_t ) ) ) return RT_AbandonDynamicBlases( frame );
 		Com_Memcpy( blas->topology, g->indices, (size_t)g->numIndices * sizeof( uint32_t ) );
 		blas->topologyCount = g->numIndices;
 		blas->vertexBase = base;
@@ -1690,7 +1739,7 @@ static qboolean RT_RecordAccelerationStructures( rtFrame_t *frame, VkCommandBuff
 				frame->indices.buffer.address, 2, prims, first,
 				VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR, qfalse,
 				va( "rt dynamic blas %d", c ), geometries[buildCount], ranges[buildCount], &buildInfos[buildCount] ) ) {
-			return qfalse;
+			return RT_AbandonDynamicBlases( frame );
 		}
 		scratchOffsets[buildCount] = scratchSize;
 		scratchSize += frame->blas[c].buildScratchSize;
@@ -1703,7 +1752,7 @@ static qboolean RT_RecordAccelerationStructures( rtFrame_t *frame, VkCommandBuff
 	if ( !RT_EnsureMapped( &frame->instances, RT_MAX_INSTANCES * sizeof( VkAccelerationStructureInstanceKHR ),
 			VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR,
 			qtrue, qfalse, "rt tlas instances" ) ) {
-		return qfalse;
+		return RT_AbandonDynamicBlases( frame );
 	}
 	instances = (VkAccelerationStructureInstanceKHR *)frame->instances.mapped;
 	if ( s_rt.worldBlas.built ) {
@@ -1762,7 +1811,7 @@ static qboolean RT_RecordAccelerationStructures( rtFrame_t *frame, VkCommandBuff
 				&tlasBuild, &capacity, &sizes );
 			if ( !vk_rt_create_as( VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR, sizes.accelerationStructureSize,
 					"rt tlas", &frame->tlas ) ) {
-				return qfalse;
+				return RT_AbandonDynamicBlases( frame );
 			}
 			frame->tlasScratchSize = RT_AlignScratch( sizes.buildScratchSize );
 			frame->tlasInstanceCapacity = capacity;
@@ -1776,7 +1825,7 @@ static qboolean RT_RecordAccelerationStructures( rtFrame_t *frame, VkCommandBuff
 			if ( !vk_rt_create_buffer( scratchSize + alignment + ( scratchSize >> 1 ),
 					VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
 					VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, qtrue, "rt frame scratch", &frame->scratch ) ) {
-				return qfalse;
+				return RT_AbandonDynamicBlases( frame );
 			}
 		}
 		scratchBase = ( frame->scratch.address + alignment - 1 ) & ~( (VkDeviceAddress)alignment - 1 );
@@ -2661,7 +2710,9 @@ static void RT_UpdateDescriptors( rtFrame_t *frame )
 	Vk_Sampler_Def samplerDef;
 	uint32_t writeCount = 0;
 	uint32_t i;
-	const qboolean texturesChanged = ( frame->textureCount != tr.numImages ) ? qtrue : qfalse;
+	// a new image, or an image whose view was replaced (vk_create_image)
+	const qboolean texturesChanged = ( frame->textureCount != tr.numImages ||
+		frame->textureViews != s_vkImageViewChanges ) ? qtrue : qfalse;
 
 	Com_Memset( writes, 0, sizeof( writes ) );
 	if ( RT_Compute() ) {
@@ -2761,6 +2812,7 @@ static void RT_UpdateDescriptors( rtFrame_t *frame )
 		writes[writeCount].pImageInfo = textures;
 		writeCount++;
 		frame->textureCount = tr.numImages;
+		frame->textureViews = s_vkImageViewChanges;
 	}
 
 	for ( i = 0; i < ARRAY_LEN( outputs ); i++ ) {
@@ -2918,6 +2970,37 @@ static int RT_IndirectDivisor( void )
 	return s_rt.historyValid ? s_rt.budgetDivisor : 1;
 }
 
+/*
+The frame number the trace's random sequences and its indirect light's phase
+follow (rt_indirect_sampling.glsl), and the denoiser's phase with them. It
+reaches the trace as a float, which holds whole numbers exactly only below
+2^24: past that, consecutive frames would share their samples and an odd
+phase would never come round, so it wraps at 2^23.
+*/
+static uint32_t RT_FrameIndex( void )
+{
+	return (uint32_t)tr.frameCount & ( ( 1u << 23 ) - 1u );
+}
+
+/*
+How the compute trace lays its 8 x 8 workgroups over the view (rt_trace.comp).
+Above indirect divisor 1 one pixel in each divisor x divisor block traces a
+diffuse bounce a frame, at the same place in every block. Laid over 8 x 8
+neighbouring pixels, every warp then waited on its few bouncing lanes; a
+workgroup instead takes the pixels at one place in 8 x 8 blocks, so the
+frame's bouncing pixels fill whole workgroups and the others skip the bounce
+together. Without a bounce, neighbouring pixels keep their rays together.
+*/
+static uint32_t RT_TraceGroupDivisor( qboolean bakedLighting )
+{
+	const int bounces = rtx_rt_bounces ? rtx_rt_bounces->integer : 1;
+	const float strength = rtx_rt_indirect_strength ? rtx_rt_indirect_strength->value : 1.0f;
+	if ( !RT_Compute() || bakedLighting || bounces <= 0 || !( strength > 0.0f ) ) {
+		return 1u;
+	}
+	return (uint32_t)Com_Clamp( 1, 4, s_rt.indirectDivisor );
+}
+
 static void RT_WriteFrameUniforms( rtFrame_t *frame, uint32_t classPrims[RT_CLASS_COUNT][4], qboolean weapon )
 {
 	rtFrameUniforms_t *u = (rtFrameUniforms_t *)frame->frame.mapped;
@@ -3004,7 +3087,7 @@ static void RT_WriteFrameUniforms( rtFrame_t *frame, uint32_t classPrims[RT_CLAS
 	}
 
 	u->time[0] = (float)backEnd.refdef.floatTime;
-	u->time[1] = (float)tr.frameCount;
+	u->time[1] = (float)RT_FrameIndex();
 	u->liquidParams[0] = R_LiquidWaveTime( backEnd.refdef.floatTime );
 	u->liquidParams[1] = r_liquidWarpScale ? Com_Clamp( 0.0f, 2.0f, r_liquidWarpScale->value ) : 1.0f;
 	{
@@ -3120,6 +3203,8 @@ static void RT_WriteFrameUniforms( rtFrame_t *frame, uint32_t classPrims[RT_CLAS
 	u->jitter[2] = (float)s_rt.accumulated;
 	// the compute backend's instances (RT_RecordComputeScene)
 	u->swInfo[0] = frame->swInstanceCount;
+	s_rt.traceGroupDivisor = RT_TraceGroupDivisor( bakedLighting );
+	u->swInfo[1] = s_rt.traceGroupDivisor;
 	Com_Memcpy( u->swInstances, frame->swInstances, sizeof( u->swInstances ) );
 }
 
@@ -3179,6 +3264,7 @@ static void RT_ToneMap( VkCommandBuffer cmd, rtFrame_t *frame, const rtDenoisePu
 		}
 	}
 	frame->toneWritten = qfalse;
+	frame->toneCleared = s_rt.toneClear;
 
 	if ( s_rt.toneClear ) {
 		VkMemoryBarrier cleared;
@@ -3308,6 +3394,10 @@ static void RT_TimingReport( void )
 			s_rt.gpuMs[0], s_rt.gpuMs[1], s_rt.gpuMs[2], s_rt.gpuMs[3],
 			s_rt.gpuMs[0] + s_rt.gpuMs[1] + s_rt.gpuMs[2] + s_rt.gpuMs[3], s_rt.cpuMs,
 			s_rt.traceWidth, s_rt.traceHeight, s_rt.accumulated );
+		ri.Printf( PRINT_ALL, "RTX RT cpu: extract %.2f, scene %.2f, rest %.2f ms; triangles traced dynamic %u, weapon %u, body %u\n",
+			s_rt.cpuStageMs[0], s_rt.cpuStageMs[1], s_rt.cpuStageMs[2],
+			s_rt.dynamicTriangles[0][0] + s_rt.dynamicTriangles[0][1], s_rt.dynamicTriangles[1][0] + s_rt.dynamicTriangles[1][1],
+			s_rt.dynamicTriangles[2][0] + s_rt.dynamicTriangles[2][1] );
 		if ( RT_Compute() ) {
 			ri.Printf( PRINT_ALL, "RTX RT acceleration: %u dynamic builds, %u refits (all current-frame vertices)\n",
 				s_rt.bvhBuilds, s_rt.bvhRefits );
@@ -3353,6 +3443,7 @@ static qboolean RT_TraceFrame( void )
 	rtFrame_t *frame = &s_rt.frames[ vk.cmd_index % RT_FRAMES ];
 	const uint32_t slot = (uint32_t)( vk.cmd_index % RT_FRAMES );
 	const int64_t cpuStart = vk_rt_now_microseconds();
+	int64_t cpuExtract = 0, cpuScene = 0;
 	VkCommandBuffer cmd = vk.cmd->command_buffer;
 	uint32_t classPrims[RT_CLASS_COUNT][4];
 	uint32_t instanceCount = 0;
@@ -3368,31 +3459,39 @@ static qboolean RT_TraceFrame( void )
 	if ( s_rt.failed ) {
 		return RT_FrameFailed( 7, "its pipelines failed earlier" );
 	}
+	if ( ( rtx_rt_lighting && rtx_rt_lighting->modified ) || ( rtx_rt_emissive_light && rtx_rt_emissive_light->modified ) ||
+		( rtx_rt_camera && rtx_rt_camera->modified ) ) {
+		// the lights, and which shaders are lights, are built for one mode,
+		// and a glowing shader's light for one camera's units: a world built,
+		// or tried, with the old ones is built again with new materials. This
+		// comes before the settings below that only drop the world, which
+		// would hide that one was built. Before any world, the materials the
+		// raster passes made follow the settings as they are.
+		if ( !( s_rt.worldReady || s_rt.failedWorld ) || vk_rt_wait_for_inflight_frames( "RT lighting change" ) ) {
+			if ( rtx_rt_lighting ) {
+				rtx_rt_lighting->modified = qfalse;
+			}
+			if ( rtx_rt_emissive_light ) {
+				rtx_rt_emissive_light->modified = qfalse;
+			}
+			if ( rtx_rt_camera ) {
+				rtx_rt_camera->modified = qfalse;
+			}
+			if ( s_rt.worldReady || s_rt.failedWorld ) {
+				RT_MaterialsFree();
+				s_rt.worldReady = qfalse;
+				RT_RetryWorld();
+				for ( i = 0; i < RT_FRAMES; i++ ) {
+					s_rt.frames[i].materialGeneration = (uint32_t)-1;
+				}
+			}
+		}
+	}
 	if ( rtx_rt_patch_shadows && rtx_rt_patch_shadows->modified ) {
 		// which world surfaces cast shadows is part of the world's BLASes
 		rtx_rt_patch_shadows->modified = qfalse;
 		s_rt.worldReady = qfalse;
-	}
-	if ( ( rtx_rt_lighting && rtx_rt_lighting->modified ) || ( rtx_rt_emissive_light && rtx_rt_emissive_light->modified ) ||
-		( rtx_rt_camera && rtx_rt_camera->modified ) ) {
-		// the lights, and which shaders are lights, are built for one mode,
-		// and a glowing shader's light for one camera's units
-		if ( rtx_rt_lighting ) {
-			rtx_rt_lighting->modified = qfalse;
-		}
-		if ( rtx_rt_emissive_light ) {
-			rtx_rt_emissive_light->modified = qfalse;
-		}
-		if ( rtx_rt_camera ) {
-			rtx_rt_camera->modified = qfalse;
-		}
-		if ( s_rt.worldReady && vk_rt_wait_for_inflight_frames( "RT lighting change" ) ) {
-			RT_MaterialsFree();
-			s_rt.worldReady = qfalse;
-			for ( i = 0; i < RT_FRAMES; i++ ) {
-				s_rt.frames[i].materialGeneration = (uint32_t)-1;
-			}
-		}
+		RT_RetryWorld();
 	}
 	if ( s_rt.defaultShader != tr.defaultShader ) {
 		// the renderer restarted: shaders, images and the world are new
@@ -3412,16 +3511,38 @@ static qboolean RT_TraceFrame( void )
 		return RT_FrameFailed( 0, "its images could not be created" );
 	}
 	if ( !s_rt.worldReady || s_rt.world != tr.world ) {
-		if ( !vk_rt_wait_for_inflight_frames( "RT world build" ) || !RT_BuildWorld() ) {
-			ri.Printf( PRINT_WARNING, "RTX RT: world acceleration structure build failed\n" );
-			return qfalse;
+		// A world that failed is not built again every frame, each time after
+		// waiting for the GPU, but after a wait that doubles each time it
+		// fails, up to about a minute: a 32-bit client's address space can be
+		// too fragmented just after a map loads and free enough later.
+		// vk_rt_primary_view_eligible leaves the views to raster meanwhile; a
+		// new map, a restart or a setting the world is built for tries at once.
+		if ( RT_WorldRetryPending() ) {
+			return RT_FrameFailed( 9, "its world could not be built" );
 		}
+		if ( !vk_rt_wait_for_inflight_frames( "RT world build" ) ) {
+			return RT_FrameFailed( 10, "the frames in flight could not be waited for to build its world" );
+		}
+		if ( !RT_BuildWorld() ) {
+			const int now = ri.Milliseconds();
+			s_rt.worldRetryDelay = s_rt.failedWorld == tr.world ? MIN( MAX( s_rt.worldRetryDelay * 2, 500 ), 64000 ) : 500;
+			s_rt.worldRetryTime = now + s_rt.worldRetryDelay;
+			s_rt.failedWorld = tr.world;
+			ri.Printf( PRINT_DEVELOPER, "RTX RT: world build failed; trying again in %d ms\n", s_rt.worldRetryDelay );
+			return RT_FrameFailed( 9, "its world could not be built" );
+		}
+		if ( s_rt.failedWorld ) {
+			ri.Printf( PRINT_ALL, "RTX RT: the world was built at a later try\n" );
+		}
+		RT_RetryWorld();
 		s_rt.historyValid = qfalse;
 		s_rt.toneClear = qtrue;
 	}
+	cpuExtract = vk_rt_now_microseconds();
 	if ( !RT_ExtractDynamic() ) {
 		return RT_FrameFailed( 1, "the scene's models could not be extracted" );
 	}
+	cpuExtract = vk_rt_now_microseconds() - cpuExtract;
 	if ( !RT_UploadMaterials( frame ) ) {
 		return RT_FrameFailed( 2, "its materials could not be uploaded" );
 	}
@@ -3435,10 +3556,14 @@ static qboolean RT_TraceFrame( void )
 	RT_TimingStamp( cmd, slot, 0, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT );
 
 	Com_Memset( classPrims, 0, sizeof( classPrims ) );
+	cpuScene = vk_rt_now_microseconds();
+	// from here this frame records into its slot (RT_FrameDiscarded)
+	frame->tracedFrame = tr.frameCount;
 	if ( !RT_RecordSceneBuild( frame, cmd, &instanceCount, classPrims ) ) {
 		vk_begin_post_bloom_render_pass();
 		return RT_FrameFailed( 4, "its scene could not be built" );
 	}
+	cpuScene = vk_rt_now_microseconds() - cpuScene;
 	if ( instanceCount == 0 ) {
 		vk_begin_post_bloom_render_pass();
 		return RT_FrameFailed( 5, "its scene is empty" );
@@ -3451,7 +3576,15 @@ static qboolean RT_TraceFrame( void )
 	s_rt.parity ^= 1u;
 	RT_WriteFrameUniforms( frame, classPrims, weapon );
 	RT_UpdateDescriptors( frame );
-	s_rt.cpuMs = s_rt.cpuMs * 0.9f + vk_rt_elapsed_ms( cpuStart, vk_rt_now_microseconds() ) * 0.1f;
+	{
+		const float total = vk_rt_elapsed_ms( cpuStart, vk_rt_now_microseconds() );
+		const float extract = (float)cpuExtract * 0.001f;
+		const float scene = (float)cpuScene * 0.001f;
+		s_rt.cpuMs = s_rt.cpuMs * 0.9f + total * 0.1f;
+		s_rt.cpuStageMs[0] = s_rt.cpuStageMs[0] * 0.9f + extract * 0.1f;
+		s_rt.cpuStageMs[1] = s_rt.cpuStageMs[1] * 0.9f + scene * 0.1f;
+		s_rt.cpuStageMs[2] = s_rt.cpuStageMs[2] * 0.9f + MAX( 0.0f, total - extract - scene ) * 0.1f;
+	}
 	RT_TimingStamp( cmd, slot, 1, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT );
 
 	// the previous frame's passes read and wrote these images
@@ -3472,10 +3605,15 @@ static qboolean RT_TraceFrame( void )
 	}
 
 	if ( RT_Compute() ) {
+		// divisor x divisor workgroups to every square of 8 * divisor pixels
+		// (RT_TraceGroupDivisor); the edges' reach past the view
+		const uint32_t divisor = MAX( 1u, s_rt.traceGroupDivisor );
+		const uint32_t span = 8u * divisor;
 		qvkCmdBindPipeline( cmd, VK_PIPELINE_BIND_POINT_COMPUTE, s_rt.rtPipeline );
 		qvkCmdBindDescriptorSets( cmd, VK_PIPELINE_BIND_POINT_COMPUTE, s_rt.rtPipelineLayout, 0, 1,
 			&frame->rtSet, 0, NULL );
-		qvkCmdDispatch( cmd, ( s_rt.traceWidth + 7 ) / 8, ( s_rt.traceHeight + 7 ) / 8, 1 );
+		qvkCmdDispatch( cmd, divisor * ( ( s_rt.traceWidth + span - 1 ) / span ),
+			divisor * ( ( s_rt.traceHeight + span - 1 ) / span ), 1 );
 	} else {
 		qvkCmdBindPipeline( cmd, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, s_rt.rtPipeline );
 		qvkCmdBindDescriptorSets( cmd, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, s_rt.rtPipelineLayout, 0, 1,
@@ -3510,10 +3648,11 @@ static qboolean RT_TraceFrame( void )
 	push.params[3] = 1.0f;		// depth edge stop
 	push.state[0] = s_rt.parity;
 	push.state[3] = ( ( s_rt.historyValid && denoise ) ? 1u : 0u ) | ( denoise ? 0u : 4u );
-	push.extra[0] = s_rt.accumulated > 0 ? 4096u : 128u;
+	// the history's length rides in a half float, whole up to 2048
+	push.extra[0] = s_rt.accumulated > 0 ? 2048u : 128u;
 	push.extra[1] = rtx_rt_debug_visualizer ? (uint32_t)Com_Clamp( 0, 13, rtx_rt_debug_visualizer->integer ) : 0u;
 	push.extra[2] = iterations;
-	push.view[3] = (uint32_t)s_rt.indirectDivisor | ( ( (uint32_t)tr.frameCount %
+	push.view[3] = (uint32_t)s_rt.indirectDivisor | ( ( RT_FrameIndex() %
 		(uint32_t)( s_rt.indirectDivisor * s_rt.indirectDivisor ) ) << 8 );
 	// Light in a map compiler's units is shown as it was traced: the light a
 	// surface receives times its colour, as the engine shows a surface's
@@ -3556,7 +3695,9 @@ static qboolean RT_TraceFrame( void )
 	s_rt.toneActive = tonemap;
 	push.view[0] = (uint32_t)view.offset.x;
 	push.view[1] = (uint32_t)view.offset.y;
-	push.view[2] = 0;
+	// the temporal pass's random dither of a still view's averages
+	// (rt_half_dither); the tone mapper's passes put theirs here
+	push.view[2] = RT_FrameIndex();
 	{
 		const fnRTCWFogDraw_t fog = RT_ViewFog();
 		Com_Memcpy( push.fog, fog.color, sizeof( push.fog ) );
@@ -3569,7 +3710,10 @@ static qboolean RT_TraceFrame( void )
 		RT_ComputeBarrier( cmd, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT );
 		push.state[1] = it;
 		push.state[2] = 1u << it;
-		push.state[3] = ( it == 0 ) ? 2u : 0u;
+		// SVGF keeps the first iteration's result as history. A still view
+		// keeps its plain average instead: filtered back into the average every
+		// frame, the filter would blur it further each frame it settles
+		push.state[3] = ( it == 0 && s_rt.accumulated == 0 ) ? 2u : 0u;
 		RT_Dispatch( cmd, s_rt.atrousPipeline, &push, s_rt.traceWidth, s_rt.traceHeight );
 	}
 	RT_TimingStamp( cmd, slot, 3, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT );
@@ -3673,6 +3817,41 @@ static void RT_DestroyFrame( rtFrame_t *frame )
 	frame->tlasInstanceCapacity = 0;
 }
 
+/*
+The frame's recorded commands were thrown away (vk_resize_geometry_buffer
+resets the command buffer to grow the raster geometry buffers), and the next
+frame records into the same slot. What the trace recorded never ran: its
+acceleration structure builds, tone mapper clear and readback, timestamps,
+and the history and motion it wrote, so nothing may build on them.
+*/
+static void RT_FrameDiscarded( void )
+{
+	const uint32_t slot = (uint32_t)( vk.cmd_index % RT_FRAMES );
+	rtFrame_t *frame = &s_rt.frames[slot];
+
+	if ( frame->tracedFrame != tr.frameCount ) {
+		return;
+	}
+	frame->tracedFrame = -1;
+	RT_AbandonDynamicBlases( frame );
+	frame->toneWritten = qfalse;
+	if ( frame->toneCleared ) {
+		s_rt.toneClear = qtrue;
+		frame->toneCleared = qfalse;
+	}
+	s_rt.timingWritten[slot] = qfalse;
+	s_rt.historyValid = qfalse;
+	s_rt.hasPrevCamera = qfalse;
+}
+
+// Tracing cannot succeed until something changes: its pipelines failed, or
+// this map's world could not be built and is not to be tried yet
+// (RT_TraceFrame)
+static qboolean RT_TraceUnavailable( void )
+{
+	return ( s_rt.failed || RT_WorldRetryPending() ) ? qtrue : qfalse;
+}
+
 // Drop the world and the per-frame scene; pipelines and images stay.
 static void RT_InvalidateScene( void )
 {
@@ -3683,10 +3862,12 @@ static void RT_InvalidateScene( void )
 	s_rtIqmScratchCount = 0;
 	RT_MOHAAScratchFree();
 	RT_DestroyWorld();
+	RT_BvhFree( &s_rt.bvh );
 	vk_rt_destroy_buffer( &s_rt.lightGrid );
 	vk_rt_destroy_buffer( &s_rt.lightIndices );
 	s_rt.worldReady = qfalse;
 	s_rt.world = NULL;
+	RT_RetryWorld();
 	RT_LightsFree();
 	for ( i = 0; i < RT_FRAMES; i++ ) {
 		VkDescriptorSet rtSet = s_rt.frames[i].rtSet;

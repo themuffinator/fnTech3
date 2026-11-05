@@ -207,6 +207,16 @@ or hardware-backend compatibility claims.
 The [forest speckle follow-up](2026-10-23-rtx-speckles.md) adds variance-guided
 direct-light filtering within the existing passes, with required ray tracing
 and unchanged sampling settings. Its evidence closes no compatibility gate.
+The [November 5 RTX round](2026-11-05-rtx-round.md) stops a still view's
+traced light darkening by a fifth over a minute: its history is now stored
+as exact half floats, kept unfiltered, and reprojected without the
+accumulation jitter (Unit, Live on Quake III's `four`). It also fixes double
+counting under `rtx_rt_mis 0`, glowing surfaces left black in reflections,
+stale image averages and light modes, discarded or partly planned frames on
+the hardware backend (Build/SPIR-V only), a stale texture-table view and a
+failed world retried every frame. Compute bounce light and reflection hits
+cost less: the trace is 2-9% faster on Q3, RTCW SP and MP and Medal of
+Honor views with unchanged lighting settings. No compatibility gate closes.
 
 The [CSM lighting fidelity comparison](2026-10-22-csm-lighting-fidelity.md)
 compares RTCW `forest` with sun shadows disabled and enabled. The shared

@@ -18,7 +18,14 @@
 // Path tracer (rt/rt_backend.c, included at the end of this file)
 static qboolean RT_TraceFrame( void );
 static void RT_InvalidateScene( void );
+static void RT_FrameDiscarded( void );
+static qboolean RT_TraceUnavailable( void );
 static void RT_Shutdown( void );
+
+// how often vk_create_image has replaced an existing image's view (a
+// cinematic or web image re-created at a new size): the path tracer's
+// texture table holds views, and must not keep a destroyed one
+static uint32_t s_vkImageViewChanges;
 
 #include "../renderercommon/tr_menu_blur.h"
 #include "../renderercommon/tr_motion_blur.h"
@@ -2578,6 +2585,10 @@ qboolean vk_rt_primary_view_eligible( void )
 		// main pass, and this one then draws in the post-bloom pass
 		( vk.renderPassIndex == RENDER_PASS_MAIN || vk.renderPassIndex == RENDER_PASS_POST_BLOOM ) &&
 		backEnd.viewParms.portalView == PV_NONE &&
+		// a trace that cannot succeed until something changes would only be
+		// drawn again by raster after its base pass; rtx_rt_require still
+		// tries it, to stop on the failure
+		( !RT_TraceUnavailable() || ( rtx_rt_require && rtx_rt_require->integer ) ) &&
 		// RTCW's and ET's portal sky is drawn first, behind the view it is
 		// seen from: tracing it would leave that view to raster
 		!backEnd.refdef.skyboxPortalScene &&
@@ -11051,6 +11062,7 @@ void vk_create_image( image_t *image, int width, int height, int mip_levels ) {
 	if ( image->view ) {
 		qvkDestroyImageView( vk.device, image->view, NULL );
 		image->view = VK_NULL_HANDLE;
+		s_vkImageViewChanges++;
 	}
 
 	// create image
@@ -15137,6 +15149,10 @@ static void vk_resize_geometry_buffer( void )
 	VK_CHECK( qvkEndCommandBuffer( vk.cmd->command_buffer ) );
 
 	qvkResetCommandBuffer( vk.cmd->command_buffer, 0 );
+	// the path tracer recorded into what is thrown away
+	if ( vk.rt.initialized ) {
+		RT_FrameDiscarded();
+	}
 
 	vk_wait_idle();
 

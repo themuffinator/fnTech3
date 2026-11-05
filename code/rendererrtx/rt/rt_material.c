@@ -56,9 +56,19 @@ typedef struct {
 } rtMaterialTable_t;
 
 static rtMaterialTable_t s_rtMaterials;
+// How many tables have been freed: a global material index means the same
+// material while this stays, though the table grows (generation)
+static uint32_t s_rtMaterialTables;
+
+static void RT_ResetImageAverages( void );
 
 static void RT_MaterialsFree( void )
 {
+	// the images the averages were read from may be gone with the materials
+	// (a new map, a renderer restart): the next table and the lights built
+	// with it read them afresh
+	RT_ResetImageAverages();
+	s_rtMaterialTables++;
 	if ( s_rtMaterials.materials ) {
 		RT_HostFree( s_rtMaterials.materials );
 	}

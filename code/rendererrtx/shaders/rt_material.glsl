@@ -201,6 +201,12 @@ float rt_stage_lod(RtStage s, RtHitAttribs h, uint image, float extraBias)
 		tcGen == TCGEN_ENVIRONMENT_MAPPED_FP) {
 		return 0.0;
 	}
+	if (!(h.coneWidth > 0.0)) {
+		// no footprint (an alpha test's candidate hit): the level a footprint
+		// of none takes below, without the image's size or the triangle's
+		// texture density
+		return max(log2(1e-6) + extraBias, 0.0);
+	}
 	vec2 size = vec2(textureSize(u_textures[nonuniformEXT(image)], 0));
 	float density = tcGen == TCGEN_VECTOR ? length(s.animTc0.yzw) : h.uvDensity;
 	float footprint = h.coneWidth * density * sqrt(size.x * size.y);
