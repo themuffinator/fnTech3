@@ -1,0 +1,194 @@
+{
+ "schemaVersion": 1,
+ "date": "2026-11-05",
+ "scope": "RTX path tracer physically based materials; no compatibility gate closes",
+ "baseCommit": "affb351168f1bf51d016f23af473216b71818cad",
+ "runtimes": {
+  "x86Compute": {
+   "client": "meson/build/win32-dev/fntech3.exe",
+   "clientSha256": "fc3989f413dc332af0a3f7adeb2197fc768ce089ae70290da897001f963a4295",
+   "renderer": "fnql_rtx_x86.dll",
+   "rendererSha256": "605f000ca9c440b5a148af35362ac1edcb6d2776df98a3a83c085dba6d9a5fab",
+   "backend": "compute"
+  },
+  "x86HeadRenderer": {
+   "renderer": "fnql_rtx_x86.dll built from affb3511 in a git archive export, beside the same client",
+   "rendererSha256": "dad92a867b378e3d1933d898d2b36b585fe5af27a993f99183fe71be918a6290"
+  },
+  "x64Pipeline": {
+   "client": "meson/build/x64-q3/fntech3-q3.exe (-Dq3-only=true)",
+   "clientSha256": "6636448c664cc2a026378bc588819db4eb6fbe5b54a6580d78dcd6dec4312c64",
+   "renderer": "fnql_rtx_x86_64.dll",
+   "rendererSha256": "f6679a5e9e0178db1449d6d3e61e01ed6335d0dc3aeb97f283387f8c62c8642d",
+   "backend": "ray_tracing_pipeline"
+  }
+ },
+ "platform": "Windows 11 Home 10.0.26200",
+ "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU, driver 591.74, Vulkan 1.4.325",
+ "installation": {
+  "game": "Quake III Arena 1.32 retail pak0-pak8 only (copied from the Steam install)",
+  "pak0Sha256": "7ce8b3910620cd50a09e4f1100f426e8c6180f68895d589f80e6bd95af54bcae",
+  "demo": "four (q3dm6)",
+  "note": "the Steam install's third-party q3r-maps.pk3 replaces q3dm6; runs on it are not counted"
+ },
+ "probeConditions": "scripts/rtx_probe.py --demo four --advance 400, 960x540 windowed, private desktop, isolated home, net_enabled 0, rtx_rt_mode 2",
+ "packs": {
+  "generator": ".tmp/rtx-pbr/make_pack.py and glow_all.py (synthetic images; only texture names read)",
+  "zz-pbr-companions.pk3": "944ac280cac6c4c913fdc98f681a6a6b9900db1a1ba8f55310ee9357b2c93b6e",
+  "zz-pbr-glowall.pk3": "021dffb3c1fdea306f335b0c13aee41a64d59ff12a2aeb7139beec8019eff4c9",
+  "zz-pbr-words.pk3": "a218dad6083fc805130bbd004b689b01956ad36e7b727e1c8b91750221b46ad7",
+  "imagesWithMaps": 79
+ },
+ "runs": {
+  "nopack-head": {
+   "renderer": "HEAD",
+   "captures": [
+    "native",
+    "noisy (visualizer 4)",
+    "accum (240 frames)"
+   ],
+   "lights": "113 light entities and 2 glowing shaders over 50 triangles"
+  },
+  "nopack-cand": {
+   "renderer": "candidate",
+   "captures": [
+    "native",
+    "noisy (visualizer 4)",
+    "accum (240 frames)"
+   ],
+   "lights": "113 light entities and 2 glowing shaders over 50 triangles"
+  },
+  "maps-on": {
+   "paks": [
+    "companions",
+    "words"
+   ],
+   "materialsWithMaps": 56,
+   "lights": "113 light entities and 3 glowing shaders over 753 triangles",
+   "emitter": "textures/gothic_block/blocks11b glows 0.000 0.211 0.234"
+  },
+  "glow-all": {
+   "paks": [
+    "glowall",
+    "words"
+   ],
+   "materialsWithMaps": 56,
+   "lights": "113 light entities and 46 glowing shaders over 22565 triangles"
+  },
+  "maps-off": {
+   "paks": [
+    "companions",
+    "words"
+   ],
+   "startup": "rtx_rt_material_maps 0",
+   "materialsWithMaps": 0
+  },
+  "x64-glow-all": {
+   "paks": [
+    "glowall",
+    "words"
+   ],
+   "startup": "rtx_rt_require 1",
+   "backend": "ray_tracing_pipeline",
+   "materialsWithMaps": 56
+  },
+  "allRuns": "validationMessages 0, nativeDispatch true, no fatal lines",
+  "firstBuildFailure": "RTX RT: failed to create the compute path tracing pipeline (VkResult -13); fixed by single coordinate call sites",
+  "mergedSnapshot": "shared tree with the animated-surfaces session plus this round, 3-way merged: glx, vk, rtx built under /W4 /WX; both rounds' tests passed"
+ },
+ "figures": {
+  "nopack_head_vs_candidate_native": {
+   "meanA": 81.682,
+   "meanB": 82.001,
+   "meanAbsDiff": 0.422,
+   "fracOver8": 0.0001
+  },
+  "nopack_head_vs_candidate_raw": {
+   "meanA": 193.721,
+   "meanB": 193.721,
+   "meanAbsDiff": 0.0,
+   "fracOver8": 0.0
+  },
+  "nopack_head_vs_candidate_accum": {
+   "meanA": 83.702,
+   "meanB": 83.771,
+   "meanAbsDiff": 0.101,
+   "fracOver8": 0.0
+  },
+  "maps_off_vs_nopack_candidate": {
+   "meanA": 81.958,
+   "meanB": 82.001,
+   "meanAbsDiff": 0.058,
+   "fracOver8": 0.0
+  },
+  "maps_on_vs_off": {
+   "meanA": 53.142,
+   "meanB": 81.958,
+   "meanAbsDiff": 39.915,
+   "fracOver8": 0.7613
+  },
+  "parallax_on_vs_off_compute": {
+   "meanA": 53.142,
+   "meanB": 52.334,
+   "meanAbsDiff": 13.5,
+   "fracOver8": 0.3422
+  },
+  "parallax_on_vs_off_hardware": {
+   "meanA": 138.513,
+   "meanB": 140.909,
+   "meanAbsDiff": 31.805,
+   "fracOver8": 0.7957
+  },
+  "compute_vs_hardware_glowall": {
+   "meanA": 139.842,
+   "meanB": 138.513,
+   "meanAbsDiff": 2.468,
+   "fracOver8": 0.1292
+  },
+  "compute_vs_hardware_emission_view": {
+   "meanA": 75.053,
+   "meanB": 75.053,
+   "meanAbsDiff": 0.001,
+   "fracOver8": 0.0
+  },
+  "glowall_vs_maps_on": {
+   "meanA": 139.842,
+   "meanB": 53.142,
+   "meanAbsDiff": 87.702,
+   "fracOver8": 0.9734
+  }
+ },
+ "suffixCensus": {
+  "script": ".tmp/rtx-pbr/suffix_census.py",
+  "retailCollisions": {
+   "_glow": "q3 14, ql 17, stvef 27, jka 199, jk2 94, alice 21, fakk2 3, q3test 1",
+   "_light": "q3 4, ql 2, rtcw 1, stvef 1, jka 7, jk2 2, fakk2 1",
+   "_e": "q3 3, ql 5, jka 1",
+   "_s": "rtcw 2, et 2, jka 10, jk2 13, mohaa 6"
+  },
+  "noRetailCollision": [
+   "_n",
+   "_nh",
+   "_specgloss",
+   "_rmo",
+   "_orm",
+   "_rmos",
+   "_orms",
+   "_moxr",
+   "_mosr",
+   "_luma"
+  ],
+  "_emissive": "one pair, in the Steam install's community netpack (rq3dm5_dyson), none in retail paks"
+ },
+ "tests": "tests/rtx_pbr_material_tests.py and 78 other affected files (RTX, shader parsers, assets, changelog, docs, player manual): all pass",
+ "references": {
+  "OpenJK rend2": "https://github.com/JACoders/OpenJK/tree/1a6a643427aa347553e9073dac5570b33337c4d9 (codemp/rd-rend2 tr_shader.cpp, tr_image.cpp, glsl/lightall.glsl), reference observation only",
+  "specularOcclusion": "Lagarde and de Rousiers, Moving Frostbite to Physically Based Rendering, SIGGRAPH 2014"
+ },
+ "limits": [
+  "parallax shifts the primary view only; no self-shadowing",
+  "maps belong to one stage of a lit material",
+  "no Q2RTX-style override files; shader scripts are the material system",
+  "not measured: other profiles with a pack, frame time with maps, a third-party rend2 pack"
+ ]
+}

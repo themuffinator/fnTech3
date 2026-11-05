@@ -47,6 +47,8 @@ static	texModInfo_t	texMods[MAX_SHADER_STAGES][TR_MAX_TEXMODS+1]; // reserve one
 // the permanent shader for the path tracer's material programs.
 static	rtStageSource_t	rtStageSnapshot[MAX_SHADER_STAGES];
 static	int				rtStageSnapshotCount;
+// each snapshot entry's stage's material words (shaderStage_t.rtMaterialWords)
+static	int				rtStageSnapshotWords[MAX_SHADER_STAGES];
 // qer_editorimage and q3map_lightImage of the shader being parsed
 static	char			rtEditorImage[MAX_QPATH];
 static	char			rtLightImage[MAX_QPATH];
@@ -100,6 +102,7 @@ static void R_RtSnapshotStages( int numStages )
 			continue;
 		}
 
+		rtStageSnapshotWords[ rtStageSnapshotCount ] = pStage->rtMaterialWords;
 		source = &rtStageSnapshot[ rtStageSnapshotCount++ ];
 		Com_Memset( source, 0, sizeof( *source ) );
 		source->numImages = MAX( 1, MIN( bundle->numImageAnimations, RT_STAGE_MAX_ANIMATIONS ) );
@@ -133,6 +136,28 @@ static void R_RtSnapshotStages( int numStages )
 #include "../renderercommon/tr_q3_ihv_stageless.h"
 #include "../renderercommon/tr_jka_shader.h"
 #include "../renderercommon/tr_jedi_sprite_shader.h"
+#include "../renderercommon/tr_material_words.h"
+
+// The material words (tr_material_words.h) of the stages of the shader being
+// parsed; a stage names its entry in shaderStage_t.rtMaterialWords.
+static	rMaterialWords_t	rtStageWords[MAX_SHADER_STAGES];
+static	int					rtStageWordCount;
+typedef char rtPbrMapTypesAgree[ ( RT_MATERIAL_MAP_SPECGLOSS == R_PBR_MAP_SPECGLOSS &&
+	RT_MATERIAL_MAP_RMO == R_PBR_MAP_RMO && RT_MATERIAL_MAP_ORM == R_PBR_MAP_ORM &&
+	RT_MATERIAL_MAP_RMOS == R_PBR_MAP_RMOS && RT_MATERIAL_MAP_MOXR == R_PBR_MAP_MOXR &&
+	RT_MATERIAL_MAP_MOSR == R_PBR_MAP_MOSR && RT_MATERIAL_MAP_ORMS == R_PBR_MAP_ORMS ) ? 1 : -1 ];
+
+// Keeps a stage's words once it reads any, in the entry it holds
+static void R_RtKeepMaterialWords( shaderStage_t *stage, const rMaterialWords_t *words )
+{
+	if ( stage->rtMaterialWords <= 0 ) {
+		if ( rtStageWordCount >= MAX_SHADER_STAGES ) {
+			return;
+		}
+		stage->rtMaterialWords = ++rtStageWordCount;
+	}
+	rtStageWords[ stage->rtMaterialWords - 1 ] = *words;
+}
 
 static image_t *R_FindShaderImage( const char *name, imgFlags_t flags ) {
 	flags = R_JKAShaderImageFlags( flags, shader.jkaNoTC );
@@ -185,37 +210,86 @@ static image_t *R_RtCompanionMap( const char *base, const char *suffix, imgFlags
 }
 
 /*
-Quake III materials give the path tracer their colours and emission; a
-texture pack may add the rest as companion images named after the texture of
-a lit material's first stage, as OpenJK's rend2 finds them (a reference
-observation of codemp/rd-rend2/tr_shader.cpp and tr_image.cpp):
+Quake III materials give the path tracer their colours and emission. A
+texture pack may add the rest to a lit material, in one stage's material
+words (renderercommon/tr_material_words.h, OpenJK rend2's), else as companion
+images named after the texture of that stage or of the material's first
+stage, as rend2 finds them (a reference observation of
+codemp/rd-rend2/tr_shader.cpp and tr_image.cpp):
 
-- <texture>_nh, a normal map with height in alpha, else <texture>_n;
-- <texture>_specGloss (specular colour, gloss in alpha), else <texture>_rmo
+- normalMap or normalHeightMap, else <texture>_nh, a normal map with height
+  in alpha, else <texture>_n;
+- specularMap, rmoMap, rmosMap, moxrMap, mosrMap, ormMap or ormsMap, else
+  <texture>_specGloss (specular colour, gloss in alpha), else <texture>_rmo
   (roughness, metalness, occlusion), else <texture>_orm (occlusion,
-  roughness, metalness).
+  roughness, metalness), and then, beyond rend2, <texture>_rmos, _orms, _moxr
+  and _mosr in the channel orders of rend2's words; with none, a stage's
+  gloss, roughness, specularReflectance or specularScale words alone are a
+  specular map of constants;
+- and, beyond rend2, <texture>_emissive, else <texture>_luma (DarkPlaces's
+  name), the light the surface gives off over what its stages show.
 
-No Quake III, Quake Live, Return to Castle Wolfenstein or Enemy Territory pak
-pairs any texture with an image under these names. The maps follow the stage's
-own coordinates and modifiers; only the path tracer samples them.
+No retail pak of the sixteen profiles pairs a texture with an image under the
+companion names. Every other suffix a texture pack might use collides
+somewhere: _glow, _light and _e are retail glow and trim textures, and
+ioquake3 rend2's _s specular map is a retail texture in Return to Castle
+Wolfenstein, Enemy Territory, both Jedi games and Medal of Honor. The maps
+follow the stage's own coordinates and modifiers; only the path tracer
+samples them.
 */
+static image_t *R_RtMaterialWordImage( const char *name, imgFlags_t flags )
+{
+	if ( !Q_stricmp( name, "$whiteimage" ) || !Q_stricmp( name, "*white" ) ) {
+		return tr.whiteImage;
+	}
+	return R_FindShaderImage( name, flags );
+}
+
 static void R_RtFindMaterialMaps( void )
 {
+	static const struct {
+		const char	*suffix;
+		int			type;
+	} companions[] = {
+		{ "_specGloss", RT_MATERIAL_MAP_SPECGLOSS },
+		{ "_rmo", RT_MATERIAL_MAP_RMO },
+		{ "_orm", RT_MATERIAL_MAP_ORM },
+		{ "_rmos", RT_MATERIAL_MAP_RMOS },
+		{ "_orms", RT_MATERIAL_MAP_ORMS },
+		{ "_moxr", RT_MATERIAL_MAP_MOXR },
+		{ "_mosr", RT_MATERIAL_MAP_MOSR },
+	};
 	const rtStageSource_t *base = NULL;
-	imgFlags_t dataFlags;
+	const rMaterialWords_t *words = NULL;
+	imgFlags_t dataFlags, colorFlags;
+	qboolean named;
 	const char *name;
 	int i;
 
 	shader.rtNormalMap = NULL;
+	shader.rtNormalHeight = qfalse;
 	shader.rtMaterialMap = NULL;
 	shader.rtMaterialMapType = RT_MATERIAL_MAP_NONE;
+	shader.rtEmissiveMap = NULL;
+	Vector4Set( shader.rtPbrScale, 1.0f, 1.0f, 1.0f, 1.0f );
+	Vector4Set( shader.rtNormalScale, 1.0f, 1.0f, 0.05f, 0.0f );
 	shader.rtMaterialStage = -1;
 	if ( !rtx_rt_material_maps || !rtx_rt_material_maps->integer || !vk_rt_tracing() ||
 		!R_RtSnapshotLit() ) {
 		return;
 	}
 
+	// the stage that reads material words is the one they belong to
 	for ( i = 0; i < rtStageSnapshotCount; i++ ) {
+		const int entry = rtStageSnapshotWords[i];
+		if ( entry > 0 && entry <= rtStageWordCount && rtStageWords[entry - 1].words ) {
+			base = &rtStageSnapshot[i];
+			words = &rtStageWords[entry - 1];
+			shader.rtMaterialStage = i;
+			break;
+		}
+	}
+	for ( i = 0; !base && i < rtStageSnapshotCount; i++ ) {
 		const rtStageSource_t *s = &rtStageSnapshot[i];
 		if ( s->lightmap != LIGHTMAP_INDEX_NONE || s->tcGen == TCGEN_LIGHTMAP ||
 			s->tcGen == TCGEN_ENVIRONMENT_MAPPED || s->tcGen == TCGEN_ENVIRONMENT_MAPPED_FP ||
@@ -225,41 +299,88 @@ static void R_RtFindMaterialMaps( void )
 		}
 		base = s;
 		shader.rtMaterialStage = i;
-		break;
 	}
-	if ( !base ) {
+	if ( !base || !base->images[0] ) {
+		shader.rtMaterialStage = -1;
 		return;
 	}
 	name = base->images[0]->imgName;
-	if ( !name[0] || name[0] == '*' || name[0] == '$' ) {
-		shader.rtMaterialStage = -1;
-		return;
-	}
+	named = ( name[0] && name[0] != '*' && name[0] != '$' ) ? qtrue : qfalse;
 
 	dataFlags = ( base->images[0]->flags & ( IMGFLAG_MIPMAP | IMGFLAG_PICMIP | IMGFLAG_CLAMPTOEDGE ) ) |
 		IMGFLAG_NOLIGHTSCALE | IMGFLAG_NO_COMPRESSION | IMGFLAG_COLORSPACE_DATA;
-	shader.rtNormalMap = R_RtCompanionMap( name, "_nh", dataFlags );
-	if ( !shader.rtNormalMap ) {
-		shader.rtNormalMap = R_RtCompanionMap( name, "_n", dataFlags );
+	// a specular colour and an emission are colours, loaded as the texture is
+	colorFlags = base->images[0]->flags & ~IMGFLAG_RGB;
+
+	if ( words && words->normalMap[0] && Q_stricmp( words->normalMap, "$whiteimage" ) ) {
+		shader.rtNormalMap = R_FindShaderImage( words->normalMap, dataFlags );
+		shader.rtNormalHeight = words->normalHeight;
 	}
-	// the specular colour is a colour, loaded as the texture is
-	shader.rtMaterialMap = R_RtCompanionMap( name, "_specGloss", base->images[0]->flags & ~IMGFLAG_RGB );
-	if ( shader.rtMaterialMap ) {
-		shader.rtMaterialMapType = RT_MATERIAL_MAP_SPECGLOSS;
-	} else if ( ( shader.rtMaterialMap = R_RtCompanionMap( name, "_rmo", dataFlags ) ) != NULL ) {
-		shader.rtMaterialMapType = RT_MATERIAL_MAP_RMO;
-	} else if ( ( shader.rtMaterialMap = R_RtCompanionMap( name, "_orm", dataFlags ) ) != NULL ) {
-		shader.rtMaterialMapType = RT_MATERIAL_MAP_ORM;
+	if ( !shader.rtNormalMap && named ) {
+		shader.rtNormalMap = R_RtCompanionMap( name, "_nh", dataFlags );
+		if ( shader.rtNormalMap ) {
+			shader.rtNormalHeight = qtrue;
+		} else {
+			shader.rtNormalMap = R_RtCompanionMap( name, "_n", dataFlags );
+		}
 	}
 
-	if ( !shader.rtNormalMap && !shader.rtMaterialMap ) {
+	if ( words && words->materialType != RT_MATERIAL_MAP_NONE && words->materialMap[0] ) {
+		const qboolean specGloss = words->materialType == RT_MATERIAL_MAP_SPECGLOSS ? qtrue : qfalse;
+		image_t *map = R_RtMaterialWordImage( words->materialMap, specGloss ? colorFlags : dataFlags );
+		if ( map ) {
+			shader.rtMaterialMap = map;
+			// a white packed map holds its constants in all four channels
+			shader.rtMaterialMapType = ( map == tr.whiteImage && !specGloss ) ?
+				RT_MATERIAL_MAP_ORMS : words->materialType;
+			// rend2 scales a specular map, and a map of constants, by the
+			// stage's scales, and takes a packed image's channels as they are
+			if ( specGloss || map == tr.whiteImage ) {
+				Vector4Copy( words->specularScale, shader.rtPbrScale );
+			}
+		}
+	}
+	for ( i = 0; !shader.rtMaterialMap && named && i < (int)ARRAY_LEN( companions ); i++ ) {
+		const qboolean specGloss = companions[i].type == RT_MATERIAL_MAP_SPECGLOSS ? qtrue : qfalse;
+		shader.rtMaterialMap = R_RtCompanionMap( name, companions[i].suffix, specGloss ? colorFlags : dataFlags );
+		if ( shader.rtMaterialMap ) {
+			shader.rtMaterialMapType = companions[i].type;
+			if ( specGloss ) {
+				Vector4Set( shader.rtPbrScale, 1.0f, 1.0f, 1.0f, 0.0f );
+			}
+		}
+	}
+	if ( !shader.rtMaterialMap && words && words->scalars ) {
+		// the stage's scales alone: a white specular map's constants
+		shader.rtMaterialMap = tr.whiteImage;
+		shader.rtMaterialMapType = RT_MATERIAL_MAP_SPECGLOSS;
+		Vector4Copy( words->specularScale, shader.rtPbrScale );
+	}
+
+	if ( named ) {
+		shader.rtEmissiveMap = R_RtCompanionMap( name, "_emissive", colorFlags );
+		if ( !shader.rtEmissiveMap ) {
+			shader.rtEmissiveMap = R_RtCompanionMap( name, "_luma", colorFlags );
+		}
+	}
+
+	if ( words ) {
+		if ( words->normalScaleSet ) {
+			shader.rtNormalScale[0] = words->normalScale[0];
+			shader.rtNormalScale[1] = words->normalScale[1];
+		}
+		shader.rtNormalScale[2] = MAX( words->normalScale[3], 0.0f );
+		shader.rtNormalScale[3] = words->parallaxBias;
+	}
+
+	if ( !shader.rtNormalMap && !shader.rtMaterialMap && !shader.rtEmissiveMap ) {
 		shader.rtMaterialStage = -1;
 		return;
 	}
-	ri.Printf( PRINT_DEVELOPER, "RTX RT: %s takes %s%s%s\n", shader.name,
-		shader.rtNormalMap ? shader.rtNormalMap->imgName : "",
-		shader.rtNormalMap && shader.rtMaterialMap ? " and " : "",
-		shader.rtMaterialMap ? shader.rtMaterialMap->imgName : "" );
+	ri.Printf( PRINT_DEVELOPER, "RTX RT: %s takes%s%s%s%s%s%s\n", shader.name,
+		shader.rtNormalMap ? " normal " : "", shader.rtNormalMap ? shader.rtNormalMap->imgName : "",
+		shader.rtMaterialMap ? " material " : "", shader.rtMaterialMap ? shader.rtMaterialMap->imgName : "",
+		shader.rtEmissiveMap ? " emissive " : "", shader.rtEmissiveMap ? shader.rtEmissiveMap->imgName : "" );
 }
 
 /*
@@ -942,7 +1063,9 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 	aliceStageParse_t aliceStage;
 	qboolean q3testClamp;
 	char aliceKeyword[MAX_TOKEN_CHARS];
+	rMaterialWords_t materialWords;
 
+	R_MaterialWordsInit( &materialWords );
 	stage->active = qfalse;
 	R_AliceBeginStage( &aliceStage );
 	q3testClamp = R_Q3TestShaderDialect() && R_Q3TestStageClamps( *text ) ? qtrue : qfalse;
@@ -1574,6 +1697,16 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 		//
 		else if ( R_JediParseSpriteStageWord( token, text, stage ) )
 		{
+			continue;
+		}
+		//
+		// a texture pack's material words (rend2's normalMap, specularMap,
+		// rmoMap and the like): the path tracer reads them
+		// (R_RtFindMaterialMaps), raster draws the stage as the rest of it says
+		//
+		else if ( R_MaterialStageWord( token, text, &materialWords, shader.name ) )
+		{
+			R_RtKeepMaterialWords( stage, &materialWords );
 			continue;
 		}
 		else
@@ -3898,6 +4031,7 @@ static void InitShader( const char *name, int lightmapIndex ) {
 	// clear the global shader
 	Com_Memset( &shader, 0, sizeof( shader ) );
 	Com_Memset( &stages, 0, sizeof( stages ) );
+	rtStageWordCount = 0;
 
 	Q_strncpyz( shader.name, name, sizeof( shader.name ) );
 	shader.lightmapIndex = lightmapIndex;

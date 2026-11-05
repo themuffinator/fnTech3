@@ -46,6 +46,12 @@ historical upstream records, not fnTech3 release history. See the
   with compute: 2-9% off the trace in Quake III, Return to Castle
   Wolfenstein and Medal of Honor views
   ([record](docs/fntech3/2026-11-05-rtx-round.md)).
+- RTX's path tracer takes a texture pack's complete physically based materials:
+  rend2's material words in shader scripts (the GL and Vulkan renderers now
+  draw such shaders instead of failing them), all six packings of roughness,
+  metalness, occlusion and specular, glow maps that light the room, and depth
+  from height maps (`rtx_rt_parallax`)
+  ([record](docs/fntech3/2026-11-05-rtx-pbr-materials.md)).
 - Fade Medal of Honor's sound when a level ends or restarts, as the game asks.
   The command had reached the client game, which reported it as unknown, and
   the loading bar now recognises model definitions that are already loaded

@@ -728,7 +728,10 @@ class RtxRendererContractSourceTests(unittest.TestCase):
         self.assertIn("!R_RtSnapshotLit()", find)
         self.assertEqual(cvar_default(read("code/rendererrtx/tr_init.c"), "rtx_rt_material_maps"), "1")
         # OpenJK rend2's names, in its order: _nh, _n; _specGloss, _rmo, _orm
-        order = [find.index(f'"{suffix}"') for suffix in ("_nh", "_n", "_specGloss", "_rmo", "_orm")]
+        # (tests/rtx_pbr_material_tests.py checks the words and later names)
+        order = [find.index(f'"{suffix}"') for suffix in ("_nh", "_n")]
+        self.assertEqual(order, sorted(order))
+        order = [find.index(f'"{suffix}"') for suffix in ("_specGloss", "_rmo", "_orm")]
         self.assertEqual(order, sorted(order))
         # data maps are neither light-scaled, compressed nor sRGB-decoded
         for flag in ("IMGFLAG_NOLIGHTSCALE", "IMGFLAG_NO_COMPRESSION", "IMGFLAG_COLORSPACE_DATA"):
@@ -757,12 +760,12 @@ class RtxRendererContractSourceTests(unittest.TestCase):
         # rend2's normal decoding and tangent frame; a metal's colour is its F0
         path = read("code/rendererrtx/shaders/rt_path.glsl")
         shading = source_section(path, "RtShading rt_shading(", "\n}\n")
-        self.assertIn("vec2 xy = rt_stage_texel(s, h, time, lodBias).rg * 2.0 - 1.0;", shading)
+        self.assertIn("vec2 xy = (texels[0].rg * 2.0 - 1.0) * material.pbrNormal.xy;", shading)
         self.assertIn("float z = sqrt(max(1.0 - dot(xy, xy), 0.0));", shading)
         self.assertIn("if (dot(B, tdir) < 0.0) {", shading)
-        self.assertIn("sh.F0 = mix(vec3(0.04), min(surf.reflectance, vec3(1.0)), metallic);", shading)
+        self.assertIn("sh.F0 = mix(vec3(0.08 * clamp(orms.w, 0.0, 1.0)), min(surf.reflectance, vec3(1.0)), metallic);", shading)
         self.assertIn("sh.diffuse = surf.reflectance * (1.0 - metallic);", shading)
-        self.assertIn("sh.roughness = 1.0 - texel.a;", shading)
+        self.assertIn("sh.roughness = 1.0 - texel.a * (1.0 - material.pbrScale.w);", shading)
         # a material without maps shades as before
         early = shading[: shading.index("RtStage s = ")]
         self.assertIn("return sh;", early)
@@ -964,7 +967,7 @@ class RtxRendererContractSourceTests(unittest.TestCase):
         self.assertIn("radiance += throughput * (sh.diffuse * irradiance + direct.additive + emission * u_frame.params0.y + "
                       "lightSeen);", bounce)
         self.assertIn("if (baked || !surf.lit || d + 1u >= depth) {", bounce)
-        self.assertIn("throughput *= sh.diffuse;", bounce)
+        self.assertIn("throughput *= sh.diffuse * sh.occlusion;", bounce)
         # the reflection's MIS share belongs to its own hit
         self.assertIn("bool seen = reflection && d == 0u;", bounce)
         main = source_section(path, "void rt_path_main(", "\n}\n")

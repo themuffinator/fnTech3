@@ -231,31 +231,41 @@ float rt_specular_alpha(RtHitAttribs h)
 	return min(floor(l * 255.0), 255.0) / 255.0;
 }
 
+// An image sampled through the stage's coordinates, modifiers and footprint
+// (the stage's own frame, or a material map that follows the stage); white
+// for none.
+vec4 rt_image_texel(RtStage s, uint image, RtHitAttribs h, float time, float lodBias)
+{
+	if (image != RT_NO_IMAGE && image < RT_MAX_TEXTURES) {
+		uint tcGen = s.state.y & 0xFFu;
+		bool gradients = h.gradients && tcGen != TCGEN_LIGHTMAP && tcGen != TCGEN_ENVIRONMENT_MAPPED &&
+			tcGen != TCGEN_ENVIRONMENT_MAPPED_FP;
+		// the point and, with gradients, the footprint's corners through the
+		// stage's own coordinate generator and texture modifiers, from one
+		// call site: each inlined copy of the modifiers counts against the
+		// 32-bit driver's compiler (rt_path.glsl shade_direct)
+		vec2 corner[3];
+		for (uint k = 0u; k < (gradients ? 3u : 1u); k++) {
+			RtHitAttribs c = h;
+			c.position += k == 1u ? h.dPdx : k == 2u ? h.dPdy : vec3(0.0);
+			c.uv += k == 1u ? h.dUVdx : k == 2u ? h.dUVdy : vec2(0.0);
+			corner[k] = rt_stage_texcoords(s, c, time);
+		}
+		if (gradients) {
+			float scale = exp2(lodBias);
+			return textureGrad(u_textures[nonuniformEXT(image)], corner[0], (corner[1] - corner[0]) * scale,
+				(corner[2] - corner[0]) * scale);
+		}
+		return textureLod(u_textures[nonuniformEXT(image)], corner[0], rt_stage_lod(s, h, image, lodBias));
+	}
+	return vec4(1.0);
+}
+
 // The stage's texture sample; white for a stage without an image.
 vec4 rt_stage_texel(RtStage s, RtHitAttribs h, float time, float lodBias)
 {
 	uint image = rt_stage_image(s, rt_stage_frame(s, time));
-	if (image != RT_NO_IMAGE && image < RT_MAX_TEXTURES) {
-		vec2 st = rt_stage_texcoords(s, h, time);
-		uint tcGen = s.state.y & 0xFFu;
-		if (h.gradients && tcGen != TCGEN_LIGHTMAP && tcGen != TCGEN_ENVIRONMENT_MAPPED &&
-			tcGen != TCGEN_ENVIRONMENT_MAPPED_FP) {
-			// the footprint's corners through the stage's own coordinate
-			// generator and texture modifiers
-			RtHitAttribs hx = h;
-			RtHitAttribs hy = h;
-			hx.position += h.dPdx;
-			hx.uv += h.dUVdx;
-			hy.position += h.dPdy;
-			hy.uv += h.dUVdy;
-			float scale = exp2(lodBias);
-			vec2 gx = (rt_stage_texcoords(s, hx, time) - st) * scale;
-			vec2 gy = (rt_stage_texcoords(s, hy, time) - st) * scale;
-			return textureGrad(u_textures[nonuniformEXT(image)], st, gx, gy);
-		}
-		return textureLod(u_textures[nonuniformEXT(image)], st, rt_stage_lod(s, h, image, lodBias));
-	}
-	return vec4(1.0);
+	return rt_image_texel(s, image, h, time, lodBias);
 }
 
 // R_ComputeColors: the stage's colour and alpha generators, with the lighting

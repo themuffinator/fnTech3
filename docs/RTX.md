@@ -147,20 +147,33 @@ The technical detail of what RTX traces and how it lights each map is in the
 ## Texture Packs With Material Maps
 
 No original game includes them, but a texture pack can add *material maps*
-beside a texture to give RTX bumps, shine and metal. RTX uses the same names
-as the OpenJK engine's rend2 renderer:
+to give RTX bumps, depth, shine, metal and glow. RTX reads them the way the
+OpenJK engine's rend2 renderer does, so packs made for rend2 work here too.
+
+The simplest way is to put images beside a texture, named after it:
 
 | Image | What it holds |
 | --- | --- |
-| `<texture>_nh`, or else `<texture>_n` | A normal map, for bumps: red leans the surface along the texture's width, green along its height. The `_nh` alpha is unused. |
+| `<texture>_nh`, or else `<texture>_n` | A normal map, for bumps: red leans the surface along the texture's width, green along its height. In `_nh` the alpha is the surface's height, which gives it depth (white is the surface, black the deepest). |
 | `<texture>_specGloss` | Shine colour, with glossiness in the alpha. |
-| `<texture>_rmo`, or else `<texture>_orm` | Roughness, metalness and occlusion, in that order or as occlusion, roughness, metalness. |
+| `<texture>_rmo`, `_orm`, `_rmos`, `_orms`, `_moxr` or `_mosr` | Roughness, metalness and occlusion (and specular, where an `s` is named) packed into one image, each letter one channel in that order (`x` is unused). |
+| `<texture>_emissive`, or else `<texture>_luma` | Glow: what the surface gives off, and lights the room with, on top of its own colours. |
 
 `<texture>` is the surface's main texture, without its extension; its
-scrolling and other animation apply to the maps too. A metal surface
-reflects in its texture's colour. The occlusion channel is unused, because
-RTX finds that itself. Only RTX uses these maps; `rtx_rt_material_maps 0` and
-`vid_restart` ignore them.
+scrolling and other animation apply to the maps too. A metal reflects in
+its texture's colour. Occlusion darkens the light that bounces into the
+texture's own creases (RTX already finds the shadows of real geometry).
+
+A pack's shader script can name the maps instead, inside a stage, with
+rend2's words: `normalMap`, `normalHeightMap`, `specularMap`, `rmoMap`,
+`ormMap` (and the other packings), and tune them with `roughness`,
+`gloss`, `specularReflectance`, `specularScale`, `normalScale` and
+`parallaxDepth`. The other renderers draw such a stage normally and skip
+these words.
+
+Only RTX uses material maps. If a pack looks wrong, set
+`rtx_rt_material_maps 0` and `vid_restart` to see the game without them, or
+`rtx_rt_parallax 0` to keep the bumps but drop the depth.
 
 ## Settings
 
@@ -170,6 +183,7 @@ RTX finds that itself. Only RTX uses these maps; `rtx_rt_material_maps 0` and
 | `rtx_rt_require` | `0` | `1` stops the renderer instead of drawing normally when tracing fails; for testing. Needs `vid_restart`. |
 | `rtx_rt_backend` | `0` | `0` hardware where available, else compute; `1` hardware only; `2` compute only. Needs `vid_restart`. |
 | `rtx_rt_material_maps` | `1` | Use a texture pack's material maps. Needs `vid_restart`. |
+| `rtx_rt_parallax` | `1` | Gives a pack's height maps depth; `0` draws those surfaces flat. |
 | `rtx_rt_liquids` | `1` | Traced liquid reflections and water refraction; `0` restores normal liquid drawing. Needs `vid_restart`. |
 | `rtx_rt_lighting` | `0` | `0` lights each map with its own lamps, glowing surfaces, sky and sun, with nothing painted in advance; `3` with the sky and glowing surfaces only, as Quake II RTX does. `1` and `2` are for comparing with the original lighting: `1` uses the painted lighting and traces only moving lights over it, `2` traces the lights as the map's tools painted them. |
 | `rtx_rt_camera` | `0` | `1` sees the light through a camera, with automatic brightness; `0` shows it exactly as traced. `rtx_rt_lighting 3` always uses the camera. |

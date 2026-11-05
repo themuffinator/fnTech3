@@ -185,22 +185,75 @@ struct ShadeResult {
 };
 
 // The reflectance model at a hit: the stages' colour and the material's
-// defaults, or a texture pack's companion maps where it has them
-// (rt_material.c).
+// defaults, or a texture pack's material maps where it has them
+// (tr_shader.c R_RtFindMaterialMaps).
 struct RtShading {
 	vec3 N;				// shading normal, facing the ray
 	vec3 diffuse;		// the reflectance the lighting term scales
 	vec3 F0;			// normal-incidence specular reflectance
 	float roughness;	// perceptual; the GGX alpha is its square
+	// a material map's occlusion: what the texture's own relief, finer than
+	// the geometry the rays meet, hides of the light around the point. The
+	// light the rays bring back (bounces, reflections, the compilers'
+	// ambient) takes it; the light samples, shadowed by their own rays, not
+	float occlusion;
 };
 
-// The companion maps sample through the stage whose texture they belong to,
+// The material stage's tangent frame on the triangle: how far the point moves
+// as its s and t grow (Lengyel's), through the stage's own coordinate
+// generator and modifiers. False where they do not span the triangle.
+bool rt_material_frame(RtStage s, RtTriangle tri, RtHitAttribs h, float time, out vec3 sdir, out vec3 tdir)
+{
+	vec3 e1 = tri.v1.xyz.xyz - tri.v0.xyz.xyz;
+	vec3 e2 = tri.v2.xyz.xyz - tri.v0.xyz.xyz;
+	// the point and the triangle's two edges from it, from one call site
+	vec2 st[3];
+	[[dont_unroll]] for (uint k = 0u; k < 3u; k++) {
+		RtHitAttribs c = h;
+		c.position += k == 1u ? e1 : k == 2u ? e2 : vec3(0.0);
+		c.uv += k == 1u ? tri.v1.texCoord - tri.v0.texCoord : k == 2u ? tri.v2.texCoord - tri.v0.texCoord : vec2(0.0);
+		st[k] = rt_stage_texcoords(s, c, time);
+	}
+	vec2 d1 = st[1] - st[0];
+	vec2 d2 = st[2] - st[0];
+	float det = d1.x * d2.y - d2.x * d1.y;
+	sdir = vec3(0.0);
+	tdir = vec3(0.0);
+	if (!(abs(det) > 1e-12)) {
+		return false;
+	}
+	sdir = (e1 * d2.y - e2 * d1.y) / det;
+	tdir = (e2 * d1.x - e1 * d2.x) / det;
+	return true;
+}
+
+// A material map's occlusion, roughness, metalness and specular, as rend2
+// swizzles each packing into that order (OpenJK rd-rend2 tr_image.cpp
+// R_LoadPackedMaterialImage). A packing without a specular channel takes
+// half its range: rend2's 0.04 for a dielectric.
+vec4 rt_material_orms(uint type, vec4 t)
+{
+	if (type == RT_MATERIAL_MAP_RMO) return vec4(t.b, t.r, t.g, 0.5);
+	if (type == RT_MATERIAL_MAP_RMOS) return vec4(t.b, t.r, t.g, t.a);
+	if (type == RT_MATERIAL_MAP_MOXR) return vec4(t.g, t.a, t.r, 0.5);
+	if (type == RT_MATERIAL_MAP_MOSR) return vec4(t.g, t.a, t.r, t.b);
+	if (type == RT_MATERIAL_MAP_ORM) return vec4(t.r, t.g, t.b, 0.5);
+	return t;
+}
+
+// The material maps sample through the stage whose texture they belong to,
 // so they follow its coordinates and modifiers. A normal map's red channel
-// leans the normal toward growing s and its green toward growing t, its z
-// the rest (OpenJK rend2's CalcNormal); the specular colour of a specGloss
-// map sets F0 and its gloss 1 - roughness; a metal (rmo and orm maps) takes
-// its colour as F0 and keeps no diffuse reflectance.
-RtShading rt_shading(RtMaterial material, RtTriangle tri, RtHitAttribs h, RtSurface surf, vec3 geometric,
+// leans the normal toward growing s and its green toward growing t, each
+// times the material's normal scale (a negative green scale reads a map
+// whose green points the other way), its z the rest (OpenJK rend2's
+// CalcNormal). A specular map's colour sets F0 and its gloss 1 - roughness,
+// each times the material's scales (rend2's specularScale). A packed map's
+// channels, times the same scales in rend2's order (metalness, specular,
+// occlusion, roughness), give a dielectric F0 of 0.08 times its specular, a
+// metal its colour as F0 and no diffuse reflectance, the roughness and the
+// occlusion. An emissive map adds the light its texels show to what the
+// stages give off.
+RtShading rt_shading(RtMaterial material, RtTriangle tri, RtHitAttribs h, inout RtSurface surf, vec3 geometric,
 	float lodBias)
 {
 	RtShading sh;
@@ -208,70 +261,162 @@ RtShading rt_shading(RtMaterial material, RtTriangle tri, RtHitAttribs h, RtSurf
 	sh.diffuse = surf.reflectance;
 	sh.F0 = vec3(material.params.z);
 	sh.roughness = material.params.x;
+	sh.occlusion = 1.0;
 	if ((material.flags & RT_MF_MATERIAL_MAPS) == 0u || !surf.lit || material.maps.w >= material.stageCount) {
 		return sh;
 	}
 	RtStage s = u_stages.stages[material.firstStage + material.maps.w];
-	s.state.z = (s.state.z & ~0xFu) | 1u;	// one image
 	float time = rt_material_time(material, h);
+	bool linearLight = (u_frame.flags.x & RT_FRAME_LINEAR_LIGHT) != 0u;
 
-	if (material.maps.x < RT_MAX_TEXTURES) {
-		// where along the triangle the stage's s and t grow, through its own
-		// coordinate generator and modifiers (Lengyel's tangent frame)
-		vec3 e1 = tri.v1.xyz.xyz - tri.v0.xyz.xyz;
-		vec3 e2 = tri.v2.xyz.xyz - tri.v0.xyz.xyz;
-		RtHitAttribs h1 = h;
-		RtHitAttribs h2 = h;
-		h1.position += e1;
-		h1.uv += tri.v1.texCoord - tri.v0.texCoord;
-		h2.position += e2;
-		h2.uv += tri.v2.texCoord - tri.v0.texCoord;
-		vec2 st = rt_stage_texcoords(s, h, time);
-		vec2 d1 = rt_stage_texcoords(s, h1, time) - st;
-		vec2 d2 = rt_stage_texcoords(s, h2, time) - st;
-		float det = d1.x * d2.y - d2.x * d1.y;
-		if (abs(det) > 1e-12) {
-			vec3 sdir = (e1 * d2.y - e2 * d1.y) / det;
-			vec3 tdir = (e2 * d1.x - e1 * d2.x) / det;
-			vec3 T = sdir - sh.N * dot(sh.N, sdir);
-			float lengthSq = dot(T, T);
-			if (lengthSq > 1e-20) {
-				T *= inversesqrt(lengthSq);
-				vec3 B = cross(sh.N, T);
-				if (dot(B, tdir) < 0.0) {
-					B = -B;
-				}
-				s.images.x = material.maps.x | (RT_NO_IMAGE << 16u);
-				vec2 xy = rt_stage_texel(s, h, time, lodBias).rg * 2.0 - 1.0;
-				float z = sqrt(max(1.0 - dot(xy, xy), 0.0));
-				vec3 N = safe_normalize(T * xy.x + B * xy.y + sh.N * z, sh.N);
-				// no further than just above the surface's own horizon
-				float below = 0.05 - dot(N, geometric);
-				if (below > 0.0) {
-					N = safe_normalize(N + geometric * below, sh.N);
-				}
-				sh.N = N;
+	// the normal, material and emissive maps' texels, from one call site
+	uint emissive = material.maps.z >> RT_MAPS_EMISSIVE_SHIFT;
+	vec4 texels[3];
+	[[dont_unroll]] for (uint k = 0u; k < 3u; k++) {
+		uint image = k == 0u ? material.maps.x : k == 1u ? material.maps.y : emissive;
+		texels[k] = image < RT_MAX_TEXTURES ? rt_image_texel(s, image, h, time, lodBias) : vec4(0.0);
+	}
+
+	vec3 sdir, tdir;
+	if (material.maps.x < RT_MAX_TEXTURES && rt_material_frame(s, tri, h, time, sdir, tdir)) {
+		vec3 T = sdir - sh.N * dot(sh.N, sdir);
+		float lengthSq = dot(T, T);
+		if (lengthSq > 1e-20) {
+			T *= inversesqrt(lengthSq);
+			vec3 B = cross(sh.N, T);
+			if (dot(B, tdir) < 0.0) {
+				B = -B;
 			}
+			vec2 xy = (texels[0].rg * 2.0 - 1.0) * material.pbrNormal.xy;
+			float z = sqrt(max(1.0 - dot(xy, xy), 0.0));
+			vec3 N = safe_normalize(T * xy.x + B * xy.y + sh.N * z, sh.N);
+			// no further than just above the surface's own horizon
+			float below = 0.05 - dot(N, geometric);
+			if (below > 0.0) {
+				N = safe_normalize(N + geometric * below, sh.N);
+			}
+			sh.N = N;
 		}
 	}
 
 	if (material.maps.y < RT_MAX_TEXTURES) {
-		s.images.x = material.maps.y | (RT_NO_IMAGE << 16u);
-		vec4 texel = rt_stage_texel(s, h, time, lodBias);
-		if (material.maps.z == RT_MATERIAL_MAP_SPECGLOSS) {
+		vec4 texel = texels[1];
+		uint type = material.maps.z & RT_MAPS_TYPE_MASK;
+		if (type == RT_MATERIAL_MAP_SPECGLOSS) {
 			// a colour, decoded as the surface's own colour is for linear light
-			sh.F0 = (u_frame.flags.x & RT_FRAME_LINEAR_LIGHT) != 0u ? rt_linear(texel.rgb) : texel.rgb;
-			sh.roughness = 1.0 - texel.a;
+			sh.F0 = (linearLight ? rt_linear(texel.rgb) : texel.rgb) * material.pbrScale.xyz;
+			sh.roughness = 1.0 - texel.a * (1.0 - material.pbrScale.w);
 		} else {
-			bool rmo = material.maps.z == RT_MATERIAL_MAP_RMO;
-			float metallic = clamp(rmo ? texel.g : texel.b, 0.0, 1.0);
-			sh.roughness = rmo ? texel.r : texel.g;
-			sh.F0 = mix(vec3(0.04), min(surf.reflectance, vec3(1.0)), metallic);
+			vec4 orms = rt_material_orms(type, texel) * material.pbrScale.zwxy;
+			float metallic = clamp(orms.z, 0.0, 1.0);
+			sh.roughness = orms.y;
+			sh.F0 = mix(vec3(0.08 * clamp(orms.w, 0.0, 1.0)), min(surf.reflectance, vec3(1.0)), metallic);
 			sh.diffuse = surf.reflectance * (1.0 - metallic);
+			sh.occlusion = clamp(orms.x, 0.0, 1.0);
 		}
+	}
+
+	if (emissive < RT_MAX_TEXTURES) {
+		vec3 glow = max(texels[2].rgb, vec3(0.0));
+		surf.emission += linearLight ? rt_linear(glow) : glow;
 	}
 	sh.roughness = clamp(sh.roughness, 0.0, 1.0);
 	return sh;
+}
+
+// How much of a reflection a material map's occlusion leaves (Lagarde and de
+// Rousiers, "Moving Frostbite to Physically Based Rendering", SIGGRAPH 2014,
+// specular occlusion from ambient occlusion); all of it at occlusion 1.
+float rt_specular_occlusion(float NdotV, float occlusion, float alpha)
+{
+	return clamp(pow(NdotV + occlusion, exp2(-16.0 * alpha - 1.0)) - 1.0 + occlusion, 0.0, 1.0);
+}
+
+// Relief from a height map, the alpha of a normal map that holds one (a
+// texture pack's _nh, a normalHeightMap): 1 is the surface, 0 the material's
+// parallax depth below it, in the stage's texture units. The view's ray,
+// continued under the surface, meets the height field where rend2 finds it
+// (OpenJK rd-rend2 lightall.glsl RayIntersectDisplaceMap: sixteen steps,
+// then eight halvings, then a linear fit between the last two), and the
+// point's texture coordinates and position move there. The light and bounce
+// rays still leave from the flat surface.
+void rt_parallax(RtMaterial material, RtTriangle tri, inout RtHitAttribs h)
+{
+	if ((u_frame.flags.x & RT_FRAME_PARALLAX) == 0u || (material.flags & RT_MF_MATERIAL_MAPS) == 0u ||
+		(material.maps.z & RT_MAPS_HEIGHT) == 0u || material.maps.x >= RT_MAX_TEXTURES ||
+		material.maps.w >= material.stageCount || !(material.pbrNormal.z > 0.0) ||
+		(material.flags & (RT_MF_LIGHTMAPPED | RT_MF_VERTEX_LIT | RT_MF_ENTITY_LIT)) == 0u) {
+		return;
+	}
+	RtStage s = u_stages.stages[material.firstStage + material.maps.w];
+	float time = rt_material_time(material, h);
+	vec3 sdir, tdir;
+	if (!rt_material_frame(s, tri, h, time, sdir, tdir)) {
+		return;
+	}
+	vec3 N = h.normal;
+	vec3 T = sdir - N * dot(N, sdir);
+	vec3 B = tdir - N * dot(N, tdir);
+	if (!(dot(T, T) > 1e-20) || !(dot(B, B) > 1e-20)) {
+		return;
+	}
+	// the eye in the stage's texture frame, as rend2's tangent-space view
+	vec3 V = vec3(dot(h.viewDir, normalize(T)), dot(h.viewDir, normalize(B)), dot(h.viewDir, N));
+	if (V.z < 0.05) {
+		return;
+	}
+	uint image = material.maps.x;
+	vec2 size = max(vec2(textureSize(u_textures[nonuniformEXT(image)], 0)), vec2(1.0));
+	vec3 nonSquare = size.y <= size.x ? vec3(1.0, size.x / size.y, 1.0) : vec3(size.y / size.x, 1.0, 1.0);
+	vec3 offsetDir = normalize(V * nonSquare);
+	vec2 ds = -offsetDir.xy * (material.pbrNormal.z / offsetDir.z);
+	float bias = material.pbrNormal.w;
+	vec2 dp = rt_stage_texcoords(s, h, time) - bias * ds;
+	float lod = rt_stage_lod(s, h, image, 0.0);
+
+	float stepSize = 1.0 / 16.0;
+	float depth = 0.0;
+	float best = 1.0;
+	[[dont_unroll]] for (int i = 0; i < 15; i++) {
+		depth += stepSize;
+		if (depth >= 1.0 - textureLod(u_textures[nonuniformEXT(image)], dp + ds * depth, lod).a) {
+			best = depth;
+			break;
+		}
+	}
+	depth = best;
+	[[dont_unroll]] for (int i = 0; i < 8; i++) {
+		stepSize *= 0.5;
+		if (depth >= 1.0 - textureLod(u_textures[nonuniformEXT(image)], dp + ds * depth, lod).a) {
+			best = depth;
+			depth -= 2.0 * stepSize;
+		}
+		depth += stepSize;
+	}
+	float before = 1.0 - textureLod(u_textures[nonuniformEXT(image)], dp + ds * (depth - stepSize), lod).a -
+		depth + stepSize;
+	float after = 1.0 - textureLod(u_textures[nonuniformEXT(image)], dp + ds * depth, lod).a - depth;
+	float delta = before - after;
+	best += delta > 0.0 ? before / delta * stepSize : 0.0;
+	vec2 offset = ds * (best - bias);
+
+	// the texture-space offset as a move along the triangle, and so in its
+	// base and lightmap coordinates
+	vec3 move = sdir * offset.x + tdir * offset.y;
+	vec3 e1 = tri.v1.xyz.xyz - tri.v0.xyz.xyz;
+	vec3 e2 = tri.v2.xyz.xyz - tri.v0.xyz.xyz;
+	vec3 n = cross(e1, e2);
+	float nn = dot(n, n);
+	if (!(nn > 1e-12) || any(isnan(move)) || any(isinf(move))) {
+		return;
+	}
+	vec2 db = vec2(dot(cross(move, e2), n), dot(cross(e1, move), n)) / nn;
+	h.position += move;
+	h.uv += (tri.v1.texCoord - tri.v0.texCoord) * db.x + (tri.v2.texCoord - tri.v0.texCoord) * db.y;
+	if (!tri.dynamic || tri.v0.lightmapData.w > 0.5) {
+		h.lightmapUv += (tri.v1.lightmapData.xy - tri.v0.lightmapData.xy) * db.x +
+			(tri.v2.lightmapData.xy - tri.v0.lightmapData.xy) * db.y;
+	}
 }
 
 // The surface's light already sits in its lightmap or vertex colours, or in
@@ -355,7 +500,7 @@ ShadeResult shade_direct(RtMaterial material, RtSurface surf, RtShading sh, vec3
 		bool sky = (u_frame.flags.x & RT_FRAME_SKY_RADIANCE) != 0u || u_frame.skyLight.w >= 2.0;
 		uint count = (emitters ? 1u : 0u) + (sun ? 1u : 0u) + (sky ? 1u : 0u);
 		if (count == 0u) {
-			r.irradiance += u_frame.ambient.rgb;
+			r.irradiance += u_frame.ambient.rgb * sh.occlusion;
 			return r;
 		}
 		uint k = min(uint(rand01(seed) * float(count)), count - 1u);
@@ -434,7 +579,7 @@ ShadeResult shade_direct(RtMaterial material, RtSurface surf, RtShading sh, vec3
 			r.specular += Esky * specular_weight(N, V, Lsky, roughness, F0);
 		}
 	}
-	r.irradiance += u_frame.ambient.rgb;
+	r.irradiance += u_frame.ambient.rgb * sh.occlusion;
 	return r;
 }
 
@@ -621,7 +766,7 @@ vec3 bounce_radiance(vec3 origin, vec3 dir, float coneWidthAtOrigin, bool bakedL
 		if (dot(bdir, geometric) <= 0.0) {
 			break;
 		}
-		throughput *= sh.diffuse;
+		throughput *= sh.diffuse * sh.occlusion;
 		origin = P + geometric * max(0.05, 1e-6 * length(P));
 		dir = bdir;
 		footprint.valid = false;
@@ -688,6 +833,7 @@ void rt_path_main(ivec2 pixel, vec2 size)
 		camera_ray_differentials(dir, size, dDdx, dDdy);
 		rt_hit_differentials(tri, dir, primary.hitT, dDdx, dDdy, h);
 	}
+	rt_parallax(material, tri, h);
 
 	RtSurface surf = rt_evaluate_material(material, h, bakedLighting, 0.0);
 	RtShading sh = rt_shading(material, tri, h, surf, geometric, 0.0);
@@ -802,7 +948,8 @@ void rt_path_main(ivec2 pixel, vec2 size)
 			float VdotH = clamp(dot(V, H), 0.0, 1.0);
 			vec3 F = sh.F0 + (1.0 - sh.F0) * pow(1.0 - VdotH, 5.0);
 			float G = smith_g1(NdotL, alpha) * smith_g1(NdotV, alpha);
-			weight = F * (G * VdotH / (NdotV * max(cosTheta, 1e-4)));
+			weight = F * (G * VdotH / (NdotV * max(cosTheta, 1e-4))) *
+				rt_specular_occlusion(NdotV, sh.occlusion, alpha);
 		}
 		vec3 rayOrigin = P + geometric * (side * max(0.05, 1e-6 * length(P)));
 		g_mis = !liquid && lobe == 1u && g_misLights;
@@ -811,7 +958,7 @@ void rt_path_main(ivec2 pixel, vec2 size)
 		vec3 radiance = weight * bounce_radiance(rayOrigin, L, h.coneWidth, bakedLighting, visible, depth, medium, footprint, receiverReflectance, seed);
 		g_mis = false;
 		g_delta = false;
-		if (lobe == 0u) indirect = radiance;
+		if (lobe == 0u) indirect = radiance * sh.occlusion;
 		else if (lobe == 2u) {
 			// Demodulate the transmitted receiver just like a directly visible
 			// surface. Filtering its complete textured colour as specular

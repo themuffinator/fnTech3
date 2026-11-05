@@ -574,6 +574,10 @@ typedef struct {
 	// Raven: the stage's surface-sprite record (tr_jedi_sprite.h)
 	jediSurfaceSprite_t	jediSprite;
 
+	// the material words this stage read (tr_shader.c rtStageWords), its
+	// entry plus one; 0 for none
+	int				rtMaterialWords;
+
 } shaderStage_t;
 
 struct shaderCommands_s;
@@ -614,12 +618,16 @@ typedef struct {
 #define RT_COMPILED_ALPHASHADOW	1
 #define RT_COMPILED_LIGHTFILTER	2
 
-// a shader's companion material map, by its channels (the path tracer's
-// RtMaterial.maps.z)
+// a shader's material map, by its channels (the path tracer's
+// RtMaterial.maps.z; renderercommon/tr_material_words.h R_PBR_MAP_*)
 #define RT_MATERIAL_MAP_NONE		0
 #define RT_MATERIAL_MAP_SPECGLOSS	1	// specular colour, gloss in alpha
 #define RT_MATERIAL_MAP_RMO			2	// roughness, metalness, occlusion
 #define RT_MATERIAL_MAP_ORM			3	// occlusion, roughness, metalness
+#define RT_MATERIAL_MAP_RMOS		4	// roughness, metalness, occlusion, specular
+#define RT_MATERIAL_MAP_MOXR		5	// metalness, occlusion, unused, roughness
+#define RT_MATERIAL_MAP_MOSR		6	// metalness, occlusion, specular, roughness
+#define RT_MATERIAL_MAP_ORMS		7	// occlusion, roughness, metalness, specular
 
 typedef struct shader_s {
 	qboolean ihvModelLightmap; // Native model sampling, before stage collapse
@@ -736,11 +744,16 @@ typedef struct shader_s {
 	// the map compiler's lights passed through it, or through it filtered
 	qboolean	rtCompiledTranslucent;
 	int			rtCompiledFilter;		// RT_COMPILED_ALPHASHADOW | RT_COMPILED_LIGHTFILTER
-	// companion material maps of the rtStages entry rtMaterialStage, which
-	// only the path tracer samples (tr_shader.c R_RtFindMaterialMaps)
+	// material maps of the rtStages entry rtMaterialStage, which only the
+	// path tracer samples: its material words' or a texture pack's companion
+	// images (tr_shader.c R_RtFindMaterialMaps)
 	image_t		*rtNormalMap;
+	qboolean	rtNormalHeight;			// the normal map's alpha is its height
 	image_t		*rtMaterialMap;
 	int			rtMaterialMapType;		// RT_MATERIAL_MAP_*
+	image_t		*rtEmissiveMap;			// the light the surface gives off
+	float		rtPbrScale[4];			// the material map's channel scales
+	float		rtNormalScale[4];		// normal x and y, parallax depth and bias
 	int			rtMaterialStage;
 	// the image the map compilers filtered light with at an alphashadow or
 	// lightfilter surface, or none found (tr_shader.c R_RtFindLightImage)
@@ -2766,6 +2779,7 @@ extern	cvar_t	*rtx_rt_liquids;
 extern	cvar_t	*rtx_rt_accumulate;
 extern	cvar_t	*rtx_rt_specular;
 extern	cvar_t	*rtx_rt_mis;
+extern	cvar_t	*rtx_rt_parallax;
 extern	cvar_t	*rtx_rt_dlight_scale;
 extern	cvar_t	*rtx_rt_denoise;
 extern	cvar_t	*rtx_rt_denoise_iterations;

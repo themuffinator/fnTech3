@@ -667,7 +667,7 @@ give off none here (the sky lights the scene through rt_sample_sky_light),
 and neither does a translucent surface that only blends over what is behind
 it; one that adds to it (a flame, a glow) does.
 */
-static qboolean RT_ShaderEmission( const shader_t *shader, vec3_t emission )
+static qboolean RT_ShaderStageEmission( const shader_t *shader, vec3_t emission )
 {
 	const rtStageSource_t *first;
 	unsigned blend;
@@ -700,6 +700,28 @@ static qboolean RT_ShaderEmission( const shader_t *shader, vec3_t emission )
 	RT_FoldStages( shader, 0.0f, qfalse, dark );
 	VectorCopy( dark, emission );
 	return ( 0.2126f * dark[0] + 0.7152f * dark[1] + 0.0722f * dark[2] ) >= RT_EMISSION_MIN ? qtrue : qfalse;
+}
+
+/*
+The light a shader gives off: its stages' (RT_ShaderStageEmission) and, over
+them, its emissive map's average (tr_shader.c R_RtFindMaterialMaps), which
+the trace adds texel by texel where it draws the surface (rt_path.glsl
+rt_shading). A map only a lit material can have.
+*/
+static qboolean RT_ShaderEmission( const shader_t *shader, vec3_t emission )
+{
+	float map[4];
+
+	if ( !RT_ShaderStageEmission( shader, emission ) ) {
+		VectorClear( emission );
+	}
+	if ( shader && shader->rtEmissiveMap && shader->rtMaterialStage >= 0 && shader->rtMaterialStage < shader->rtNumStages &&
+		!( shader->surfaceLightValid && shader->surfaceLight > 0.0f ) ) {
+		RT_ImageAverage( shader->rtEmissiveMap, map );
+		VectorAdd( emission, map, emission );
+	}
+	return ( 0.2126f * emission[0] + 0.7152f * emission[1] + 0.0722f * emission[2] ) >= RT_EMISSION_MIN ?
+		qtrue : qfalse;
 }
 
 /* Small authored wave deforms become optical normals on the BSP interface.
@@ -1028,23 +1050,34 @@ static qboolean RT_TranslateMaterial( const shader_t *shader, rtGpuMaterial_t *o
 		out->params[2] = powf( ( out->params[3] - 1.0f ) / ( out->params[3] + 1.0f ), 2.0f );
 	}
 
-	// a texture pack's companion maps, sampled through the stage they
-	// belong to (rt_material.glsl rt_material_maps)
+	// a texture pack's material maps, sampled through the stage they belong
+	// to (rt_path.glsl rt_shading and rt_parallax)
 	out->maps[0] = RT_NO_IMAGE;
 	out->maps[1] = RT_NO_IMAGE;
-	if ( ( shader->rtNormalMap || shader->rtMaterialMap ) &&
+	out->maps[2] = RT_NO_IMAGE << RT_MAPS_EMISSIVE_SHIFT;
+	if ( ( shader->rtNormalMap || shader->rtMaterialMap || shader->rtEmissiveMap ) &&
 		shader->rtMaterialStage >= 0 && (uint32_t)shader->rtMaterialStage < out->stageCount ) {
 		const int32_t normalImage = RT_ImageIndex( shader->rtNormalMap );
 		const int32_t materialImage = RT_ImageIndex( shader->rtMaterialMap );
+		const int32_t emissiveImage = RT_ImageIndex( shader->rtEmissiveMap );
 		if ( normalImage >= 0 ) {
 			out->maps[0] = (uint32_t)normalImage;
+			if ( shader->rtNormalHeight ) {
+				out->maps[2] |= RT_MAPS_HEIGHT;
+			}
 		}
 		if ( materialImage >= 0 ) {
 			out->maps[1] = (uint32_t)materialImage;
-			out->maps[2] = (uint32_t)shader->rtMaterialMapType;
+			out->maps[2] |= (uint32_t)shader->rtMaterialMapType & RT_MAPS_TYPE_MASK;
+		}
+		if ( emissiveImage >= 0 ) {
+			out->maps[2] = ( out->maps[2] & ~( 0xFFFFu << RT_MAPS_EMISSIVE_SHIFT ) ) |
+				( (uint32_t)emissiveImage << RT_MAPS_EMISSIVE_SHIFT );
 		}
 		out->maps[3] = (uint32_t)shader->rtMaterialStage;
-		if ( normalImage >= 0 || materialImage >= 0 ) {
+		Vector4Copy( shader->rtPbrScale, out->pbrScale );
+		Vector4Copy( shader->rtNormalScale, out->pbrNormal );
+		if ( normalImage >= 0 || materialImage >= 0 || emissiveImage >= 0 ) {
 			out->flags |= RT_MF_MATERIAL_MAPS;
 		}
 	}

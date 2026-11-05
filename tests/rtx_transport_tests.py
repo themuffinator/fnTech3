@@ -155,7 +155,7 @@ class RtxTransportTests(unittest.TestCase):
                 glsl_names = [n for _, n in struct_members(common, glsl)]
                 c_names = [n for _, n in c_struct_members(header, c)]
                 self.assertEqual(glsl_names, c_names)
-        self.assertIn("sizeof( rtGpuMaterial_t ) == 96", header)
+        self.assertIn("sizeof( rtGpuMaterial_t ) == 128", header)
         self.assertIn("sizeof( rtGpuStage_t ) == 256", header)
         self.assertIn("sizeof( rtGpuLight_t ) == 64", header)
 

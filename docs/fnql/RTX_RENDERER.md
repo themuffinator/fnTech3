@@ -110,7 +110,8 @@ against the existing renderers.
 | `rtx_rt_mode` | `2` | Path trace the main view; `0` keeps the module's raster path. Latched: `vid_restart`. |
 | `rtx_rt_require` | `0` | Permit honest fallback unless the operator explicitly asks to fail closed. |
 | `rtx_rt_backend` | `0` | Trace with the ray-tracing pipeline where the device offers it, else with compute; forcing either is explicit. |
-| `rtx_rt_material_maps` | `1` | Traced materials take a texture pack's companion normal and material maps when one supplies them; retail paks carry none, so retail appearance is unchanged. |
+| `rtx_rt_material_maps` | `1` | Traced materials take a texture pack's material maps (rend2's words or companion images) when one supplies them; retail paks carry none, so retail appearance is unchanged. Latched. |
+| `rtx_rt_parallax` | `1` | A material map's height field offsets the primary view's texture coordinates; `0` leaves the surface flat. |
 | `rtx_rt_async_overlap` | `0` | Keep experimental queue overlap disabled. |
 | `r_globalFog` | `0` | Do not load or apply optional map fog sidecars by default. |
 | `r_fogMode` | `0` | Preserve the legacy BSP fog lookup unless analytic fog is selected explicitly. |
@@ -383,22 +384,47 @@ samplers as raster. An additive environment-mapped "shine" stage is replaced
 by traced reflections.
 
 **Material maps.** No retail game ships normal, roughness or metalness maps,
-but a texture pack can add them beside a lit material's texture, under the
-names OpenJK's rend2 uses:
+but a texture pack can add them to a lit material, the way OpenJK's rend2
+renderer reads them. A stage of the material's shader script may name them
+with rend2's material words; otherwise they are companion images beside the
+texture of the material's first stage that is not a lightmap or environment
+map, named after it without its extension:
 
 | Image | Channels |
 | --- | --- |
-| `<texture>_nh`, else `<texture>_n` | normal map: red leans the normal toward growing s, green toward growing t (rend2's convention); the `_nh` alpha (height) is unused |
-| `<texture>_specGloss` | specular colour, gloss in alpha (roughness is 1 - gloss) |
-| `<texture>_rmo`, else `<texture>_orm` | roughness, metalness, occlusion; or occlusion, roughness, metalness |
+| `normalMap`, `normalHeightMap`; else `<texture>_nh`, else `<texture>_n` | normal map: red leans the normal toward growing s, green toward growing t (rend2's convention); the alpha of `normalHeightMap` and `_nh` is height, 1 the surface |
+| `specMap`/`specularMap`; else `<texture>_specGloss` | specular colour, gloss in alpha (roughness is 1 - gloss) |
+| `rmoMap`, `rmosMap`, `moxrMap`, `mosrMap`, `ormMap`, `ormsMap`; else `<texture>_rmo`, `_orm`, then `_rmos`, `_orms`, `_moxr`, `_mosr` | roughness (R), metalness (M), occlusion (O), specular (S), unused (X), one channel each in the named order |
+| `<texture>_emissive`, else `<texture>_luma` | light the surface gives off over what its stages show |
 
-`<texture>` is the image of the material's first stage that is not a lightmap
-or environment map, without its extension. Its `tcMod` and `tcGen` apply to
-the maps too. Roughness is perceptual: the GGX width is its square. A metal
-reflects in its texture's colour and loses its diffuse light; occlusion is
-not used, since the tracer finds occlusion itself. No retail Quake III,
-Quake Live, RTCW or Enemy Territory pak pairs a texture with an image under
-these names. Only the path tracer uses the maps; set
+The maps follow the stage's own coordinates and modifiers. Roughness is
+perceptual: the GGX width is its square. A metal reflects in its texture's
+colour and loses its diffuse light; a dielectric's normal-incidence
+reflectance is 0.08 times its specular channel, 0.04 for a packing without
+one, as rend2 takes it. Occlusion is the texture's own relief, finer than the
+geometry the rays meet: it scales the light the rays bring back (bounces,
+reflections through Lagarde's specular occlusion, the compilers' ambient)
+and not the light samples, which find the geometry's shadows themselves. An
+emissive map's texels add to what the stages give off, and its average makes
+the material a light of the light sampler, as a glow stage does. With a
+height map, the view's ray continues under the surface to the height field
+`parallaxDepth` texture units deep (0.05 by default), with rend2's search
+(sixteen steps, eight halvings, a linear fit), and the point's texture
+coordinates move there; the light and bounce rays leave from the flat
+surface (`rtx_rt_parallax`).
+
+rend2's scale words apply as rend2 applies them: `specularScale`, `gloss`,
+`roughness`, `specularExponent` and `specularReflectance` scale a specular
+map, or a packed map of constants (`rmoMap $whiteimage` and the like), and a
+stage that gives them without any map is a material of those constants;
+`normalScale` scales a normal map's x and y (a negative y reads a map whose
+green points the other way) and its third value is the parallax depth;
+`parallaxBias` raises the height field. A packed image's own channels are
+taken as they are. The GL and Vulkan renderers read past the words, drawing
+the stage as the rest of it says. No retail Quake III, Quake Live, RTCW,
+Enemy Territory, Elite Force, Jedi, Alice, F.A.K.K.2 or Medal of Honor pak
+pairs a texture with an image under the companion names, and no retail
+shader script uses the words. Only the path tracer uses the maps; set
 `rtx_rt_material_maps 0` and `vid_restart` to ignore them.
 
 **Lighting.** By default the tracer lights every map with the lights the map

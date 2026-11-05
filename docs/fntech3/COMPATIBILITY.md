@@ -217,6 +217,13 @@ the hardware backend (Build/SPIR-V only), a stale texture-table view and a
 failed world retried every frame. Compute bounce light and reflection hits
 cost less: the trace is 2-9% faster on Q3, RTCW SP and MP and Medal of
 Honor views with unchanged lighting settings. No compatibility gate closes.
+The [RTX PBR materials record](2026-11-05-rtx-pbr-materials.md) completes the
+path tracer's material model for texture packs: rend2's material words in
+shader scripts, which the GL and Vulkan renderers now read past instead of
+failing the shader, all six packings, occlusion, emission maps that light
+the scene, and parallax (Unit; Live on Quake III's `four` with synthetic
+packs, on the compute and ray-tracing pipeline backends). Retail frames are
+unchanged; no compatibility gate closes.
 
 The [CSM lighting fidelity comparison](2026-10-22-csm-lighting-fidelity.md)
 compares RTCW `forest` with sun shadows disabled and enabled. The shared

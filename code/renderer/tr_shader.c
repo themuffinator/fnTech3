@@ -44,6 +44,7 @@ static	texModInfo_t	texMods[MAX_SHADER_STAGES][TR_MAX_TEXMODS+1]; // reserve one
 #include "../renderercommon/tr_q3_ihv_stageless.h"
 #include "../renderercommon/tr_jka_shader.h"
 #include "../renderercommon/tr_jedi_sprite_shader.h"
+#include "../renderercommon/tr_material_words.h"
 
 static image_t *R_FindShaderImage( const char *name, imgFlags_t flags ) {
 	flags = R_JKAShaderImageFlags( flags, shader.jkaNoTC );
@@ -683,7 +684,9 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 	aliceStageParse_t aliceStage;
 	qboolean q3testClamp;
 	char aliceKeyword[MAX_TOKEN_CHARS];
+	rMaterialWords_t materialWords;
 
+	R_MaterialWordsInit( &materialWords );
 	stage->active = qfalse;
 	R_AliceBeginStage( &aliceStage );
 	q3testClamp = R_Q3TestShaderDialect() && R_Q3TestStageClamps( *text ) ? qtrue : qfalse;
@@ -1322,6 +1325,16 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 		// (renderercommon/tr_jedi_sprite_shader.h)
 		//
 		else if ( R_JediParseSpriteStageWord( token, text, stage ) )
+		{
+			continue;
+		}
+		//
+		// a texture pack's material words (rend2's normalMap, specularMap,
+		// rmoMap and the like): the path tracer's alone, read past here so
+		// the stage draws as the rest of it says
+		// (renderercommon/tr_material_words.h)
+		//
+		else if ( R_MaterialStageWord( token, text, &materialWords, shader.name ) )
 		{
 			continue;
 		}

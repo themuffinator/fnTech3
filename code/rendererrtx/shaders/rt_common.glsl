@@ -71,9 +71,17 @@ const uint RT_ENTITY_LIGHT_GRID = 0x40u;
 const uint RT_ENTITY_LIGHT_ALL = 0x41u;
 
 // RtMaterial.maps.z: the material map's channels (tr_local.h RT_MATERIAL_MAP_*)
+// in the low byte, RT_MAPS_* flags, the emissive map's image from bit 16
 const uint RT_MATERIAL_MAP_SPECGLOSS = 1u;	// specular colour, gloss in alpha
 const uint RT_MATERIAL_MAP_RMO = 2u;		// roughness, metalness, occlusion
 const uint RT_MATERIAL_MAP_ORM = 3u;		// occlusion, roughness, metalness
+const uint RT_MATERIAL_MAP_RMOS = 4u;		// roughness, metalness, occlusion, specular
+const uint RT_MATERIAL_MAP_MOXR = 5u;		// metalness, occlusion, unused, roughness
+const uint RT_MATERIAL_MAP_MOSR = 6u;		// metalness, occlusion, specular, roughness
+const uint RT_MATERIAL_MAP_ORMS = 7u;		// occlusion, roughness, metalness, specular
+const uint RT_MAPS_TYPE_MASK = 0xFFu;
+const uint RT_MAPS_HEIGHT = 1u << 8;		// the normal map's alpha is height
+const uint RT_MAPS_EMISSIVE_SHIFT = 16u;
 
 // RtMaterial.lightImage.y
 const uint RT_LIGHT_IMAGE_MISSING = 1u << 0;	// none found: a white, opaque image
@@ -184,6 +192,7 @@ const uint RT_FRAME_CHECKERBOARD = 1u << 10;	// half the tiles bounce each frame
 const uint RT_FRAME_LINEAR_LIGHT = 1u << 11;	// colours decoded, light traced linear
 const uint RT_FRAME_LIGHT_REUSE = 1u << 12; // replay compatible primary light proposals
 const uint RT_FRAME_ADDITIVE_LIGHTS = 1u << 13;	// a dynamic light carries RT_LIGHT_ADDITIVE
+const uint RT_FRAME_PARALLAX = 1u << 14;		// height maps offset the primary view's coordinates
 
 // Pixel information flags (u_info bits 0..7).
 const uint RT_PIXEL_OWNED = 1u << 0;		// the path tracer owns this pixel's colour
@@ -211,8 +220,10 @@ struct RtMaterial {
 	vec4 emit;				// rgb: q3map surface-light colour, w: q3map_surfacelight value
 	vec4 params;			// roughness, metallic, specular reflectance, liquid IOR
 	vec4 timing;			// shader timeOffset, clampTime, unused, unused
-	uvec4 maps;				// normal map, material map, material map type, stage they follow
+	uvec4 maps;				// normal map, material map, type|flags|emissive map<<16, stage they follow
 	uvec4 lightImage;		// the compilers' light image, RT_LIGHT_IMAGE_* flags, unused, unused
+	vec4 pbrScale;			// material map scales (rend2's specularScale)
+	vec4 pbrNormal;			// normal x and y scales, parallax depth, parallax bias
 };
 
 struct RtStage {

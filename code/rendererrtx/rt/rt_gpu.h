@@ -74,6 +74,12 @@ typedef enum {
 #define RT_MF_LIQUID			( 1u << 18 )
 #define RT_MF_TRANSMISSIVE		( 1u << 19 )
 
+// RtMaterial.maps.z: the material map's type in the low byte, these flags,
+// and the emissive map's image in the high 16 bits
+#define RT_MAPS_TYPE_MASK		0xFFu
+#define RT_MAPS_HEIGHT			( 1u << 8 )	// the normal map's alpha is height
+#define RT_MAPS_EMISSIVE_SHIFT	16u
+
 // A model vertex's fourth position lane: the top byte of the raster pass's
 // light for it, RGB8 below (RT_StampEntityLight), without or with the dynamic
 // lights; any other value (a world vertex's 1.0f) carries none
@@ -120,6 +126,9 @@ typedef enum {
 // a dynamic light this frame is additive (RT_LIGHT_ADDITIVE): world and
 // brush-model surfaces sample those lights apart (rt_path.glsl shade_direct)
 #define RT_FRAME_ADDITIVE_LIGHTS	( 1u << 13 )
+// a height map's relief offsets the primary view's texture coordinates
+// (rtx_rt_parallax; rt_path.glsl rt_parallax)
+#define RT_FRAME_PARALLAX		( 1u << 14 )
 
 // Sky flags (skyImages[1][3])
 #define RT_SKY_BOX				( 1u << 0 )
@@ -170,13 +179,20 @@ typedef struct {
 	float		emit[4];
 	float		params[4];
 	float		timing[4];
-	// companion maps (tr_shader.c R_RtFindMaterialMaps): normal map and
-	// material map images (RT_NO_IMAGE when absent), the material map's
-	// RT_MATERIAL_MAP_* type, and the stage whose coordinates they follow
+	// material maps (tr_shader.c R_RtFindMaterialMaps): normal map and
+	// material map images (RT_NO_IMAGE when absent); the material map's
+	// RT_MATERIAL_MAP_* type, RT_MAPS_* flags and, from bit 16, the emissive
+	// map's image; and the stage whose coordinates they follow
 	uint32_t	maps[4];
 	// the image the map compilers filtered light with at an alphashadow or
 	// lightfilter surface (RT_NO_IMAGE for none), RT_LIGHT_IMAGE_* flags
 	uint32_t	lightImage[4];
+	// the material map's channel scales, as rend2's specularScale: for a
+	// specular map its colour's and one less its gloss's, for a packed map its
+	// metalness's, specular's, occlusion's and roughness's
+	float		pbrScale[4];
+	// the normal map's x and y scales, its parallax depth and bias
+	float		pbrNormal[4];
 } rtGpuMaterial_t;
 
 typedef struct {
@@ -280,7 +296,7 @@ typedef struct {
 	uint32_t	pad[2];
 } rtToneBuffer_t;
 
-typedef char rtGpuMaterialSize[ ( sizeof( rtGpuMaterial_t ) == 96 ) ? 1 : -1 ];
+typedef char rtGpuMaterialSize[ ( sizeof( rtGpuMaterial_t ) == 128 ) ? 1 : -1 ];
 typedef char rtGpuStageSize[ ( sizeof( rtGpuStage_t ) == 256 ) ? 1 : -1 ];
 typedef char rtGpuStageTexModOffset[ ( offsetof( rtGpuStage_t, texMod ) == 96 ) ? 1 : -1 ];
 typedef char rtGpuLightSize[ ( sizeof( rtGpuLight_t ) == 64 ) ? 1 : -1 ];

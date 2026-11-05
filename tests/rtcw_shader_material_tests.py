@@ -147,9 +147,9 @@ class RTCWShaderMaterialTests(unittest.TestCase):
                     # must use the policy, not just the UI path in the live probe.
                     self.assertEqual(source.count('R_FindImageFile('), 1)
                     # rendererrtx also finds the path tracer's companion
-                    # material maps and the compilers' light images through
-                    # the policy
-                    self.assertEqual(source.count('R_FindShaderImage('), 10 if renderer == 'rendererrtx' else 8)
+                    # material maps, the images its material words name and
+                    # the compilers' light images through the policy
+                    self.assertEqual(source.count('R_FindShaderImage('), 12 if renderer == 'rendererrtx' else 8)
                     parser = function(source, 'static qboolean ParseShader(')
                     self.assertIn('R_RTCWShaderCompressionDirective( token, &shader.rtcwCompression )', parser)
                     initializer = function(source, 'static void InitShader(')

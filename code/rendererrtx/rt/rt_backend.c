@@ -3134,6 +3134,7 @@ static void RT_WriteFrameUniforms( rtFrame_t *frame, uint32_t classPrims[RT_CLAS
 		( ( !rtx_rt_specular || rtx_rt_specular->integer ) ? RT_FRAME_SPECULAR : 0u ) |
 		( ( !rtx_rt_mis || rtx_rt_mis->integer ) ? RT_FRAME_MIS : 0u ) |
 		( s_rt.accumulated > 0 ? RT_FRAME_ACCUMULATE : 0u ) |
+		( ( !rtx_rt_parallax || rtx_rt_parallax->integer ) ? RT_FRAME_PARALLAX : 0u ) |
 		( s_rt.numAdditiveLights ? RT_FRAME_ADDITIVE_LIGHTS : 0u );
 	// the compute backend traces the bounce in a checkerboard by default: its
 	// incoherent rays cost it twice what the primary view does

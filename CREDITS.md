@@ -601,10 +601,15 @@ rules, which surfaces cast shadows, q3map2's `q3map_sunExt` spread and
 q3map2's Wolfenstein light model for RTCW and Enemy Territory maps. No
 compiler source text is incorporated. The
 material maps a texture pack may supply take the companion image names,
-channel layouts and normal-map axes of the rend2 renderer in
+the shader-script material words and their scales, the six packings'
+channel swizzles, the normal-map axes and the parallax height-field search
+of the rend2 renderer in
 [OpenJK](https://github.com/JACoders/OpenJK/tree/1a6a643427aa347553e9073dac5570b33337c4d9)
-(GPL-2.0-or-later, `codemp/rd-rend2`), as reference observation only; no
-implementation text is incorporated. The renderer's waveform and colour-generator behaviour
+(GPL-2.0-or-later, `codemp/rd-rend2` `tr_shader.cpp`, `tr_image.cpp` and
+`glsl/lightall.glsl`), as reference observation only; no implementation text
+is incorporated. The `_luma` glow name is DarkPlaces's convention, and the
+specular occlusion follows the formula Lagarde and de Rousiers published in
+"Moving Frostbite to Physically Based Rendering" (SIGGRAPH 2014). The renderer's waveform and colour-generator behaviour
 is matched against fnTech3's own inherited renderer code.
 
 - The shared skin loader extends the inherited GPL-2.0-or-later Q3 loader,

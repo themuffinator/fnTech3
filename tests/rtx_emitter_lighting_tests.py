@@ -176,8 +176,11 @@ class RtxEmitterLightingTests(unittest.TestCase):
 
     def test_a_placeholder_never_glows(self):
         material = read('code/rendererrtx/rt/rt_material.c')
-        emission = function(material, 'static qboolean RT_ShaderEmission(')
+        emission = function(material, 'static qboolean RT_ShaderStageEmission(')
         self.assertIn('shader == tr.defaultShader || shader->defaultShader', emission)
+        # what a material map adds needs an emissive map, which only a lit
+        # material a texture pack names has (tr_shader.c R_RtFindMaterialMaps)
+        self.assertIn('shader->rtEmissiveMap &&', function(material, 'static qboolean RT_ShaderEmission('))
         # a generated image (the checkerboard) shows no light of its own
         average = function(material, 'static void RT_ImageAverage(')
         self.assertIn("image->imgName[0] != '*' && image->imgName[0] != '$'", average)
