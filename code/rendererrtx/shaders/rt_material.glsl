@@ -30,6 +30,11 @@ struct RtHitAttribs {
 	vec4 entityLight;
 	vec2 entityTexCoord;	// shaderTexCoord for tcMod entityTranslate
 	float entityTime;		// the entity's shaderTime
+	// the entity's animMap frame, for a frameFromEntity stage (the world's
+	// is 0), and whether every animated stage takes it (a Jedi Academy
+	// RF_SETANIMINDEX entity)
+	uint entityFrame;
+	bool entityFrameAll;
 	float coneWidth;		// ray footprint at the hit, world units
 	float uvDensity;		// texture-space length per world unit of the base uv
 	bool world;
@@ -114,22 +119,55 @@ vec4 rt_unpack_color(uint c)
 	return unpackUnorm4x8(c);
 }
 
+// The record after the material's stages holding a stage's frames past its
+// own eight and its animMapPhase, 0 for none (rt/rt_material.c
+// RT_TranslateMaterial)
+uint rt_stage_record(RtStage s)
+{
+	uint record = uint(max(s.tc1.w, 0.0));
+	return record < uint(u_stages.stages.length()) ? record : 0u;
+}
+
 uint rt_stage_image(RtStage s, uint frame)
 {
-	uint word = s.images[frame >> 1u];
+	uint word;
+	if (frame < RT_STAGE_INLINE_FRAMES) {
+		word = s.images[frame >> 1u];
+	} else {
+		uint record = rt_stage_record(s);
+		uint rest = frame - RT_STAGE_INLINE_FRAMES;
+		uint index = record + rest / RT_STAGE_INLINE_FRAMES;
+		if (record == 0u || index >= uint(u_stages.stages.length())) {
+			return RT_NO_IMAGE;
+		}
+		word = u_stages.stages[index].images[(rest % RT_STAGE_INLINE_FRAMES) >> 1u];
+	}
 	return (frame & 1u) != 0u ? (word >> 16u) : (word & 0xFFFFu);
 }
 
-uint rt_stage_frame(RtStage s, float time)
+// RB_BindAnimatedImage: (int)((time + animMapPhase) * speed), or the
+// entity's frame where the stage or the entity asks for it; never below the
+// first frame, held on the last by animMapOnce and oneShotAnimMap, then
+// modulo the frame count
+uint rt_stage_frame(RtStage s, RtHitAttribs h, float time)
 {
-	uint count = s.state.z & 0xFu;
+	uint count = ((s.state.z >> RT_SF_FRAMES_SHIFT) & RT_SF_FRAMES_MASK) + 1u;
 	if (count <= 1u) {
 		return 0u;
 	}
-	// RB_BindAnimatedImage: (int)(time * speed) modulo the frame count
-	int index = int(floor(time * s.animTc0.x));
+	int index;
+	if (h.entityFrameAll || (s.state.z & RT_SF_FRAME_FROM_ENTITY) != 0u) {
+		index = int(h.entityFrame);
+	} else {
+		uint record = rt_stage_record(s);
+		float phase = record != 0u ? u_stages.stages[record].animTc0.x : 0.0;
+		index = int(clamp(floor((time + phase) * s.animTc0.x), -1.0, 1073741824.0));
+	}
 	if (index < 0) {
 		index = 0;
+	}
+	if ((s.state.z & RT_SF_HOLD_LAST) != 0u && uint(index) >= count) {
+		index = int(count) - 1;
 	}
 	return uint(index) % count;
 }
@@ -264,7 +302,7 @@ vec4 rt_image_texel(RtStage s, uint image, RtHitAttribs h, float time, float lod
 // The stage's texture sample; white for a stage without an image.
 vec4 rt_stage_texel(RtStage s, RtHitAttribs h, float time, float lodBias)
 {
-	uint image = rt_stage_image(s, rt_stage_frame(s, time));
+	uint image = rt_stage_image(s, rt_stage_frame(s, h, time));
 	return rt_image_texel(s, image, h, time, lodBias);
 }
 

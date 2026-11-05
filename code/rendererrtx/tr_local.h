@@ -2757,6 +2757,7 @@ extern	cvar_t	*rtx_rt_ui_passthrough;
 extern	cvar_t	*rtx_rt_iqm_skinning;
 extern	cvar_t	*rtx_rt_emissive_scale;
 extern	cvar_t	*rtx_rt_emissive_light;
+extern	cvar_t	*rtx_rt_animated_lights;
 extern	cvar_t	*rtx_rt_camera;
 extern	cvar_t	*rtx_rt_exposure;
 extern	cvar_t	*rtx_rt_exposure_bias;

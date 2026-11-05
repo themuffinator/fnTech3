@@ -536,7 +536,7 @@
       "source": "rt_composite.comp",
       "stage": "comp",
       "defines": [],
-      "byte_size": 24624,
+      "byte_size": 24704,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -697,7 +697,7 @@
       "source": "rt_denoise_atrous.comp",
       "stage": "comp",
       "defines": [],
-      "byte_size": 29088,
+      "byte_size": 29168,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -858,7 +858,7 @@
       "source": "rt_denoise_temporal.comp",
       "stage": "comp",
       "defines": [],
-      "byte_size": 49092,
+      "byte_size": 49172,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -1019,7 +1019,7 @@
       "source": "rt_tonemap.comp",
       "stage": "comp",
       "defines": [],
-      "byte_size": 19984,
+      "byte_size": 20064,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -1180,7 +1180,7 @@
       "source": "rt_trace.comp",
       "stage": "comp",
       "defines": [],
-      "byte_size": 292684,
+      "byte_size": 296216,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -1264,7 +1264,7 @@
             "descriptor_count": 1
           },
           {
-            "name": "id_1746",
+            "name": "id_1869",
             "set": 0,
             "binding": 10,
             "storage_class": "Uniform",
@@ -1392,7 +1392,7 @@
       "source": "rt_main.rgen",
       "stage": "rgen",
       "defines": [],
-      "byte_size": 257752,
+      "byte_size": 261272,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -1476,7 +1476,7 @@
             "descriptor_count": 1
           },
           {
-            "name": "id_1641",
+            "name": "id_1764",
             "set": 0,
             "binding": 10,
             "storage_class": "Uniform",
@@ -1591,7 +1591,7 @@
       "source": "rt_main.rmiss",
       "stage": "rmiss",
       "defines": [],
-      "byte_size": 1284,
+      "byte_size": 1364,
       "reflection": {
         "descriptor_bindings": [],
         "push_constants": []
@@ -1613,7 +1613,7 @@
       "source": "rt_main.rchit",
       "stage": "rchit",
       "defines": [],
-      "byte_size": 2140,
+      "byte_size": 2220,
       "reflection": {
         "descriptor_bindings": [],
         "push_constants": []
@@ -1624,7 +1624,7 @@
       "source": "rt_filter.rahit",
       "stage": "rahit",
       "defines": [],
-      "byte_size": 19072,
+      "byte_size": 20392,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -1708,7 +1708,7 @@
             "descriptor_count": 1
           },
           {
-            "name": "id_147",
+            "name": "id_211",
             "set": 0,
             "binding": 10,
             "storage_class": "Uniform",
@@ -1748,7 +1748,7 @@
       "source": "rt_main.rahit",
       "stage": "rahit",
       "defines": [],
-      "byte_size": 56220,
+      "byte_size": 59724,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -1832,7 +1832,7 @@
             "descriptor_count": 1
           },
           {
-            "name": "id_957",
+            "name": "id_1080",
             "set": 0,
             "binding": 10,
             "storage_class": "Uniform",
@@ -1872,7 +1872,7 @@
       "source": "rt_shadow.rahit",
       "stage": "rahit",
       "defines": [],
-      "byte_size": 56880,
+      "byte_size": 60384,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -1956,7 +1956,7 @@
             "descriptor_count": 1
           },
           {
-            "name": "id_961",
+            "name": "id_1084",
             "set": 0,
             "binding": 10,
             "storage_class": "Uniform",

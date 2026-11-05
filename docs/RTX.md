@@ -99,6 +99,12 @@ games' original colour handling, for comparing pictures with the original.
   are lit only by their glowing fixtures, the sky and the sun. A map is
   exactly as bright or as dark as its own lights make it, so some places look
   different from what you remember.
+- **Light that moves with its source.** A fire's light flickers and swells
+  with its flames, and a pulsing lamp or a blinking screen lights the room as
+  it pulses or blinks, following what the surface shows from moment to
+  moment. The light lags its source by a fraction of a second, and a fast
+  flicker is softened. `rtx_rt_animated_lights 0` keeps such light steady
+  ([details](fntech3/2026-11-05-rtx-animated-surfaces.md)).
 - **Real shadows** from every light, soft where a light is large, and through
   grates, fences and cages. Rockets, muzzle flashes and other moving lights
   cast shadows too.
@@ -188,6 +194,7 @@ Only RTX uses material maps. If a pack looks wrong, set
 | `rtx_rt_lighting` | `0` | `0` lights each map with its own lamps, glowing surfaces, sky and sun, with nothing painted in advance; `3` with the sky and glowing surfaces only, as Quake II RTX does. `1` and `2` are for comparing with the original lighting: `1` uses the painted lighting and traces only moving lights over it, `2` traces the lights as the map's tools painted them. |
 | `rtx_rt_camera` | `0` | `1` sees the light through a camera, with automatic brightness; `0` shows it exactly as traced. `rtx_rt_lighting 3` always uses the camera. |
 | `rtx_rt_emissive_light` | `2.0` | How much light glowing surfaces give off, as a multiple of how bright they look; `0` none. |
+| `rtx_rt_animated_lights` | `1` | Light from a fire, a pulsing lamp or a flickering screen rises and falls with it; `0` keeps that light steady at its average, as the original lighting was. |
 | `rtx_rt_exposure` | `0` | With the camera on: its brightness. `0` adjusts automatically; any other value is fixed, with a film-like curve. |
 | `rtx_rt_exposure_bias` | `0` | With the camera on: makes the automatic brightness brighter (positive) or darker (negative), in stops -- each stop doubles or halves it. |
 | `rtx_rt_exposure_speed` | `1` | With the camera on: how quickly the automatic brightness adapts; `0` instantly. |

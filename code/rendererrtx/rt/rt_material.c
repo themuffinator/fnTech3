@@ -417,16 +417,80 @@ static float RT_WaveMean( const waveForm_t *wave )
 	if ( wave->func == GF_SAWTOOTH || wave->func == GF_INVERSE_SAWTOOTH ) {
 		mean += 0.5f * wave->amplitude;
 	}
-	return Com_Clamp( 0.0f, 1.0f, mean );
+	return mean;
 }
 
-// A stage's average colour and alpha with the lighting term at `light`.
-// Colour generators that carry the light (a lightmap, a vertex-lit surface's
-// baked colours, a model's diffuse light) scale with it. `white` stands every
-// image in as white: a stack that shows nothing at zero light that way shows
-// nothing with any images, and needs none loaded.
+// tr_shade_calc.c EvalWaveForm at shader time `time`, as a world surface
+// draws it: base plus the table's entry at (phase + time * frequency) times
+// amplitude, a noise wave's noise at (time + phase) * frequency, Elite
+// Force's random wave from the view's clock
+static float RT_WaveAt( const waveForm_t *wave, double time )
+{
+	const float *table;
+
+	switch ( wave->func ) {
+	case GF_SIN:				table = tr.sinTable; break;
+	case GF_TRIANGLE:			table = tr.triangleTable; break;
+	case GF_SQUARE:				table = tr.squareTable; break;
+	case GF_SAWTOOTH:			table = tr.sawToothTable; break;
+	case GF_INVERSE_SAWTOOTH:	table = tr.inverseSawToothTable; break;
+	case GF_NOISE:
+		return wave->base + R_NoiseGet4f( 0, 0, 0, ( time + wave->phase ) * wave->frequency ) * wave->amplitude;
+	case GF_RANDOM:
+		// the view's clock in milliseconds plus the phase, which a world
+		// surface's shader time is where its shader has no timeOffset
+		return R_NoiseRandom( (int)( time * 1000.0 + wave->phase ) ) <= wave->frequency ?
+			wave->base + wave->amplitude : wave->base;
+	default:
+		return wave->base;
+	}
+	return wave->base + table[ (int64_t)( ( wave->phase + time * wave->frequency ) * FUNCTABLE_SIZE ) & FUNCTABLE_MASK ] *
+		wave->amplitude;
+}
+
+// What rgbGen wave draws for a wave's value (RB_CalcWaveColor): a noise wave
+// as it is, any other at tr.identityLight, clamped to a byte's range
+static float RT_ColorWave( const waveForm_t *wave, float value )
+{
+	if ( wave->func != GF_NOISE ) {
+		value *= tr.identityLight;
+	}
+	return Com_Clamp( 0.0f, 1.0f, value );
+}
+
+// tr_shade.c RB_BindAnimatedImage's frame for a world surface at shader time
+// `time`: (time + animMapPhase) * speed, truncated; the world entity's frame,
+// 0, for a frameFromEntity stage; never below the first; held on the last by
+// animMapOnce and oneShotAnimMap; then modulo the frame count
+static int RT_StageFrameAt( const rtStageSource_t *s, double time )
+{
+	const int frames = MAX( 1, MIN( s->numImages, RT_STAGE_MAX_ANIMATIONS ) );
+	double v;
+	int64_t index;
+
+	if ( frames <= 1 ) {
+		return 0;
+	}
+	v = ( time + s->animPhase ) * s->animSpeed;
+	index = s->animFrameFromEntity ? 0 : ( v > 1e9 ? 1000000000 : v < -1e9 ? -1000000000 : (int64_t)v );
+	if ( index < 0 ) {
+		index = 0;
+	}
+	if ( s->animHoldLast && index >= frames ) {
+		index = frames - 1;
+	}
+	return (int)( index % frames );
+}
+
+// A stage's average colour and alpha with the lighting term at `light`, over
+// time, or at shader time *time when it is given (a world surface's, which
+// the entity colours and frames do not touch). Colour generators that carry
+// the light (a lightmap, a vertex-lit surface's baked colours, a model's
+// diffuse light) scale with it. `white` stands every image in as white: a
+// stack that shows nothing at zero light that way shows nothing with any
+// images, and needs none loaded.
 static qboolean RT_StageAverage( const shader_t *shader, const rtStageSource_t *s, float light,
-	qboolean white, float rgba[4] )
+	qboolean white, const double *time, float rgba[4] )
 {
 	float image[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 	float scale;
@@ -444,6 +508,9 @@ static qboolean RT_StageAverage( const shader_t *shader, const rtStageSource_t *
 	if ( !white ) {
 		if ( s->isVideoMap ) {
 			image[0] = image[1] = image[2] = 0.5f;
+		} else if ( time ) {
+			// the animMap's frame at that time
+			RT_ImageAverage( s->images[ RT_StageFrameAt( s, *time ) ], image );
 		} else {
 			// an animMap's frames, averaged
 			const int frames = MAX( 1, MIN( s->numImages, RT_STAGE_MAX_ANIMATIONS ) );
@@ -470,7 +537,7 @@ static qboolean RT_StageAverage( const shader_t *shader, const rtStageSource_t *
 		rgba[2] = image[2] * s->constantColor.rgba[2] / 255.0f;
 		break;
 	case CGEN_WAVEFORM:
-		scale = RT_WaveMean( &s->rgbWave );
+		scale = RT_ColorWave( &s->rgbWave, time ? RT_WaveAt( &s->rgbWave, *time ) : RT_WaveMean( &s->rgbWave ) );
 		VectorScale( image, scale, rgba );
 		break;
 	case CGEN_EXACT_VERTEX:
@@ -490,7 +557,9 @@ static qboolean RT_StageAverage( const shader_t *shader, const rtStageSource_t *
 		rgba[3] = image[3] * s->constantColor.rgba[3] / 255.0f;
 		break;
 	case AGEN_WAVEFORM:
-		rgba[3] = image[3] * RT_WaveMean( &s->alphaWave );
+		// clamped, as RB_CalcWaveAlpha takes it
+		rgba[3] = image[3] * Com_Clamp( 0.0f, 1.0f,
+			time ? RT_WaveAt( &s->alphaWave, *time ) : RT_WaveMean( &s->alphaWave ) );
 		break;
 	case AGEN_VERTEX:
 	case AGEN_ONE_MINUS_VERTEX:
@@ -556,8 +625,9 @@ static void RT_BlendAverage( unsigned stateBits, const float src[4], float dst[4
 	}
 }
 
-// The average colour a shader's stages draw with the lighting term at `light`
-static void RT_FoldStages( const shader_t *shader, float light, qboolean white, float out[4] )
+// The average colour a shader's stages draw with the lighting term at
+// `light`, over time or at shader time *time
+static void RT_FoldStages( const shader_t *shader, float light, qboolean white, const double *time, float out[4] )
 {
 	int lightingStage = -1;
 	int i;
@@ -578,7 +648,7 @@ static void RT_FoldStages( const shader_t *shader, float light, qboolean white, 
 			( s->tcGen == TCGEN_ENVIRONMENT_MAPPED || s->tcGen == TCGEN_ENVIRONMENT_MAPPED_FP ) ) {
 			continue;
 		}
-		if ( !RT_StageAverage( shader, s, light, white, src ) ) {
+		if ( !RT_StageAverage( shader, s, light, white, time, src ) ) {
 			continue;
 		}
 		RT_BlendAverage( s->stateBits, src, out );
@@ -591,14 +661,21 @@ model light - that the scene lights all the same where the sky and emitters
 light it (RT_MF_FULLBRIGHT_LIT): as Quake II's surfaces are lit whatever they
 show, its bright texels alone glow. A q3map_surfacelight shader stays as it
 was authored: it is a light, and shows as one. Only a surface the trace
-draws takes it; sky and portals keep raster's pixels.
+draws takes it; sky and portals keep raster's pixels, and a shader whose
+first stage blends over what is behind it - an additive flame - is drawn by
+raster and gives off all it adds (RT_ShaderEmission).
 */
 static qboolean RT_ShaderFullbrightLit( const shader_t *shader )
 {
+	unsigned blend;
 	int i;
 
 	if ( !RT_LightingEmits( RT_LightingMode() ) || !shader || shader->rtNumStages <= 0 || !shader->rtStages ||
 		RT_ShaderIsSky( shader ) || shader->sort == SS_PORTAL || ( shader->surfaceLightValid && shader->surfaceLight > 0.0f ) ) {
+		return qfalse;
+	}
+	blend = RT_StageBlend( &shader->rtStages[0] );
+	if ( blend != 0 && blend != ( GLS_SRCBLEND_ONE | GLS_DSTBLEND_ZERO ) ) {
 		return qfalse;
 	}
 	for ( i = 0; i < shader->rtNumStages; i++ ) {
@@ -625,7 +702,7 @@ static void RT_StageScale( const rtStageSource_t *s, float scale[3] )
 		scale[2] = s->constantColor.rgba[2] / 255.0f;
 		return;
 	case CGEN_WAVEFORM:
-		v = RT_WaveMean( &s->rgbWave );
+		v = RT_ColorWave( &s->rgbWave, RT_WaveMean( &s->rgbWave ) );
 		break;
 	default:
 		break;
@@ -654,7 +731,7 @@ static void RT_FullbrightGlow( const shader_t *shader, vec3_t glow )
 			RT_StageScale( s, scale );
 			RT_ImageBright( s->images[0], scale, part );
 			VectorAdd( glow, part, glow );
-		} else if ( RT_StageAdds( s ) && RT_StageAverage( shader, s, 1.0f, qfalse, part ) ) {
+		} else if ( RT_StageAdds( s ) && RT_StageAverage( shader, s, 1.0f, qfalse, NULL, part ) ) {
 			VectorAdd( glow, part, glow );
 		}
 	}
@@ -693,11 +770,11 @@ static qboolean RT_ShaderStageEmission( const shader_t *shader, vec3_t emission 
 			qtrue : qfalse;
 	}
 	// structure first: nothing at zero light with white images is nothing
-	RT_FoldStages( shader, 0.0f, qtrue, dark );
+	RT_FoldStages( shader, 0.0f, qtrue, NULL, dark );
 	if ( dark[0] + dark[1] + dark[2] < RT_EMISSION_MIN ) {
 		return qfalse;
 	}
-	RT_FoldStages( shader, 0.0f, qfalse, dark );
+	RT_FoldStages( shader, 0.0f, qfalse, NULL, dark );
 	VectorCopy( dark, emission );
 	return ( 0.2126f * dark[0] + 0.7152f * dark[1] + 0.0722f * dark[2] ) >= RT_EMISSION_MIN ? qtrue : qfalse;
 }
@@ -828,33 +905,62 @@ static uint32_t RT_StageRole( const rtStageSource_t *s, int index, int lightingS
 	return RT_ROLE_BASE;
 }
 
-static void RT_TranslateStage( const shader_t *shader, const rtStageSource_t *s, uint32_t role,
-	uint32_t stageFlags, rtGpuStage_t *gpu )
+// Eight of a stage's animMap frames from `first`, two 16-bit image indices to
+// a word (RT_NO_IMAGE past its last)
+static void RT_PackFrames( const rtStageSource_t *s, int first, rtGpuStage_t *gpu )
 {
-	uint32_t images[RT_STAGE_MAX_ANIMATIONS];
-	uint32_t numTexMods;
+	const int frames = MAX( 1, MIN( s->numImages, RT_STAGE_MAX_ANIMATIONS ) );
+	uint32_t images[RT_STAGE_INLINE_FRAMES];
 	int n;
 
-	Com_Memset( gpu, 0, sizeof( *gpu ) );
-	for ( n = 0; n < RT_STAGE_MAX_ANIMATIONS; n++ ) {
-		int32_t index = ( n < s->numImages ) ? RT_ImageIndex( s->images[n] ) : -1;
+	for ( n = 0; n < (int)RT_STAGE_INLINE_FRAMES; n++ ) {
+		int32_t index = ( first + n < frames ) ? RT_ImageIndex( s->images[first + n] ) : -1;
 		images[n] = ( index >= 0 ) ? (uint32_t)index : RT_NO_IMAGE;
 	}
 	for ( n = 0; n < 4; n++ ) {
 		gpu->images[n] = images[n * 2] | ( images[n * 2 + 1] << 16 );
 	}
+}
+
+// How many records after the material's stages a stage needs: one for every
+// eight frames past its own, and one for an animMapPhase alone
+static uint32_t RT_StageFrameRecords( const rtStageSource_t *s )
+{
+	const int frames = MAX( 1, MIN( s->numImages, RT_STAGE_MAX_ANIMATIONS ) );
+	if ( frames > (int)RT_STAGE_INLINE_FRAMES ) {
+		return (uint32_t)( frames - (int)RT_STAGE_INLINE_FRAMES + (int)RT_STAGE_INLINE_FRAMES - 1 ) /
+			RT_STAGE_INLINE_FRAMES;
+	}
+	return ( frames > 1 && s->animPhase != 0.0f ) ? 1u : 0u;
+}
+
+static void RT_TranslateStage( const shader_t *shader, const rtStageSource_t *s, uint32_t role,
+	uint32_t stageFlags, rtGpuStage_t *gpu )
+{
+	const int frames = MAX( 1, MIN( s->numImages, RT_STAGE_MAX_ANIMATIONS ) );
+	uint32_t numTexMods;
+
+	Com_Memset( gpu, 0, sizeof( *gpu ) );
+	RT_PackFrames( s, 0, gpu );
 
 	numTexMods = RT_PackTexMods( s, gpu );
 
+	if ( s->animHoldLast ) {
+		stageFlags |= RT_SF_HOLD_LAST;
+	}
+	if ( s->animFrameFromEntity ) {
+		stageFlags |= RT_SF_FRAME_FROM_ENTITY;
+	}
 	gpu->state[0] = s->stateBits;
 	gpu->state[1] = (uint32_t)s->tcGen |
 		( (uint32_t)s->rgbGen << 8 ) |
 		( (uint32_t)s->alphaGen << 16 ) |
 		( role << 24 );
-	gpu->state[2] = (uint32_t)MIN( s->numImages, RT_STAGE_MAX_ANIMATIONS ) |
+	gpu->state[2] = (uint32_t)MIN( frames, (int)RT_STAGE_INLINE_FRAMES ) |
 		( numTexMods << 4 ) |
 		( RT_WaveFunc( s->rgbWave.func ) << 8 ) |
 		( RT_WaveFunc( s->alphaWave.func ) << 12 ) |
+		( (uint32_t)( frames - 1 ) << RT_SF_FRAMES_SHIFT ) |
 		stageFlags;
 	gpu->state[3] = s->constantColor.u32;
 
@@ -868,6 +974,43 @@ static void RT_TranslateStage( const shader_t *shader, const rtStageSource_t *s,
 	RT_PackWave( gpu->rgbWave, &s->rgbWave );
 	RT_PackWave( gpu->alphaWave, &s->alphaWave );
 	(void)shader;
+}
+
+/*
+A material's stages hold eight animMap frames each. A stage's frames past
+those, and its animMapPhase, go in records after the material's stages
+(rt_material.glsl rt_stage_record): the stage's tc1.w names the first, whose
+animTc0.x is the phase in seconds, and each record's images hold eight
+frames. The trace's stage loop stops at the material's stage count, before
+them. The stages are firstStage onward, one for each of the shader's.
+*/
+static qboolean RT_AppendFrameRecords( const shader_t *shader, uint32_t firstStage, uint32_t stageCount )
+{
+	uint32_t i;
+
+	for ( i = 0; i < stageCount && i < (uint32_t)shader->rtNumStages; i++ ) {
+		const rtStageSource_t *s = &shader->rtStages[i];
+		const uint32_t records = RT_StageFrameRecords( s );
+		uint32_t r, first;
+
+		if ( !records ) {
+			continue;
+		}
+		if ( !RT_GrowArray( (void **)&s_rtMaterials.stages, &s_rtMaterials.maxStages,
+			s_rtMaterials.numStages + records, sizeof( rtGpuStage_t ), 1024u ) ) {
+			return qfalse;
+		}
+		first = s_rtMaterials.numStages;
+		for ( r = 0; r < records; r++ ) {
+			rtGpuStage_t *record = &s_rtMaterials.stages[ s_rtMaterials.numStages++ ];
+			Com_Memset( record, 0, sizeof( *record ) );
+			RT_PackFrames( s, (int)( RT_STAGE_INLINE_FRAMES * ( r + 1 ) ), record );
+			record->state[1] = RT_ROLE_SKIP << 24;
+		}
+		s_rtMaterials.stages[first].animTc0[0] = s->animPhase;
+		s_rtMaterials.stages[ firstStage + i ].tc1[3] = (float)first;
+	}
+	return qtrue;
 }
 
 static qboolean RT_TranslateMaterial( const shader_t *shader, rtGpuMaterial_t *out, rtMaterialInfo_t *info )
@@ -954,6 +1097,10 @@ static qboolean RT_TranslateMaterial( const shader_t *shader, rtGpuMaterial_t *o
 	out->firstStage = firstStage;
 	out->stageCount = s_rtMaterials.numStages - firstStage;
 	out->lightmapImage = lightmapImage;
+
+	if ( !RT_AppendFrameRecords( shader, firstStage, out->stageCount ) ) {
+		return qfalse;
+	}
 
 	if ( info->masked ) {
 		out->flags |= RT_MF_MASKED;

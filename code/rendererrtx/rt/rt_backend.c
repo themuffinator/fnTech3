@@ -1047,6 +1047,28 @@ static void RT_StampEntityLight( rtxRtPackedVertex_t *v, const trRefEntity_t *en
 	Com_Memcpy( &v->xyz[3], &word, sizeof( word ) );
 }
 
+/*
+What a model or brush model vertex's normal lane w carries: the entity's
+animMap frame, which tr_shade.c RB_BindAnimatedImage takes in place of the
+time's - Alice's frame (short) for a frameFromEntity stage, a Jedi Academy
+RF_SETANIMINDEX entity's skinNum for every animated stage - and the sign
+for RF_NOSHADOW (rt_geometry.glsl). A negative frame is the first, as there.
+*/
+static float RT_EntityFrameLane( const trRefEntity_t *ent )
+{
+	int frame = (short)ent->e.alice.frame;
+	uint32_t word;
+
+	if ( ( ri.gameId == COM_GAME_JKA_SP || ri.gameId == COM_GAME_JKA_MP ) && ent->e.jka.setAnimIndex ) {
+		frame = ent->e.skinNum;
+		word = RT_ENTITY_FRAME_ALL;
+	} else {
+		word = 0;
+	}
+	word |= frame <= 0 ? 0u : (uint32_t)frame > RT_ENTITY_FRAME_MASK ? RT_ENTITY_FRAME_MASK : (uint32_t)frame;
+	return ( ent->e.renderfx & RF_NOSHADOW ) ? -1.0f - (float)word : (float)word;
+}
+
 static void RT_StampEntityVertices( rtxRtCpuGeometry_t *geometry, uint32_t firstVertex,
 	const trRefEntity_t *ent, qboolean brush )
 {
@@ -1058,6 +1080,7 @@ static void RT_StampEntityVertices( rtxRtCpuGeometry_t *geometry, uint32_t first
 		!( ri.gameId == COM_GAME_QUAKE3_IHV && ent->e.q3IHV.active ) ) ? qtrue : qfalse;
 	// only the per-pixel light pass leaves the dynamic lights out of it
 	const uint32_t marker = R_GetDlightMode() == 2 ? RT_ENTITY_LIGHT_GRID : RT_ENTITY_LIGHT_ALL;
+	const float frameLane = RT_EntityFrameLane( ent );
 	vec3_t lightDir;
 
 	if ( lit ) {
@@ -1066,7 +1089,7 @@ static void RT_StampEntityVertices( rtxRtCpuGeometry_t *geometry, uint32_t first
 	for ( i = firstVertex; i < geometry->numVertices; i++ ) {
 		rtxRtPackedVertex_t *v = &geometry->vertices[i];
 		// Renderer-internal metadata; no external refEntity layout changes.
-		v->normal[3] = ( ent->e.renderfx & RF_NOSHADOW ) ? -1.0f : 0.0f;
+		v->normal[3] = frameLane;
 		if ( brush ) {
 			// brush models keep BSP lightmap coordinates and vertex colours
 			v->lightmapData[2] = ent->e.shaderTime.f;
@@ -2617,6 +2640,23 @@ static qboolean RT_UploadLights( rtFrame_t *frame )
 		}
 		frame->lightGeneration = s_rtLights.generation;
 	}
+	// the lights of shaders whose glow changes with time give what their
+	// stages show at the view's clock (rt_lights.c RT_AnimateLights), or
+	// their mean with rtx_rt_animated_lights 0; the frame's copy is rewritten
+	// every time it is used
+	if ( s_rtLights.numAnimated ) {
+		const qboolean animate = ( !rtx_rt_animated_lights || rtx_rt_animated_lights->integer ) ? qtrue : qfalse;
+		if ( animate ) {
+			RT_AnimateLights( backEnd.refdef.floatTime );
+		}
+		for ( i = 0; i < (int)s_rtLights.numAnimated; i++ ) {
+			const rtAnimatedLight_t *animated = &s_rtLights.animated[i];
+			if ( animated->light < staticCount && animated->animation < s_rtLights.numAnimations ) {
+				VectorScale( s_rtLights.lights[ animated->light ].color,
+					animate ? s_rtLights.animations[ animated->animation ].scale : 1.0f, dst[ animated->light ].color );
+			}
+		}
+	}
 	for ( i = 0; i < (int)backEnd.refdef.num_dlights && count < MAX_DLIGHTS; i++ ) {
 		const dlight_t *dl = &backEnd.refdef.dlights[i];
 		rtGpuLight_t *light = &dst[ staticCount + count ];
@@ -2909,7 +2949,7 @@ static int RT_TraceSettingsCount( void )
 		rtx_rt_sun_intensity, rtx_rt_specular, rtx_rt_mis, rtx_rt_dlight_scale, rtx_rt_iqm_skinning,
 		rtx_rt_patch_shadows, r_dlightFalloff, r_dlightScale, rtx_rt_debug_light, rtx_rt_debug_light_mode,
 		rtx_rt_emissive_light, rtx_rt_checkerboard, rtx_rt_camera, rtx_rt_indirect_divisor,
-		r_liquidWarpScale, r_liquidRipples
+		r_liquidWarpScale, r_liquidRipples, rtx_rt_animated_lights
 	};
 	int count = 0;
 	int i;

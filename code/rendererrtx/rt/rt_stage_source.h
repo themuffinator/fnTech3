@@ -21,7 +21,9 @@ filter) and before multitexture folding.
 #ifndef RT_STAGE_SOURCE_H
 #define RT_STAGE_SOURCE_H
 
-#define RT_STAGE_MAX_ANIMATIONS 8
+// Every frame an animMap may name in any dialect (tr_shader.c ParseStage):
+// a stage's frames cycle in the trace as the raster pass cycles them
+#define RT_STAGE_MAX_ANIMATIONS MAX_IMAGE_ANIMATIONS
 // A lightmap bundle may carry one extra transform for an external lightmap
 // atlas (tr_shader.c reserves TR_MAX_TEXMODS + 1 slots).
 #define RT_STAGE_MAX_TEXMODS ( TR_MAX_TEXMODS + 1 )
@@ -30,6 +32,12 @@ typedef struct rtStageSource_s {
 	image_t			*images[RT_STAGE_MAX_ANIMATIONS];
 	int				numImages;			// animMap frames kept (1 for a static map)
 	float			animSpeed;			// animMap frames per second
+	// RB_BindAnimatedImage's rules for the frame: Medal of Honor's
+	// animMapPhase head start (seconds), Alice's animMapOnce and the Jedi
+	// games' oneShotAnimMap holding the last frame, Alice's frameFromEntity
+	float			animPhase;
+	qboolean		animHoldLast;
+	qboolean		animFrameFromEntity;
 
 	unsigned		stateBits;			// GLS_ blend, alpha test and depth bits
 

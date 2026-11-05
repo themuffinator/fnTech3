@@ -1,0 +1,975 @@
+{
+ "schemaVersion": 1,
+ "date": "2026-11-05",
+ "scope": "RTX path tracer: animated shader surfaces (all animMap frames, raster's frame rules) and the light of animated emitters; no compatibility gate closes",
+ "baseCommit": "689ef9e618c4cb713cc750773d6cdfc566dce1fe",
+ "changedSourceBlobs": {
+  "CHANGELOG.md": "e99ce4090a34f4fbdd33eabb174d79829d3214ff",
+  "code/rendererrtx/rt/rt_backend.c": "01a2cd1a3050e4bf68e9ab21116620fe32de784c",
+  "code/rendererrtx/rt/rt_gpu.h": "330d05b26d755946f51924eb41941404cdccc7e4",
+  "code/rendererrtx/rt/rt_lights.c": "0692763ebb83e5ef26a68c5a493acdbfe0d63ca5",
+  "code/rendererrtx/rt/rt_material.c": "252f546b9aed2d84e44ca2fca34018fd6ee544ff",
+  "code/rendererrtx/rt/rt_stage_source.h": "f2e3966d0d551983448ffd0900d014e2205977de",
+  "code/rendererrtx/shaders/rt_common.glsl": "a0882702d9f6f45f6889600f1eb017d224668a9e",
+  "code/rendererrtx/shaders/rt_geometry.glsl": "aff134303d55a544311b2278b2ba53c6b91e8615",
+  "code/rendererrtx/shaders/rt_material.glsl": "ac2d1bc11f95a69742877f5478d42a639f5e5d86",
+  "code/rendererrtx/shaders/spirv/shader_data.c": "6e33ca67ef7c61c6b024da662d3b9b5e75691410",
+  "code/rendererrtx/shaders/spirv/shader_reflection.json": "30727c0e5eb96f03d0200a375d76e78663ea3862",
+  "code/rendererrtx/tr_init.c": "686062cf593fcac39f7bfcdb0fc80726c0602246",
+  "code/rendererrtx/tr_local.h": "13b7bb40838c1bc48fad21189caf7bb1bbf2224f",
+  "code/rendererrtx/tr_shader.c": "f54832c5368567b3018274b6ba43d1bc0be218e9",
+  "tests/rtx_animated_surface_tests.py": "8615565229aaaa3460af5d6813d0616923100628",
+  "tests/rtx_entity_shadow_tests.py": "da5e77b60d104a35b1fa2893f40ca6112176f32f"
+ },
+ "runtimes": {
+  "before": {
+   "directory": ".tmp/runtime/rtx-anim-before",
+   "builtFrom": "affb351168f1bf51d016f23af473216b71818cad",
+   "sha256": {
+    "fntech3.exe": "c20a7da158206f1642b2cb5cd39854bcaf6e4484058904be2ccb979ee63dcb7b",
+    "fnql_rtx_x86.dll": "9fd2cd0ccedeae4925eb0af1e188b85618d89a649149c9ef9376a9c85a5f7d58",
+    "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+   }
+  },
+  "after": {
+   "directory": ".tmp/runtime/rtx-anim-after",
+   "builtFrom": "affb351168f1bf51d016f23af473216b71818cad plus this change, before main gained the physically based materials commit",
+   "sha256": {
+    "fntech3.exe": "c20a7da158206f1642b2cb5cd39854bcaf6e4484058904be2ccb979ee63dcb7b",
+    "fnql_rtx_x86.dll": "42817090450a8d3a9a05d2b1b6efba8e2d5dd9569df4cf346aadb0cf2b355afe",
+    "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+   }
+  },
+  "merged": {
+   "directory": ".tmp/runtime/rtx-anim-merged",
+   "builtFrom": "baseCommit plus changedSourceBlobs",
+   "sha256": {
+    "fntech3.exe": "c20a7da158206f1642b2cb5cd39854bcaf6e4484058904be2ccb979ee63dcb7b",
+    "fnql_rtx_x86.dll": "80bee94177709133517ce1e5005303213bc91c8fbea5e23661d201946859cee3",
+    "fntech3-pkg.fnz": "be3a3d1a462f6a7f29454277eabc9c18a6cb555208719a413512a30f86f9850d"
+   }
+  },
+  "note": "fntech3.exe and the package are identical; only the RTX renderer differs. The before, after and JKA series were taken on before/after; baseCommit (another session's physically based materials, which touch the same files) landed during this task, and the q3dm1 series was repeated on the merged build."
+ },
+ "platform": "Windows 11 x86 client, meson win32-dev (debugoptimized, /O2, strict warnings)",
+ "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU; the 32-bit driver offers no ray-tracing pipeline, so the compute backend traced every probe",
+ "probeConditions": "private desktop, windowed, no input injected, isolated fs_homepath with empty configs, read-only installations, rtx_rt_mode 2 with rtx_rt_require 1, net_enabled 1 on 127.0.0.1, engine screenshotPNG captures",
+ "installations": {
+  "q3": {
+   "path": ".tmp/q3-retail/baseq3",
+   "contents": "pak0.pk3-pak8.pk3 copied unchanged from C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena\\baseq3",
+   "pak0Sha256": "7ce8b3910620cd50a09e4f1100f426e8c6180f68895d589f80e6bd95af54bcae",
+   "why": "the Steam install also carries q3r-maps.pk3 (third party, added 2026-10-31), which sorts after the retail paks and replaces maps/q3dm1.bsp, maps/q3dm7.bsp and most retail maps"
+  },
+  "jka-mp": "E:\\Games\\Jedi Academy (retail 1.01, base/assets0.pk3 mp/duel4)"
+ },
+ "observedBefore": [
+  "flame1_hell (q3map_surfacelight 600), flame2 and flame1side blend additively: raster draws and animates them; they are not in the acceleration structures",
+  "the light built from an animated emitter was its shader's average, constant in time",
+  "the stage snapshot kept 8 animMap frames; longer animMaps cycled 8 frames in the trace",
+  "animMapPhase, animMapOnce, oneShotAnimMap, frameFromEntity and RF_SETANIMINDEX were not passed to the trace",
+  "an additive emitter without q3map_surfacelight took the fullbright-lit bright-texel rule",
+  "a colour wave's mean left out tr.identityLight"
+ ],
+ "changes": [
+  "animated emitters: a light's colour is scaled each frame by its shader's fold at the frame's shader time over the fold's mean over time (480 samples 0.0731 s apart); surface lights fold with the lighting term white, glowing shaders black; scale clamped to [0, 8]; steady below 0.5% deviation",
+  "rtx_rt_animated_lights (default 1; 0 keeps every light at its mean), in the settings that restart the denoiser's history",
+  "stage snapshot keeps up to MAX_IMAGE_ANIMATIONS (64) frames, the phase, hold and frame-from-entity bits",
+  "GPU stage: frame count in state.z bits 22..27, hold bit 20, frame-from-entity bit 21; frames past 8 and the phase in records after the material's stages (tc1.w names the first)",
+  "entity frame in a dynamic vertex's normal.w beside the no-shadow sign (RT_EntityFrameLane)",
+  "additive first stage no longer fullbright-lit; colour wave values and means at tr.identityLight"
+ ],
+ "measurements": {
+  "q3dm1Flame": {
+   "command": "devmap q3dm1; setviewpos 672 1500 24 270; fixedtime 16; 24 captures 10 frames apart, final picture then rtx_rt_debug_visualizer 10; 960x540",
+   "regions": {
+    "flame": [
+     410,
+     60,
+     560,
+     240
+    ],
+    "floor": [
+     180,
+     390,
+     400,
+     470
+    ],
+    "floorR": [
+     580,
+     390,
+     800,
+     470
+    ],
+    "pillar": [
+     200,
+     120,
+     270,
+     300
+    ]
+   },
+   "shaderFromPak0": {
+    "frameLuminance": [
+     0.0681,
+     0.0593,
+     0.0517,
+     0.0477,
+     0.0548,
+     0.0537,
+     0.0575,
+     0.0589
+    ],
+    "flameballLuminance": 0.0267,
+    "meanLuminance": 0.0725,
+    "sampledMean": 0.0728,
+    "relStd": 0.1009
+   },
+   "before": {
+    "lightAloneMeans": {
+     "flame": {
+      "mean": 0.8942,
+      "std": 0.016,
+      "relStd": 0.0178,
+      "min": 0.8699,
+      "max": 0.9194
+     },
+     "floor": {
+      "mean": 0.3252,
+      "std": 0.0018,
+      "relStd": 0.0056,
+      "min": 0.322,
+      "max": 0.3282
+     },
+     "floorR": {
+      "mean": 0.3278,
+      "std": 0.0015,
+      "relStd": 0.0045,
+      "min": 0.3241,
+      "max": 0.33
+     },
+     "pillar": {
+      "mean": 0.2222,
+      "std": 0.0014,
+      "relStd": 0.0063,
+      "min": 0.2195,
+      "max": 0.2248
+     }
+    },
+    "lightAloneSeries": {
+     "flame": [
+      0.8742,
+      0.8955,
+      0.9,
+      0.9158,
+      0.8772,
+      0.8705,
+      0.8919,
+      0.9018,
+      0.9194,
+      0.8868,
+      0.874,
+      0.8969,
+      0.9032,
+      0.9169,
+      0.8778,
+      0.8699,
+      0.8957,
+      0.9043,
+      0.9193,
+      0.8855,
+      0.8734,
+      0.8945,
+      0.9011,
+      0.9154
+     ],
+     "floor": [
+      0.3278,
+      0.3235,
+      0.3269,
+      0.3236,
+      0.3256,
+      0.3272,
+      0.3233,
+      0.3269,
+      0.3262,
+      0.3265,
+      0.3234,
+      0.3282,
+      0.3247,
+      0.3264,
+      0.3238,
+      0.3255,
+      0.322,
+      0.3226,
+      0.3278,
+      0.3251,
+      0.3243,
+      0.3264,
+      0.3236,
+      0.3229
+     ],
+     "floorR": [
+      0.3296,
+      0.3292,
+      0.3292,
+      0.3285,
+      0.3268,
+      0.3292,
+      0.33,
+      0.3268,
+      0.3281,
+      0.3278,
+      0.3273,
+      0.3281,
+      0.3259,
+      0.3241,
+      0.3283,
+      0.3277,
+      0.3266,
+      0.3285,
+      0.3294,
+      0.327,
+      0.33,
+      0.3272,
+      0.3257,
+      0.3259
+     ],
+     "pillar": [
+      0.2219,
+      0.2214,
+      0.2218,
+      0.221,
+      0.2227,
+      0.2197,
+      0.2201,
+      0.2213,
+      0.2221,
+      0.2195,
+      0.2225,
+      0.2222,
+      0.222,
+      0.2242,
+      0.2242,
+      0.2236,
+      0.2222,
+      0.2224,
+      0.2214,
+      0.2229,
+      0.2245,
+      0.2248,
+      0.2226,
+      0.2211
+     ]
+    },
+    "finalPictureMeans": {
+     "flame": {
+      "mean": 0.5724,
+      "std": 0.0284,
+      "relStd": 0.0496,
+      "min": 0.5332,
+      "max": 0.6283
+     },
+     "floor": {
+      "mean": 0.173,
+      "std": 0.0012,
+      "relStd": 0.0067,
+      "min": 0.1705,
+      "max": 0.1756
+     },
+     "floorR": {
+      "mean": 0.1779,
+      "std": 0.0011,
+      "relStd": 0.0062,
+      "min": 0.1758,
+      "max": 0.1797
+     },
+     "pillar": {
+      "mean": 0.1021,
+      "std": 0.0005,
+      "relStd": 0.0052,
+      "min": 0.1011,
+      "max": 0.1029
+     }
+    }
+   },
+   "after": {
+    "lightAloneMeans": {
+     "flame": {
+      "mean": 0.8918,
+      "std": 0.017,
+      "relStd": 0.0191,
+      "min": 0.8613,
+      "max": 0.9217
+     },
+     "floor": {
+      "mean": 0.324,
+      "std": 0.0066,
+      "relStd": 0.0202,
+      "min": 0.3123,
+      "max": 0.3362
+     },
+     "floorR": {
+      "mean": 0.3268,
+      "std": 0.0066,
+      "relStd": 0.0203,
+      "min": 0.3148,
+      "max": 0.3381
+     },
+     "pillar": {
+      "mean": 0.2209,
+      "std": 0.0014,
+      "relStd": 0.0062,
+      "min": 0.2184,
+      "max": 0.2238
+     }
+    },
+    "lightAloneSeries": {
+     "flame": [
+      0.8811,
+      0.8613,
+      0.8853,
+      0.897,
+      0.9217,
+      0.8958,
+      0.877,
+      0.8984,
+      0.9001,
+      0.9177,
+      0.8795,
+      0.8615,
+      0.8905,
+      0.895,
+      0.9205,
+      0.8977,
+      0.8795,
+      0.8998,
+      0.9009,
+      0.918,
+      0.88,
+      0.8624,
+      0.8874,
+      0.8945
+     ],
+     "floor": [
+      0.3254,
+      0.3164,
+      0.3179,
+      0.321,
+      0.3343,
+      0.3362,
+      0.3251,
+      0.3299,
+      0.3273,
+      0.3292,
+      0.3248,
+      0.315,
+      0.3123,
+      0.3183,
+      0.3283,
+      0.336,
+      0.3261,
+      0.3238,
+      0.3256,
+      0.3247,
+      0.3267,
+      0.3147,
+      0.3157,
+      0.3202
+     ],
+     "floorR": [
+      0.3288,
+      0.3217,
+      0.3188,
+      0.3245,
+      0.3353,
+      0.3381,
+      0.3316,
+      0.3308,
+      0.3293,
+      0.3305,
+      0.3287,
+      0.3167,
+      0.3148,
+      0.3178,
+      0.3336,
+      0.3375,
+      0.33,
+      0.329,
+      0.3264,
+      0.3292,
+      0.3315,
+      0.3186,
+      0.3181,
+      0.3226
+     ],
+     "pillar": [
+      0.22,
+      0.219,
+      0.2184,
+      0.2195,
+      0.2224,
+      0.2202,
+      0.2203,
+      0.2218,
+      0.2212,
+      0.2193,
+      0.2221,
+      0.2202,
+      0.2205,
+      0.2221,
+      0.2228,
+      0.2224,
+      0.2211,
+      0.2202,
+      0.2192,
+      0.2214,
+      0.2238,
+      0.2229,
+      0.2207,
+      0.22
+     ]
+    },
+    "finalPictureMeans": {
+     "flame": {
+      "mean": 0.5655,
+      "std": 0.0278,
+      "relStd": 0.0491,
+      "min": 0.5147,
+      "max": 0.626
+     },
+     "floor": {
+      "mean": 0.172,
+      "std": 0.0035,
+      "relStd": 0.0204,
+      "min": 0.1661,
+      "max": 0.1797
+     },
+     "floorR": {
+      "mean": 0.1769,
+      "std": 0.0034,
+      "relStd": 0.0191,
+      "min": 0.1705,
+      "max": 0.1853
+     },
+     "pillar": {
+      "mean": 0.1013,
+      "std": 0.0006,
+      "relStd": 0.0063,
+      "min": 0.0998,
+      "max": 0.1024
+     }
+    }
+   },
+   "afterAnimatedLightsOff": {
+    "lightAloneMeans": {
+     "flame": {
+      "mean": 0.8944,
+      "std": 0.0142,
+      "relStd": 0.0159,
+      "min": 0.8719,
+      "max": 0.9176
+     },
+     "floor": {
+      "mean": 0.3263,
+      "std": 0.0018,
+      "relStd": 0.0054,
+      "min": 0.3235,
+      "max": 0.3304
+     },
+     "floorR": {
+      "mean": 0.3288,
+      "std": 0.0016,
+      "relStd": 0.0048,
+      "min": 0.3262,
+      "max": 0.3321
+     },
+     "pillar": {
+      "mean": 0.2232,
+      "std": 0.0011,
+      "relStd": 0.005,
+      "min": 0.2211,
+      "max": 0.2251
+     }
+    },
+    "lightAloneSeries": {
+     "flame": [
+      0.8827,
+      0.8846,
+      0.8931,
+      0.9045,
+      0.9131,
+      0.872,
+      0.8787,
+      0.8947,
+      0.9097,
+      0.9176,
+      0.8826,
+      0.8842,
+      0.8964,
+      0.9041,
+      0.9148,
+      0.8719,
+      0.8823,
+      0.8947,
+      0.9075,
+      0.9169,
+      0.8778,
+      0.8821,
+      0.8949,
+      0.9046
+     ],
+     "floor": [
+      0.3304,
+      0.3253,
+      0.3277,
+      0.3254,
+      0.327,
+      0.3275,
+      0.3266,
+      0.3296,
+      0.3262,
+      0.3292,
+      0.3251,
+      0.3263,
+      0.3271,
+      0.3277,
+      0.3237,
+      0.3274,
+      0.3235,
+      0.3239,
+      0.326,
+      0.3259,
+      0.3256,
+      0.324,
+      0.3258,
+      0.3254
+     ],
+     "floorR": [
+      0.3318,
+      0.3299,
+      0.3284,
+      0.33,
+      0.3288,
+      0.3294,
+      0.3321,
+      0.3304,
+      0.3279,
+      0.3307,
+      0.3291,
+      0.3271,
+      0.3275,
+      0.3262,
+      0.3289,
+      0.3273,
+      0.3264,
+      0.3286,
+      0.3288,
+      0.3287,
+      0.3303,
+      0.3266,
+      0.3278,
+      0.3274
+     ],
+     "pillar": [
+      0.223,
+      0.2226,
+      0.2222,
+      0.2224,
+      0.2243,
+      0.2216,
+      0.2216,
+      0.223,
+      0.2234,
+      0.2211,
+      0.2235,
+      0.2231,
+      0.2234,
+      0.2251,
+      0.2251,
+      0.2241,
+      0.2227,
+      0.2232,
+      0.2216,
+      0.2234,
+      0.2246,
+      0.2251,
+      0.224,
+      0.2226
+     ]
+    },
+    "finalPictureMeans": {
+     "flame": {
+      "mean": 0.576,
+      "std": 0.0306,
+      "relStd": 0.0532,
+      "min": 0.5323,
+      "max": 0.6333
+     },
+     "floor": {
+      "mean": 0.1729,
+      "std": 0.0009,
+      "relStd": 0.0054,
+      "min": 0.1708,
+      "max": 0.1751
+     },
+     "floorR": {
+      "mean": 0.1779,
+      "std": 0.001,
+      "relStd": 0.0055,
+      "min": 0.1761,
+      "max": 0.1795
+     },
+     "pillar": {
+      "mean": 0.102,
+      "std": 0.0005,
+      "relStd": 0.0052,
+      "min": 0.1007,
+      "max": 0.1029
+     }
+    }
+   },
+   "merged": {
+    "lightAloneMeans": {
+     "flame": {
+      "mean": 0.8555,
+      "std": 0.0215,
+      "relStd": 0.0251,
+      "min": 0.8163,
+      "max": 0.8934
+     },
+     "floor": {
+      "mean": 0.3075,
+      "std": 0.0083,
+      "relStd": 0.027,
+      "min": 0.288,
+      "max": 0.3196
+     },
+     "floorR": {
+      "mean": 0.311,
+      "std": 0.0081,
+      "relStd": 0.0262,
+      "min": 0.2925,
+      "max": 0.3244
+     },
+     "pillar": {
+      "mean": 0.2396,
+      "std": 0.004,
+      "relStd": 0.0169,
+      "min": 0.2333,
+      "max": 0.2456
+     }
+    },
+    "lightAloneSeries": {
+     "flame": [
+      0.8262,
+      0.851,
+      0.8656,
+      0.8934,
+      0.8568,
+      0.8453,
+      0.8626,
+      0.8712,
+      0.8928,
+      0.8482,
+      0.8277,
+      0.8478,
+      0.8611,
+      0.8866,
+      0.8431,
+      0.8374,
+      0.8593,
+      0.8638,
+      0.8836,
+      0.8271,
+      0.8163,
+      0.8317,
+      0.853,
+      0.8818
+     ],
+     "floor": [
+      0.303,
+      0.303,
+      0.3135,
+      0.3195,
+      0.317,
+      0.3133,
+      0.314,
+      0.3181,
+      0.3196,
+      0.3144,
+      0.3,
+      0.3012,
+      0.3024,
+      0.3117,
+      0.309,
+      0.3024,
+      0.3096,
+      0.306,
+      0.3143,
+      0.3005,
+      0.288,
+      0.2918,
+      0.2997,
+      0.3088
+     ],
+     "floorR": [
+      0.3079,
+      0.3087,
+      0.3129,
+      0.3239,
+      0.3221,
+      0.3168,
+      0.3181,
+      0.3185,
+      0.3244,
+      0.3179,
+      0.3038,
+      0.3034,
+      0.3042,
+      0.3126,
+      0.3135,
+      0.3089,
+      0.3099,
+      0.3116,
+      0.3185,
+      0.3015,
+      0.2925,
+      0.2972,
+      0.303,
+      0.3128
+     ],
+     "pillar": [
+      0.243,
+      0.2422,
+      0.2444,
+      0.2437,
+      0.2456,
+      0.242,
+      0.242,
+      0.2435,
+      0.2432,
+      0.2425,
+      0.2448,
+      0.2424,
+      0.2409,
+      0.2392,
+      0.238,
+      0.2349,
+      0.2365,
+      0.2341,
+      0.2345,
+      0.2352,
+      0.2355,
+      0.2362,
+      0.2333,
+      0.2338
+     ]
+    },
+    "finalPictureMeans": {
+     "flame": {
+      "mean": 0.5241,
+      "std": 0.0322,
+      "relStd": 0.0615,
+      "min": 0.4662,
+      "max": 0.5923
+     },
+     "floor": {
+      "mean": 0.1645,
+      "std": 0.0042,
+      "relStd": 0.0257,
+      "min": 0.1565,
+      "max": 0.1734
+     },
+     "floorR": {
+      "mean": 0.1716,
+      "std": 0.004,
+      "relStd": 0.0233,
+      "min": 0.1624,
+      "max": 0.179
+     },
+     "pillar": {
+      "mean": 0.1197,
+      "std": 0.0009,
+      "relStd": 0.0078,
+      "min": 0.1173,
+      "max": 0.1212
+     }
+    }
+   },
+   "lightBuild": {
+    "before": [
+     "RTX RT: 252 lights (87 point, 165 surface triangles, q3map model), grid 11x22x9 of 128 units, 105436 list entries, 6.9 ms"
+    ],
+    "after": [
+     "^5RTX RT: textures/sfx/flame1_hell's light follows its stages (8.8% deviation)",
+     "^5RTX RT: textures/gothic_light/pentagram_light1_1K's light follows its stages (3.7% deviation)",
+     "^5RTX RT: textures/sfx/computer_blocks17's light follows its stages (0.6% deviation)",
+     "^5RTX RT: textures/sfx/flame2's light follows its stages (8.8% deviation)",
+     "^5RTX RT: textures/sfx/flame1side's light follows its stages (8.8% deviation)",
+     "RTX RT: 252 lights (87 point, 165 surface triangles, q3map model), grid 11x22x9 of 128 units, 105414 list entries, 10.5 ms"
+    ],
+    "merged": [
+     "^5RTX RT: textures/sfx/flame1_hell's light follows its stages (8.8% deviation)",
+     "^5RTX RT: textures/gothic_light/pentagram_light1_1K's light follows its stages (3.7% deviation)",
+     "^5RTX RT: textures/sfx/computer_blocks17's light follows its stages (0.6% deviation)",
+     "^5RTX RT: textures/sfx/flame2's light follows its stages (8.8% deviation)",
+     "^5RTX RT: textures/sfx/flame1side's light follows its stages (8.8% deviation)",
+     "RTX RT: 252 lights (87 point, 165 surface triangles, q3map model), grid 11x22x9 of 128 units, 105414 list entries, 13.2 ms"
+    ]
+   },
+   "summary": {
+    "floorDeviation": {
+     "before": 0.0056,
+     "after": 0.0202,
+     "off": 0.0054
+    },
+    "floorCorrelationWithFlame": {
+     "before": [
+      -0.03,
+      0.11
+     ],
+     "after": [
+      0.56,
+      0.75
+     ],
+     "off": [
+      0.0,
+      0.18
+     ],
+     "note": "lag 0 and the best of lags 0-3 (captures 160 ms apart)"
+    }
+   }
+  },
+  "jkaDuel4Console": {
+   "command": "jka-mp listen, devmap mp/duel4, cmd team spectator, setviewpos -2384 2300 140 90, 8 traced then (rtx_rt_mode 0, vid_restart) 8 raster captures 30 frames apart from 900 frames in; 960x540",
+   "shader": "textures/doomgiver/comp_panel_g: oneshotanimMap 1 over comp_panel1..8, cursor rgbGen wave square 1 0.5 0 2",
+   "region": [
+    300,
+    478,
+    720,
+    540
+   ],
+   "result": {
+    "jka-before": {
+     "tracedStates": 4,
+     "rasterStates": 1,
+     "tracedToNearestRaster": [
+      0.1668,
+      0.178,
+      0.1785,
+      0.1747,
+      0.187,
+      0.1867,
+      0.1834,
+      0.187
+     ],
+     "tracedGreen": [
+      0.3995,
+      0.4451,
+      0.4147,
+      0.4308,
+      0.3741,
+      0.3424,
+      0.4037,
+      0.3562
+     ],
+     "rasterGreen": [
+      0.3155,
+      0.3155,
+      0.3155,
+      0.3155,
+      0.3155,
+      0.3155,
+      0.3155,
+      0.3155
+     ]
+    },
+    "jka-after": {
+     "tracedStates": 1,
+     "rasterStates": 1,
+     "tracedToNearestRaster": [
+      0.1607,
+      0.1607,
+      0.1603,
+      0.1781,
+      0.1775,
+      0.1774,
+      0.1609,
+      0.161
+     ],
+     "tracedGreen": [
+      0.3999,
+      0.3997,
+      0.3992,
+      0.4344,
+      0.4339,
+      0.4336,
+      0.4,
+      0.4002
+     ],
+     "rasterGreen": [
+      0.2888,
+      0.2888,
+      0.2888,
+      0.2888,
+      0.2888,
+      0.2888,
+      0.2888,
+      0.2888
+     ]
+    }
+   }
+  },
+  "cost": {
+   "view": "q3dm1 setviewpos 672 1500 24 270, 960x540, live",
+   "medians": {
+    "t-before": {
+     "n": 11,
+     "trace": 14.63,
+     "total": 16.79,
+     "cpu": 0.99,
+     "rest": 0.04
+    },
+    "t-after": {
+     "n": 11,
+     "trace": 14.31,
+     "total": 16.36,
+     "cpu": 1.03,
+     "rest": 0.07
+    },
+    "t2-before": {
+     "n": 11,
+     "trace": 14.01,
+     "total": 16.06,
+     "cpu": 0.67,
+     "rest": 0.03
+    },
+    "t2-after": {
+     "n": 11,
+     "trace": 14.76,
+     "total": 16.89,
+     "cpu": 0.76,
+     "rest": 0.03
+    }
+   },
+   "note": "pairs run in opposite orders; one earlier after run read a 35 ms trace that its repeats did not (a transient)"
+  }
+ },
+ "validation": {
+  "build": "fnql_rtx_x86 with strict warnings; 97 shader variants; spirv-val passes 13 embedded rt_* modules",
+  "newTests": "tests/rtx_animated_surface_tests.py: 7 tests; 3,425,760 frame choices checked against raster's rule (72 within single precision of a frame start)",
+  "relatedTests": "59 RTX and related test files pass (rtx_entity_shadow_tests.py follows the new no-shadow lane); on the tree merged with baseCommit, 60 (with rtx_pbr_material_tests.py)"
+ },
+ "limits": [
+  "a reflection ray does not see raster-drawn flames; only the light sample's highlight of the polygon",
+  "the light follows the fold's luminance, not its colour; under the linear camera the ratio is in display units",
+  "glowing movers and models still light nothing",
+  "the GPU still evaluates Elite Force's random wave as a sine on traced surfaces (RT_WaveFunc)",
+  "entity-chosen frames on traced models have unit evidence only",
+  "the denoiser's quiet-light response (about 0.32 s) lags and softens a fast flicker",
+  "hardware ray-tracing backend not run"
+ ],
+ "unrelatedIssues": [
+  "the Steam Quake III install's q3r-maps.pk3 replaces retail maps; the 2026-11-05 round's Quake III views used it (corrected in its record)"
+ ]
+}

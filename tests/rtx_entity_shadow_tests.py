@@ -69,7 +69,10 @@ int main() {
         self.assertIn('mask & RT_MASK_MOVING, 2, 0, 1,', hw)
         self.assertIn('groups[6].closestHitShader = 4;', host)
         self.assertIn('groups[6].anyHitShader = 7;', host)
-        self.assertIn('v->normal[3] = ( ent->e.renderfx & RF_NOSHADOW ) ? -1.0f : 0.0f;', host)
+        # the lane's sign carries RF_NOSHADOW beside the entity's animMap frame
+        # (tests/rtx_animated_surface_tests.py)
+        self.assertIn('return ( ent->e.renderfx & RF_NOSHADOW ) ? -1.0f - (float)word : (float)word;', host)
+        self.assertIn('v->normal[3] = frameLane;', host)
         self.assertIn('!world && geometry->vertices[i0].normal[3] < 0.0f', host)
 
 

@@ -51,7 +51,8 @@
   "q3": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 3 Arena (demo four, q3dm1)",
   "rtcw-sp": "forest",
   "rtcw-mp": "mp_beach",
-  "mohaa": "E:\\Games\\Medal of Honor Allied Assault (m1l1)"
+  "mohaa": "E:\\Games\\Medal of Honor Allied Assault (m1l1)",
+  "q3MapsNote": "correction (2026-11-05, 2026-11-05-rtx-animated-surfaces.md): the Steam install's third-party q3r-maps.pk3 (added 2026-10-31) replaces maps/q3dm7.bsp (where four plays) and maps/q3dm1.bsp, so the Quake III views used that pack's maps; both sides loaded the same files, so the relative results stand, but they are not retail-map evidence"
  },
  "fixes": [
   "still-view history stored as exact half floats by unbiased stochastic rounding (rt_half_dither.glsl)",

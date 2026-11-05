@@ -302,6 +302,9 @@ Release packages include them as web pages in their `manual` folder, built by
   -- still views that keep their brightness, reflection, light-table and
   frame-lifetime fixes, and faster compute bounce light, timed on Quake III,
   Return to Castle Wolfenstein and Medal of Honor views.
+- [RTX animated surfaces](fntech3/2026-11-05-rtx-animated-surfaces.md)
+  -- light that follows animated emitters, every `animMap` frame and raster's
+  frame rules in the trace, with q3dm1's flame and an Academy console.
 - [RTX physically based materials](fntech3/2026-11-05-rtx-pbr-materials.md)
   -- a texture pack's material words and maps: normals, height, gloss,
   metalness, occlusion and glow, with retail-safe names.

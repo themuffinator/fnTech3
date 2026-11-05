@@ -98,6 +98,13 @@ const uint RT_SF_LINEAR_SAMPLE = 1u << 16;	// image view already decodes sRGB
 const uint RT_SF_VERTEX_IS_LIGHT = 1u << 17;	// rgbGen vertex on a vertex-lit world surface
 const uint RT_SF_ALPHA_TEST = 1u << 18;		// this stage's alpha test decides coverage
 const uint RT_SF_DETAIL = 1u << 19;
+const uint RT_SF_HOLD_LAST = 1u << 20;			// the animMap stops on its last frame
+const uint RT_SF_FRAME_FROM_ENTITY = 1u << 21;	// the animMap's frame is the entity's
+const uint RT_SF_FRAMES_SHIFT = 22u;			// state.z: frame count less one
+const uint RT_SF_FRAMES_MASK = 0x3Fu;
+const uint RT_STAGE_INLINE_FRAMES = 8u;			// a stage's own; tc1.w names the records of the rest
+const uint RT_ENTITY_FRAME_MASK = 0x1FFFFFu;	// a dynamic vertex's normal.w: its entity's frame
+const uint RT_ENTITY_FRAME_ALL = 0x200000u;		// ... which every animated stage takes
 
 // Quake III's tcGen, rgbGen and alphaGen values (tr_local.h).
 const uint TCGEN_IDENTITY = 1u;
@@ -229,10 +236,11 @@ struct RtMaterial {
 struct RtStage {
 	uvec4 images;			// eight 16-bit image indices
 	uvec4 state;			// x GLS bits, y tcGen|rgbGen<<8|alphaGen<<16|role<<24,
-							// z numImages|numTexMods<<4|rgbWave func<<8|alphaWave func<<12|flags,
+							// z inline frames|numTexMods<<4|rgbWave func<<8|alphaWave func<<12|
+							//   flags|frame count - 1<<22,
 							// w constant colour RGBA8
 	vec4 animTc0;			// animMap frames per second, tcGen vector 0
-	vec4 tc1;				// tcGen vector 1, unused
+	vec4 tc1;				// tcGen vector 1, the stage's first frame record
 	vec4 rgbWave;			// base, amplitude, phase, frequency
 	vec4 alphaWave;
 	vec4 texMod[RT_MAX_TEXMODS * 2u];

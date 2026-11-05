@@ -377,7 +377,13 @@ and q3dm12 captures are recorded in the
 **Materials.** A traced surface uses its shader's stages as authored: the
 blend functions, `rgbGen` and `alphaGen` (including waveforms, entity colours,
 `lightingDiffuse` and `lightingSpecular`), `tcGen`, `tcMod` animation,
-`animMap` and alpha tests are evaluated for every hit. The tracer splits each
+`animMap` and alpha tests are evaluated for every hit. An `animMap` keeps every
+frame its stage names (up to 64) and the frame rules raster draws it with:
+Medal of Honor's `animMapPhase` head start, Alice's `animMapOnce` and the
+Jedi games' `oneShotAnimMap` holding the last frame, Alice's
+`frameFromEntity` and a Jedi Academy `RF_SETANIMINDEX` entity choosing it. A
+GPU stage holds eight frames; the rest, and the phase, go in records after
+the material's stages. The tracer splits each
 material into the part its lighting term scales and the part it does not, so
 glowing stages stay glowing. Textures are filtered with the same anisotropic
 samplers as raster. An additive environment-mapped "shine" stage is replaced
@@ -451,9 +457,23 @@ or as dark as its own light sources make it.
   lightmap, no vertex light) is lit by the scene like any other surface, and
   only its bright texels glow, as Q2RTX synthesizes emissive masks from a
   texture's bright pixels; `rtx_rt_emissive_light` sets how much light those
-  shaders give off, as a multiple of what they show. Each emitting triangle
+  shaders give off, as a multiple of what they show. A shader whose first
+  stage blends over what is behind it (an additive flame) gives off all it
+  adds. Each emitting triangle
   of the world is sampled as an area light, so a lamp lights a room with
   soft, correctly shaped shadows.
+- **Animated emitters.** A shader whose stages change with time - an
+  `animMap`'s frames, a colour or alpha wave - gives off what it shows at each
+  moment. Its lights keep their colour as the average and, every frame, take
+  the fold of its stages at the frame's shader time over that fold's average
+  over time: a `q3map_surfacelight` shader's fold with the lighting term
+  white, since the compiler's light stands for all its surface shows, a
+  glowing shader's with it black, its glow. The light grid and the sampler's
+  proposals keep the average's power. A still view is averaged only while
+  its clock stands still, when the stages do too. `rtx_rt_animated_lights 0`
+  keeps every light at its average. The light follows the fold's brightness,
+  not its colour, and the denoiser's response (about a third of a second)
+  softens a fast flicker.
 - **The sky.** The sky lights the scene as its compiler lit it: id's q3map
   from the sky's own triangles, each a light of the sky shader's
   `q3map_surfacelight`, and q3map2 also from a dome of suns of its

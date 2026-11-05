@@ -217,6 +217,15 @@ the hardware backend (Build/SPIR-V only), a stale texture-table view and a
 failed world retried every frame. Compute bounce light and reflection hits
 cost less: the trace is 2-9% faster on Q3, RTCW SP and MP and Medal of
 Honor views with unchanged lighting settings. No compatibility gate closes.
+The [animated-surfaces follow-up](2026-11-05-rtx-animated-surfaces.md) makes
+an animated emitter's traced light follow its stages from frame to frame
+(Unit; Live on retail q3dm1's flame, whose floor light now tracks the flame
+instead of holding its mean). Traced surfaces keep every `animMap` frame and
+raster's frame rules: Medal of Honor's phase, the one-shot hold and
+entity-chosen frames (Unit; Live on Jedi Academy mp/duel4's console, which
+now holds its last frame as raster does). Its record also corrects the round
+above: the Steam install's third-party `q3r-maps.pk3` supplied the Quake III
+maps it measured. No compatibility gate closes.
 The [RTX PBR materials record](2026-11-05-rtx-pbr-materials.md) completes the
 path tracer's material model for texture packs: rend2's material words in
 shader scripts, which the GL and Vulkan renderers now read past instead of

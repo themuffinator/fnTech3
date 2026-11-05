@@ -344,6 +344,7 @@ cvar_t	*rtx_rt_ui_passthrough;
 cvar_t	*rtx_rt_iqm_skinning;
 cvar_t	*rtx_rt_emissive_scale;
 cvar_t	*rtx_rt_emissive_light;
+cvar_t	*rtx_rt_animated_lights;
 cvar_t	*rtx_rt_camera;
 cvar_t	*rtx_rt_exposure;
 cvar_t	*rtx_rt_exposure_bias;
@@ -2765,6 +2766,10 @@ static void R_Register( void )
 	ri.Cvar_CheckRange( rtx_rt_emissive_light, "0", "1000", CV_FLOAT );
 	ri.Cvar_SetDescription( rtx_rt_emissive_light, "Light a glowing shader without q3map_surfacelight gives off (rtx_rt_lighting 0), as a multiple of the radiance it shows: fullbright surfaces, glow stages and additive flames. 0 lights nothing with them." );
 	ri.Cvar_SetGroup( rtx_rt_emissive_light, CVG_RENDERER );
+	rtx_rt_animated_lights = ri.Cvar_Get( "rtx_rt_animated_lights", "1", CVAR_ARCHIVE_ND );
+	ri.Cvar_CheckRange( rtx_rt_animated_lights, "0", "1", CV_INTEGER );
+	ri.Cvar_SetDescription( rtx_rt_animated_lights, "Light from a surface whose shader animates - a flame's frames, a pulsing glow - follows what the surface shows from moment to moment (1), or stays at its average, as the map compilers baked it (0)." );
+	ri.Cvar_SetGroup( rtx_rt_animated_lights, CVG_RENDERER );
 	rtx_rt_camera = ri.Cvar_Get( "rtx_rt_camera", "0", CVAR_ARCHIVE_ND );
 	ri.Cvar_CheckRange( rtx_rt_camera, "0", "1", CV_INTEGER );
 	ri.Cvar_SetDescription( rtx_rt_camera, "How the path tracer shows the level's own lights (rtx_rt_lighting 0):\n 0: the traced light as it is, in the map compiler's light units: the light a surface receives times its colour, with the engine's overbright and no exposure, so a map is as bright or as dark as its light sources make it\n 1: through a camera in linear light, with automatic exposure and Q2RTX's tone mapper (rtx_rt_exposure)\nThe sky and emitters alone (rtx_rt_lighting 3) always take 1." );

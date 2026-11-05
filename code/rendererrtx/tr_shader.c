@@ -110,6 +110,9 @@ static void R_RtSnapshotStages( int numStages )
 			source->images[n] = bundle->image[n] ? bundle->image[n] : bundle->image[0];
 		}
 		source->animSpeed = (float)bundle->imageAnimationSpeed;
+		source->animPhase = bundle->mohaaAnimPhase;
+		source->animHoldLast = ( bundle->aliceAnimMapOnce || bundle->jkaOneShotAnimMap ) ? qtrue : qfalse;
+		source->animFrameFromEntity = bundle->aliceFrameFromEntity ? qtrue : qfalse;
 		source->stateBits = pStage->stateBits;
 		source->tcGen = bundle->tcGen;
 		VectorCopy( bundle->tcGenVectors[0], source->tcGenVectors[0] );

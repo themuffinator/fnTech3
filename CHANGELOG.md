@@ -46,6 +46,13 @@ historical upstream records, not fnTech3 release history. See the
   with compute: 2-9% off the trace in Quake III, Return to Castle
   Wolfenstein and Medal of Honor views
   ([record](docs/fntech3/2026-11-05-rtx-round.md)).
+- RTX: a fire's light now flickers with its flames, and a pulsing lamp or
+  blinking screen lights the room as it pulses, following what the surface
+  shows (`rtx_rt_animated_lights 0` keeps it steady). Traced surfaces play
+  every frame of a long `animMap`, and Jedi Academy's and Jedi Outcast's
+  door and console lights stop on their last frame instead of looping, as
+  raster draws them
+  ([record](docs/fntech3/2026-11-05-rtx-animated-surfaces.md)).
 - RTX's path tracer takes a texture pack's complete physically based materials:
   rend2's material words in shader scripts (the GL and Vulkan renderers now
   draw such shaders instead of failing them), all six packings of roughness,

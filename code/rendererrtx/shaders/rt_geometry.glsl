@@ -112,6 +112,12 @@ RtHitAttribs rt_hit_attribs(RtTriangle tri, vec2 bary, vec3 rayDir)
 		bool brush = tri.v0.lightmapData.w > 0.5;
 		h.entityTexCoord = brush ? vec2(0.0) : tri.v0.lightmapData.xy;
 		h.entityTime = tri.v0.lightmapData.z;
+		// its animMap frame beside its no-shadow sign (rt/rt_backend.c
+		// RT_StampEntityVertices)
+		float frameLane = tri.v0.normal.w;
+		uint frameWord = uint(clamp(frameLane >= 0.0 ? frameLane : -frameLane - 1.0, 0.0, 4194303.0));
+		h.entityFrame = frameWord & RT_ENTITY_FRAME_MASK;
+		h.entityFrameAll = (frameWord & RT_ENTITY_FRAME_ALL) != 0u;
 		if (!brush) {
 			h.lightmapUv = vec2(0.0);
 			// and the raster pass's light for each vertex, when the host
@@ -128,6 +134,9 @@ RtHitAttribs rt_hit_attribs(RtTriangle tri, vec2 bary, vec3 rayDir)
 	} else {
 		h.entityTexCoord = vec2(0.0);
 		h.entityTime = 0.0;
+		// the world entity's frame is 0
+		h.entityFrame = 0u;
+		h.entityFrameAll = false;
 	}
 	h.coneWidth = 0.0;
 	h.uvDensity = rt_triangle_uv_density(tri);

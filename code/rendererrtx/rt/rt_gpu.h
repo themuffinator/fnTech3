@@ -100,6 +100,25 @@ typedef enum {
 #define RT_SF_VERTEX_IS_LIGHT	( 1u << 17 )
 #define RT_SF_ALPHA_TEST		( 1u << 18 )
 #define RT_SF_DETAIL			( 1u << 19 )
+// The animMap's frame rules (tr_shade.c RB_BindAnimatedImage): the last
+// frame holds once reached (Alice's animMapOnce, the Jedi games'
+// oneShotAnimMap), and the frame is the entity's (Alice's frameFromEntity)
+#define RT_SF_HOLD_LAST			( 1u << 20 )
+#define RT_SF_FRAME_FROM_ENTITY	( 1u << 21 )
+// Bits 22..27 of state.z hold the frame count less one. Frames past the
+// eight a stage holds, and Medal of Honor's animMapPhase, are in records
+// after the material's stages: tc1.w names the first (0 for none), whose
+// animTc0.x is the phase in seconds; each record's images hold eight frames
+#define RT_SF_FRAMES_SHIFT		22u
+#define RT_SF_FRAMES_MASK		0x3Fu
+#define RT_STAGE_INLINE_FRAMES	8u
+
+// A model or brush model vertex's normal lane w: its entity's animMap frame
+// (Alice's frame, a Jedi Academy RF_SETANIMINDEX entity's skinNum) in the
+// low bits, RT_ENTITY_FRAME_ALL when every animated stage takes it, and the
+// sign set (-1 - value) when the entity casts no shadow
+#define RT_ENTITY_FRAME_MASK	0x1FFFFFu
+#define RT_ENTITY_FRAME_ALL		0x200000u
 
 // RtFrameData.flags.x
 #define RT_FRAME_BAKED_LIGHTING	( 1u << 0 )

@@ -158,6 +158,12 @@ typedef struct {
 	vec4_t			skyColor;			// how the sky lights (RT_FindSkyLightColor)
 	uint32_t		emissiveShaders;	// shaders that glow without q3map_surfacelight
 	uint32_t		emissiveTriangles;	// ... and the triangle lights drawn with them
+	// the shaders whose glow changes with time, and the lights drawn with
+	// them (RT_AnimateLights)
+	struct rtLightAnimation_s	*animations;
+	uint32_t		numAnimations, maxAnimations;
+	struct rtAnimatedLight_s	*animated;
+	uint32_t		numAnimated, maxAnimated;
 	uint32_t		generation;
 } rtLightScene_t;
 
@@ -171,6 +177,8 @@ static void RT_LightsFree( void )
 	if ( s_rtLights.cluster ) RT_HostFree( s_rtLights.cluster );
 	if ( s_rtLights.cells ) RT_HostFree( s_rtLights.cells );
 	if ( s_rtLights.indices ) RT_HostFree( s_rtLights.indices );
+	if ( s_rtLights.animations ) RT_HostFree( s_rtLights.animations );
+	if ( s_rtLights.animated ) RT_HostFree( s_rtLights.animated );
 	{
 		// the lighting mode and the sky's light colour are what the frame was
 		// asked to trace, not what was built: a light build that fails keeps
@@ -666,6 +674,204 @@ static void RT_AddEntityLights( void )
 
 /*
 ==================
+Animated emitters
+
+A glowing shader whose stages change with time - an animMap's frames, a
+colour or alpha wave - gives off what it shows at each moment, as raster
+draws it: q3dm1's hell flames cross-fade eight frames ten times a second
+under a glow that swells and fades every 1.7 seconds. The lights built from
+such a shader keep their colour, the light's mean (q3map's value for a
+surface light, the stages' average for a glowing shader), and every frame
+take the fold of the stages at the frame's shader time over the fold's mean
+over time (RT_AnimateLights, RT_UploadLights). A q3map surface light stands
+for all its surface shows, so it follows the stages with the lighting term
+white (a lit panel under fading letters changes as much as the panel); a
+glowing shader's light is its glow, the stages with the lighting term black. The grid and the sampler's
+proposals keep the mean's power; only what a light delivers follows its
+shader. A still view is averaged only while its clock stands still, when
+the fold does too.
+==================
+*/
+
+#define RT_LIGHT_ANIMATION_SAMPLES	480
+#define RT_LIGHT_ANIMATION_STEP		0.0731	// seconds between them: 35 s, in step with no period of the tables
+#define RT_LIGHT_ANIMATION_STILL	0.005f	// a fold this steady (its deviation over its mean) is a steady light
+#define RT_LIGHT_ANIMATION_MAX		8.0f	// the most a moment gives over the mean
+
+typedef struct rtLightAnimation_s {
+	const shader_t	*shader;
+	float			light;		// the lighting term its stages are folded with
+	float			mean;		// the luminance of its fold over time; 0 for a steady shader
+	float			scale;		// this frame's fold over it
+} rtLightAnimation_t;
+
+typedef struct rtAnimatedLight_s {
+	uint32_t		light;
+	uint32_t		animation;
+} rtAnimatedLight_t;
+
+static float RT_FoldLuminance( const float c[4] )
+{
+	return 0.2126f * c[0] + 0.7152f * c[1] + 0.0722f * c[2];
+}
+
+// tess.shaderTime of a world surface drawn with `shader` at the view's clock
+static double RT_ShaderTimeAt( const shader_t *shader, double now )
+{
+	double time = now - shader->timeOffset;
+	if ( shader->clampTime && time >= shader->clampTime ) {
+		time = shader->clampTime;
+	}
+	return time;
+}
+
+// Whether an image's average is known without reading its file again: a
+// generated or missing image, or one the averages keep (RT_ImageAverage)
+static qboolean RT_ImageAverageKept( const image_t *image )
+{
+	int i;
+
+	if ( !image || image == tr.whiteImage || image == tr.identityLightImage || !image->imgName ||
+		!image->imgName[0] || image->imgName[0] == '*' || image->imgName[0] == '$' ) {
+		return qtrue;
+	}
+	for ( i = 0; i < s_rtImageAverageCount; i++ ) {
+		if ( s_rtImageAverages[i].image == image ) {
+			return qtrue;
+		}
+	}
+	return qfalse;
+}
+
+// Whether a shader's stages may change what a world surface gives off: an
+// animMap that cycles, a colour or alpha wave. Every image a frame may show
+// must have its average kept, or each frame would read its file.
+static qboolean RT_ShaderMayAnimate( const shader_t *shader )
+{
+	qboolean animates = qfalse;
+	float unused[4];
+	int i, n;
+
+	if ( !shader || shader->rtNumStages <= 0 || !shader->rtStages ) {
+		return qfalse;
+	}
+	for ( i = 0; i < shader->rtNumStages; i++ ) {
+		const rtStageSource_t *s = &shader->rtStages[i];
+		if ( ( s->numImages > 1 && s->animSpeed != 0.0f && !s->animFrameFromEntity ) ||
+			s->rgbGen == CGEN_WAVEFORM || s->alphaGen == AGEN_WAVEFORM ) {
+			animates = qtrue;
+		}
+	}
+	if ( !animates ) {
+		return qfalse;
+	}
+	for ( i = 0; i < shader->rtNumStages; i++ ) {
+		const rtStageSource_t *s = &shader->rtStages[i];
+		for ( n = 0; n < MAX( 1, MIN( s->numImages, RT_STAGE_MAX_ANIMATIONS ) ); n++ ) {
+			RT_ImageAverage( s->images[n], unused );
+			if ( !RT_ImageAverageKept( s->images[n] ) ) {
+				return qfalse;
+			}
+		}
+	}
+	return qtrue;
+}
+
+// The animation a shader's lights take with the lighting term at `light`,
+// made on its first light: -1 for a shader whose glow holds still
+static int RT_LightAnimationFor( const shader_t *shader, float light )
+{
+	rtLightAnimation_t *animation;
+	double sum = 0.0, sumSquares = 0.0, mean, deviation;
+	uint32_t i;
+	int k;
+
+	if ( !shader ) {
+		return -1;
+	}
+	for ( i = 0; i < s_rtLights.numAnimations; i++ ) {
+		if ( s_rtLights.animations[i].shader == shader && s_rtLights.animations[i].light == light ) {
+			return s_rtLights.animations[i].mean > 0.0f ? (int)i : -1;
+		}
+	}
+	if ( !RT_GrowArray( (void **)&s_rtLights.animations, &s_rtLights.maxAnimations, s_rtLights.numAnimations + 1,
+		sizeof( rtLightAnimation_t ), 32u ) ) {
+		return -1;
+	}
+	animation = &s_rtLights.animations[ s_rtLights.numAnimations++ ];
+	animation->shader = shader;
+	animation->light = light;
+	animation->mean = 0.0f;
+	animation->scale = 1.0f;
+	if ( !RT_ShaderMayAnimate( shader ) ) {
+		return -1;
+	}
+	for ( k = 0; k < RT_LIGHT_ANIMATION_SAMPLES; k++ ) {
+		const double time = k * RT_LIGHT_ANIMATION_STEP;
+		float fold[4];
+		double luminance;
+		RT_FoldStages( shader, light, qfalse, &time, fold );
+		luminance = RT_FoldLuminance( fold );
+		sum += luminance;
+		sumSquares += luminance * luminance;
+	}
+	mean = sum / RT_LIGHT_ANIMATION_SAMPLES;
+	deviation = sqrt( MAX( sumSquares / RT_LIGHT_ANIMATION_SAMPLES - mean * mean, 0.0 ) );
+	if ( !( mean > 1e-6 ) || deviation < RT_LIGHT_ANIMATION_STILL * mean ) {
+		return -1;
+	}
+	animation->mean = (float)mean;
+	ri.Printf( PRINT_DEVELOPER, "RTX RT: %s's light follows its stages (%.1f%% deviation)\n", shader->name,
+		100.0 * deviation / mean );
+	return (int)( s_rtLights.numAnimations - 1 );
+}
+
+// The lights from `first` on were drawn with `shader`: they follow its
+// stages, folded with the lighting term at `light`, where those change with
+// time
+static void RT_AnimateNewLights( const shader_t *shader, float light, uint32_t first )
+{
+	int animation;
+	uint32_t i;
+
+	if ( first >= s_rtLights.numLights ) {
+		return;
+	}
+	animation = RT_LightAnimationFor( shader, light );
+	if ( animation < 0 ) {
+		return;
+	}
+	if ( !RT_GrowArray( (void **)&s_rtLights.animated, &s_rtLights.maxAnimated,
+		s_rtLights.numAnimated + ( s_rtLights.numLights - first ), sizeof( rtAnimatedLight_t ), 64u ) ) {
+		return;
+	}
+	for ( i = first; i < s_rtLights.numLights; i++ ) {
+		rtAnimatedLight_t *animated = &s_rtLights.animated[ s_rtLights.numAnimated++ ];
+		animated->light = i;
+		animated->animation = (uint32_t)animation;
+	}
+}
+
+// Each animation's scale at the view's clock `now`
+static void RT_AnimateLights( double now )
+{
+	uint32_t i;
+
+	for ( i = 0; i < s_rtLights.numAnimations; i++ ) {
+		rtLightAnimation_t *animation = &s_rtLights.animations[i];
+		double time;
+		float fold[4];
+		if ( !( animation->mean > 0.0f ) ) {
+			continue;
+		}
+		time = RT_ShaderTimeAt( animation->shader, now );
+		RT_FoldStages( animation->shader, animation->light, qfalse, &time, fold );
+		animation->scale = Com_Clamp( 0.0f, RT_LIGHT_ANIMATION_MAX, RT_FoldLuminance( fold ) / animation->mean );
+	}
+}
+
+/*
+==================
 Surface lights
 ==================
 */
@@ -902,6 +1108,7 @@ static void RT_AddSurfaceLights( void )
 	for ( i = 0; i < worldModel->numSurfaces; i++ ) {
 		const msurface_t *surface = &worldModel->firstSurface[i];
 		const shader_t *shader = surface->shader;
+		const uint32_t firstLight = s_rtLights.numLights;
 		rtxRtCpuGeometry_t geometry;
 		vec3_t color, radiance, normal, centroid;
 		float value, totalArea = 0.0f;
@@ -993,6 +1200,8 @@ static void RT_AddSurfaceLights( void )
 			}
 			RT_AddPointLight( centroid, color, value * RT_LIGHT_POINT_SCALE, qfalse, qtrue, 1.0f, NULL, 0.0f, 0 );
 			vk_rt_cpu_geometry_free( &geometry );
+			// a flame's light follows the stages the surface draws
+			RT_AnimateNewLights( RT_ResolveShader( shader ), 1.0f, firstLight );
 			continue;
 		}
 
@@ -1018,6 +1227,8 @@ static void RT_AddSurfaceLights( void )
 			RT_AddBacksplash( shader, *surface->data == SF_FACE ? qtrue : qfalse, &geometry, normal, color, value );
 		}
 		vk_rt_cpu_geometry_free( &geometry );
+		// its light, backsplash and all, follows the stages the surface draws
+		RT_AnimateNewLights( RT_ResolveShader( shader ), 1.0f, firstLight );
 	}
 }
 
@@ -1057,6 +1268,7 @@ static void RT_AddEmissiveSurfaces( void )
 		// the shader the surface draws, a remap's as its material takes it
 		// (RT_MaterialIndexForShader), so the glow it shows is the glow it gives
 		const shader_t *shader = surface->shader ? RT_ResolveShader( surface->shader ) : NULL;
+		const uint32_t firstLight = s_rtLights.numLights;
 		rtxRtCpuGeometry_t geometry;
 		vec3_t radiance;
 		float value, peak;
@@ -1126,6 +1338,7 @@ static void RT_AddEmissiveSurfaces( void )
 			s_rtLights.emissiveTriangles++;
 		}
 		vk_rt_cpu_geometry_free( &geometry );
+		RT_AnimateNewLights( shader, 0.0f, firstLight );
 	}
 }
 
