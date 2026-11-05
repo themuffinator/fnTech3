@@ -369,7 +369,14 @@ void rt_parallax(RtMaterial material, RtTriangle tri, inout RtHitAttribs h)
 	vec2 size = max(vec2(textureSize(u_textures[nonuniformEXT(image)], 0)), vec2(1.0));
 	vec3 nonSquare = size.y <= size.x ? vec3(1.0, size.x / size.y, 1.0) : vec3(size.y / size.x, 1.0, 1.0);
 	vec3 offsetDir = normalize(V * nonSquare);
-	vec2 ds = -offsetDir.xy * (material.pbrNormal.z / offsetDir.z);
+	// toward a grazing view the height field's reach along the surface grows
+	// as 1 / cos, and the sixteen steps smear it into slabs: the relief fades
+	// out between 63 and 81 degrees from the normal (rend2 keeps it whole)
+	float fade = smoothstep(0.15, 0.45, offsetDir.z);
+	if (fade <= 0.0) {
+		return;
+	}
+	vec2 ds = -offsetDir.xy * (material.pbrNormal.z * fade / offsetDir.z);
 	float bias = material.pbrNormal.w;
 	vec2 dp = rt_stage_texcoords(s, h, time) - bias * ds;
 	float lod = rt_stage_lod(s, h, image, 0.0);

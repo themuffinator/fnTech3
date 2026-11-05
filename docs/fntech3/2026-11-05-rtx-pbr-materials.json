@@ -190,5 +190,53 @@
   "maps belong to one stage of a lit material",
   "no Q2RTX-style override files; shader scripts are the material system",
   "not measured: other profiles with a pack, frame time with maps, a third-party rend2 pack"
- ]
+ ],
+ "q3dm1Conversion": {
+  "scope": "derived maps for every image q3dm1 lit materials draw; kept in .tmp, never committed (invariant 8)",
+  "tool": ".tmp/rtx-pbr-q3dm1/pbr_convert.py with q3_materials.py",
+  "images": 72,
+  "classes": 13,
+  "outputs": {
+   "_nh": 28,
+   "_n": 44,
+   "_orms": 72
+  },
+  "packBytes": 12925556,
+  "probe": ".tmp/rtx-pbr-q3dm1/probe.sh: retail q3dm1, five views, plain vs PBR after vid_restart, compute backend, win32-dev b27921b1 plus the parallax fade",
+  "validationMessages": 0,
+  "materialsWithMaps": 72,
+  "frameMeans_plain_pbr": {
+   "v1": [
+    39.4,
+    38.3
+   ],
+   "v2": [
+    43.8,
+    36.5
+   ],
+   "v3": [
+    37.7,
+    34.6
+   ],
+   "v4": [
+    40.3,
+    36.0
+   ],
+   "v5": [
+    65.8,
+    60.1
+   ]
+  },
+  "parallaxMeanAbsDiff": {
+   "v1_parallax_diff": 4.51,
+   "v3_parallax_diff": 3.84
+  },
+  "engineChange": "parallax fades out between 63 and 81 degrees from the normal",
+  "lessons": [
+   "cap metalness of painted metal (0.5-0.6)",
+   "parallax for broad relief only",
+   "masonry mortar from line networks of either polarity",
+   "rough non-metal for pitted floors"
+  ]
+ }
 }

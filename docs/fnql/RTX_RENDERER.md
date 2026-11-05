@@ -417,7 +417,9 @@ height map, the view's ray continues under the surface to the height field
 `parallaxDepth` texture units deep (0.05 by default), with rend2's search
 (sixteen steps, eight halvings, a linear fit), and the point's texture
 coordinates move there; the light and bounce rays leave from the flat
-surface (`rtx_rt_parallax`).
+surface (`rtx_rt_parallax`). Toward a grazing view the relief fades out,
+between 63 and 81 degrees from the surface's normal, where the search's
+reach along the surface would smear it into slabs; rend2 keeps it whole.
 
 rend2's scale words apply as rend2 applies them: `specularScale`, `gloss`,
 `roughness`, `specularExponent` and `specularReflectance` scale a specular

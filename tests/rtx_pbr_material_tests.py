@@ -256,7 +256,9 @@ class MaterialShadingTests(unittest.TestCase):
         parallax = section(self.path, 'void rt_parallax(', '\n}\n')
         for needle in ('(material.maps.z & RT_MAPS_HEIGHT) == 0u', 'RT_FRAME_PARALLAX',
                        'material.pbrNormal.z > 0.0', 'for (int i = 0; i < 15; i++)', 'for (int i = 0; i < 8; i++)',
-                       'vec2 ds = -offsetDir.xy * (material.pbrNormal.z / offsetDir.z);',
+                       'vec2 ds = -offsetDir.xy * (material.pbrNormal.z * fade / offsetDir.z);',
+                       # the relief fades out toward grazing views
+                       'float fade = smoothstep(0.15, 0.45, offsetDir.z);',
                        'vec2 offset = ds * (best - bias);', 'h.position += move;',
                        # the depth is one less the height
                        'depth >= 1.0 - textureLod('):

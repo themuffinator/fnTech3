@@ -73,6 +73,8 @@ stage) takes:
   `RayIntersectDisplaceMap`), with rend2's non-square scale. The point's
   texture and lightmap coordinates move there. Light and bounce rays leave
   from the flat surface, and reflections and bounces skip the search.
+  The relief fades out between 63 and 81 degrees from the normal (see
+  "q3dm1 converted" below).
   `rtx_rt_parallax 0` turns it off without a restart.
 
 ### Retail-safe names
@@ -165,6 +167,68 @@ texture, or for all of them in the glow-all variant. A words pack gives
 - **Not measured.** Other profiles' maps with a pack (the finder and
   decoding are profile-independent, and the parser runs under every
   profile), frame time with maps, and a rend2 pack made by someone else.
+
+## q3dm1 converted from its own textures
+
+To check the material model on real content rather than synthetic patterns,
+every image q3dm1's lit materials draw was given derived material maps:
+72 images, from the user's own retail `pak0`-`pak8`. The maps are derived
+from retail art, so they and the pack stay under `.tmp/rtx-pbr-q3dm1` and are
+never committed (invariant 8). The converter there, `pbr_convert.py`, reads
+each image as RTX's finder picks it (`q3_materials.py`) and writes `_nh` or
+`_n` and `_orms`. It follows the single-image material estimation of
+CrazyBump and Materialize:
+
+- **Classes by eye.** Each of the 72 images was classified from contact
+  sheets into one of 13 classes: masonry, slate, cobble, stone with metal
+  inlay, sculpted metal, plate, rust, grating, wood, mud, flesh, cloth and
+  paint. Each class sets a relief depth, band weights, roughness range and
+  metal rule.
+- **Height.** The luminance less its large-scale albedo is split into
+  wrap-around band-pass layers. Coarse bands make the structure (shaped
+  into plateaus for stone and mud), fine bands the grain. Masonry is built
+  from its mortar instead: painted lines found by Hessian line strength at
+  two scales, of whichever polarity forms the larger connected network
+  (both where they are equal, as in `blocks17`'s pale pointing), with
+  isolated specks dropped. Grooves get bevelled shoulders and the block
+  faces stay nearly flat.
+- **Normals** come from that height at the tracer's own parallax depth, so
+  bumps and parallax agree. **Occlusion** is horizon-based on the same
+  relief. **Roughness and metalness** take class priors, modulated by
+  rust (warm, saturated, noisy), grime and painted highlights.
+
+What the probes taught, each a change made and re-checked:
+
+- **Painted metal must stay partly diffuse.** Quake III paints its bronze
+  and iron with the shading baked in, in dark colours. Fully metallic, a
+  surface keeps no diffuse light and mirrors only in that dark colour, so
+  arches, columns and statues went nearly black. Metalness is capped at
+  0.5-0.6 for painted metal, which keeps the painted look with a metal's
+  sheen.
+- **Parallax suits broad relief only.** Blocks, cobbles, slate, mud and
+  flesh take height (`_nh`). Rivets, grating, carving and grain smeared
+  into spikes under the search (a riveted 64x256 plate stretched up a
+  pillar), so those classes give normals alone (`_n`).
+- **Grazing views smear any height field.** The tracer now fades parallax
+  out between 63 and 81 degrees from the normal (`rt_path.glsl`
+  `rt_parallax`).
+- **Low roughness over noisy normals glitters.** The pitted
+  `metalbridge06` floor sparkled under torches until made rough and mostly
+  non-metallic.
+
+**Live (observed).** `scripts/rtx_probe.py` ran on retail q3dm1 (`pak0`-`pak8`
+alone) with `win32-dev` at `b27921b1` plus the fade, compute backend. It
+used five fixed views (four spawns and the intermission camera), each traced
+without and then with maps after a `vid_restart` and accumulated frozen.
+There were no validation messages, and all 72 materials took their maps on
+every maps-on load and none on the plain ones. Frame means, plain against
+PBR: 39.4/38.3, 43.8/36.5, 37.7/34.6, 40.3/36.0 and 65.8/60.1. Occlusion,
+and metal that keeps less diffuse light, darken the PBR frames by 3-17%.
+Parallax changes v1 and v3 by 4.5 and 3.8/255. Separate runs differ in how
+far a frozen view has accumulated: the noise of the same view varied by up
+to 2.5x between runs, so single runs are compared only for gross faults.
+`blocks18b`'s pointing is faint and broken in the source art, so its
+mortar network stays partial.
 
 ## Limits
 

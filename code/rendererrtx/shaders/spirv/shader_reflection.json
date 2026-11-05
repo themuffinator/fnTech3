@@ -1180,7 +1180,7 @@
       "source": "rt_trace.comp",
       "stage": "comp",
       "defines": [],
-      "byte_size": 296216,
+      "byte_size": 296480,
       "reflection": {
         "descriptor_bindings": [
           {
@@ -1392,7 +1392,7 @@
       "source": "rt_main.rgen",
       "stage": "rgen",
       "defines": [],
-      "byte_size": 261272,
+      "byte_size": 261536,
       "reflection": {
         "descriptor_bindings": [
           {
