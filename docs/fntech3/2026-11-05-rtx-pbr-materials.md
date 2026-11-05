@@ -230,6 +230,38 @@ to 2.5x between runs, so single runs are compared only for gross faults.
 `blocks18b`'s pointing is faint and broken in the source art, so its
 mortar network stays partial.
 
+### Every model
+
+The same workflow then covered every lit image retail Quake III's models
+draw. That is 303 images: the md3 surfaces and player `.skin` files of
+`pak0`-`pak8`, plus the map objects compiled into the retail maps. 282 took
+maps; 21 are effects (weapon hits, environment maps, glows and holograms).
+The converter is `.tmp/rtx-pbr-models/models_convert.py`, and its output
+also stays under `.tmp`. Models differ from map textures in three ways:
+
+- **Atlases, not tiles.** Filters clamp rather than wrap. The black
+  background between UV islands is masked and filled before filtering, so
+  island edges make no false relief. Models take normals alone (`_n`).
+- **Mixed materials in one image.** Player skins and weapons are decided
+  per pixel, with soft weights. Skin is warm and moderately saturated
+  (F0 0.028). Team paint is saturated, glossy and dielectric. Metal is
+  found by structure rather than colour, because Quake III paints its
+  armour and guns brownish grey: high local contrast at low to middling
+  saturation, taken over regions a few texels wide. The rest (leather,
+  cloth, hair) is rough. The statue and skeleton skins, the map objects,
+  ammo and items were classified by eye.
+- **Painted gun metal.** As a 0.6 metal the light-grey first-person guns
+  turned to dark chrome. Guns are capped at 0.4 metal, slightly rougher,
+  which keeps their brightness with a satin sheen.
+
+**Live (observed).** One q3dm1 launch loaded only the model pack, compute
+backend. It showed Sarge, Major, Doom, Keel and Xaero in third person and
+the machinegun, rocket launcher, railgun and plasma gun in first person,
+each without and then with maps after a `vid_restart`. There were no
+validation messages; 39 model materials took maps. A weapon switch must
+follow a `vid_restart` by a frame step, or the client game, which has no
+snapshot yet, ignores it. Map objects outside q3dm1 were not viewed live.
+
 ## Limits
 
 - Height maps shift only the primary view. Shadow, bounce and reflection

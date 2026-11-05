@@ -238,5 +238,25 @@
    "masonry mortar from line networks of either polarity",
    "rough non-metal for pitted floors"
   ]
+ },
+ "modelsConversion": {
+  "scope": "every lit image retail Q3 models draw (md3, player skins, BSP map objects); kept in .tmp, never committed",
+  "tool": ".tmp/rtx-pbr-models/models_convert.py, model_inventory.py",
+  "litImages": 303,
+  "converted": 282,
+  "skippedEffects": 21,
+  "outputs": {
+   "_n": 282,
+   "_orms": 282
+  },
+  "probe": ".tmp/rtx-pbr-models/probe.sh: q3dm1 courtyard, 5 player models third person, 4 weapons first person, plain vs PBR after vid_restart, compute backend",
+  "validationMessages": 0,
+  "modelMaterialsWithMaps": 39,
+  "lessons": [
+   "clamp filters and fill UV-island background",
+   "per-pixel skin, paint, metal-by-structure, rest",
+   "cap gun metal at 0.4",
+   "weapon switch needs a frame step after vid_restart"
+  ]
  }
 }
