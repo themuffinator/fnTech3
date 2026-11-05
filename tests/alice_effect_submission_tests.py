@@ -78,7 +78,7 @@ int main() {
             assert(!memcmp(e.origin, out.origin, sizeof(e.origin)));
             assert(!memcmp(e.axis, out.axis, sizeof(e.axis)));
             assert(!memcmp(e.shaderRGBA, out.shader.rgba, 4));
-            assert(out.shaderTime.f==4.5f && out.frame==7 && out.alice.scale==.05f);
+            assert(out.shaderTime.f==4.5f && out.frame==7 && out.alice.scale==float(.05f));
             assert(!(out.renderfx & RF_LIGHTING_ORIGIN)); // 0x80 is not Q3's flag
             assert(bool(out.renderfx & RF_DEPTHHACK)==bool(flags & 4));
             if (!sprite) {

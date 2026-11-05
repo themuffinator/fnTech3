@@ -24,7 +24,7 @@ enum { VK_NULL_HANDLE = 0, VK_IMAGE_ASPECT_DEPTH_BIT = 1, VK_IMAGE_ASPECT_STENCI
        RENDER_PASS_MAIN = 0, RENDER_PASS_POST_BLOOM = 1 };
 using VkImageAspectFlags = int;
 static struct { globalFog_t globalFog; } world;
-static struct { decltype(world) *world; int frameCount, overbrightBits; } tr;
+static struct { decltype(::world) *world; int frameCount, overbrightBits; } tr;
 static struct {
     struct { int rdflags; qboolean skyboxPortalScene; } refdef;
     struct { int portalView, stereoFrame, viewportX, viewportY, viewportWidth, viewportHeight;
@@ -39,7 +39,7 @@ static struct {
 static struct {
     int global_fog_pipeline, depth_sample_descriptor, depth_image, renderPassIndex, maxBoundDescriptorSets;
     struct { int global_fog; } render_pass, framebuffers;
-    decltype(cmd) *cmd;
+    decltype(::cmd) *cmd;
 } vk;
 static cvar_t strength, nearPlane, exposure;
 static cvar_t *r_globalFogStrength = &strength, *r_znear = &nearPlane, *r_tonemapExposure = &exposure;
@@ -106,7 +106,7 @@ template<typename Change> static void SkippedThenMain( Change change ) {
     assert( cmd.last_pipeline == VK_NULL_HANDLE && cmd.depth_range == DEPTH_RANGE_COUNT );
     assert( cmd.descriptor_set.start == 0 && cmd.descriptor_set.end == 7 );
     for ( int value : cmd.scissor_rect ) assert( value == -1 );
-    assert( pushed[3] == 0.8f && pushed[4] == 64 && pushed[8] == 4 && pushed[9] == 4096 );
+    assert( pushed[3] == float( 0.8f ) && pushed[4] == 64 && pushed[8] == 4 && pushed[9] == 4096 );
 #ifdef USE_REVERSED_DEPTH
     assert( pushed[11] == 1 );
 #else

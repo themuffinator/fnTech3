@@ -45,7 +45,7 @@ MUTATIONS = {
     'nothing removed answers 1': lambda text: in_case(text,
         'result = removal == Removal::NoModel ? qfalse : qtrue;', 'result = qtrue;'),
     'binding kept': lambda text: in_case(text,
-        '            jkaCgameSkins->bindings.erase(std::make_pair(identity, modelIndex));', '            ;'),
+        '            jkaCgameSkins->bindings.erase(std::make_pair(identity, modelIndex));', '            {}'),
     'bindings kept after deletion': lambda text: in_case(text,
         'if (removal == Removal::Deleted) CL_JKACgameSkinCleanModel(identity);',
         'if (removal == Removal::Deleted) {}'),
@@ -53,7 +53,7 @@ MUTATIONS = {
         'false,fntech3::ghoul2::NameMatch::AsciiFolded,true);',
         'false,fntech3::ghoul2::NameMatch::AsciiFolded,false);', 1),
     'removed model keeps gore': lambda text: in_case(text,
-        '            jkaCgameGore->ClearModel(identity, modelIndex);', '            ;'),
+        '            jkaCgameGore->ClearModel(identity, modelIndex);', '            {}'),
     'removal clears every model gore': lambda text: in_case(text,
         'jkaCgameGore->ClearModel(identity, modelIndex);', 'jkaCgameGore->Clear(identity);'),
 }

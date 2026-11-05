@@ -77,7 +77,7 @@ int main(){
  assert(Compile("Light\n{\nlife 40\nsize\n{\nstart 300\nend 10\nflags linear\n}\nrgb\n{\nstart 0.1 0.5 0.4\n}\nalpha\n{\nstart 0.5\n}\n}\n",spec));
  assert(spec.sizeLinear&&spec.size.first==300&&spec.sizeEnd.first==10);
  assert(Compile("FxRunner\n{\ncount 0 0.6\nplayFx\n[\nown/a\n]\n}\n",spec));
- assert(spec.kind==effect::Kind::Runner&&spec.count.last==0.6f&&spec.children.size()==1);
+ assert(spec.kind==effect::Kind::Runner&&spec.count.last==float(0.6f)&&spec.children.size()==1);
  assert(Compile("Electricity\n{\ncount 0 0.6\nlife 125 225\nspawnflags org2fromTrace org2isOffset\n"
   "origin2 0 -12000 12000 0 -18000 18000\nflags useModel useBBox\nintensity 2.0 3.5\n"
   "rgb\n{\nstart 0.2 1.0 1.0 0.2 1.0 0.7\n}\nsize\n{\nstart 4.0 7.0\nend 1.0\nflags linear\n}\n"
@@ -177,7 +177,7 @@ int main(){
  assert(play::BranchPoints(arc,20,0,branch,from)==2&&from==5); // reach 6.4: 1.4 of 11 segments, scaled to 8
  assert(play::BranchPoints(arc,50,1,branch,from)==play::BranchSegments&&from==10);
  assert(branch[0]==again[10]&&branch[play::BranchSegments]!=again[play::BoltSegments]);
- assert(play::BranchWidth(arc,4,5,0)==4*(1-5.0f/16)*0.7f&&play::BranchWidth(arc,4,5,play::BranchSegments)==0);
+ assert(play::BranchWidth(arc,4,5,0)==float(4*(1-5.0f/16)*0.7f)&&play::BranchWidth(arc,4,5,play::BranchSegments)==0);
  assert(play::BranchPoints(arc,50,2,branch,from)==0);
  arc.flags&=~0x2000000u;assert(play::BranchPoints(arc,50,0,branch,from)==0);
  arc.flags=0;assert(play::BoltPoints(arc,0,points)==play::BoltSegments&&play::BoltWidth(arc,4,play::BoltSegments)==4);
@@ -185,7 +185,7 @@ int main(){
  // Light spawn carries its RGB alone, not alpha-weighted bytes.
  play::Spec glow;assert(Compile("Light\n{\nlife 40\nsize\n{\nstart 300\n}\nrgb\n{\nstart 0.1 0.5 0.4\n}\nalpha\n{\nstart 0.5\n}\n}\n",glow));
  play::Spawn light;assert(play::Instantiate(glow,{1,2,3},up,random,light));
- assert(light.light[0]==0.1f&&light.light[1]==0.5f&&light.light[2]==0.4f&&light.size==300&&light.life==40);
+ assert(light.light[0]==float(0.1f)&&light.light[1]==float(0.5f)&&light.light[2]==float(0.4f)&&light.size==300&&light.life==40);
 }
 '''
 
@@ -250,7 +250,7 @@ int main(){
    // One Light at the emission point and one traced bolt from it.
    bool found=false;
    for(const auto &call:lights)found|=std::fabs(call.origin[2]-reference[next+1])<0.001f&&call.radius==300&&
-    call.r==0.1f&&call.g==0.5f&&call.b==0.4f&&call.origin[0]==0&&call.origin[1]==0;
+    call.r==float(0.1f)&&call.g==float(0.5f)&&call.b==float(0.4f)&&call.origin[0]==0&&call.origin[1]==0;
    assert(found);next+=2;++bolts;
   }
   assert(endpointTraces==bolts&&lights.size()>=lightsBefore);(void)emittedBefore;

@@ -499,7 +499,9 @@ int main()
     float lo = 1e9f, hi = 0.0f;
     const int reads = fileReads;
     for ( int k = 0; k < 4000; k++ ) {
-        const double now = 1000.0 + k * 0.0161;
+        // Every thousandth step would land exactly on a frame edge, where x87
+        // and SSE rounding may pick neighbouring images; sample beside them.
+        const double now = 1000.00313 + k * 0.0161;
         RT_AnimateLights( now );
         const int n = (int)( now * 10.0 );
         const float fade = Com_Clamp( 0, 1, Wave( &stages[0].rgbWave, now, tr.inverseSawToothTable ) * tr.identityLight );

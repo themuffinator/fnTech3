@@ -162,7 +162,8 @@ class X86BuildConstraintTests(unittest.TestCase):
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 check=False,
-                timeout=60,
+                # A whole-project configure; a busy CI runner needs minutes.
+                timeout=300,
             )
             cache = (build_dir / "CMakeCache.txt").read_text(
                 encoding="utf-8", errors="replace"

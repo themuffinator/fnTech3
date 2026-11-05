@@ -10,6 +10,10 @@ historical upstream records, not fnTech3 release history. See the
 
 ## [Unreleased]
 
+_None yet._
+
+## [0.2.0] - 2026-11-05
+
 - Make all sixteen game profiles accessible in every build. Legacy development
   switches no longer disable games, and experimental warnings are informational.
   Native-module platform requirements and documented compatibility limits remain
@@ -408,6 +412,11 @@ historical upstream records, not fnTech3 release history. See the
   small rounding differences and curved surfaces staying
   smooth at a distance. A brush model fading with Elite Force's forced alpha
   keeps fading ([record](docs/fntech3/2026-10-26-glx-world-vbo-default.md)).
+- Let the release checks pass on Linux and MinGW. Test fixtures now include
+  the standard headers they use, link the maths library, and compare 32-bit
+  x87 float results without assuming SSE rounding. Academy's ambient sound
+  volume tests a NaN by its bits, so `-ffast-math` builds keep the check, and
+  an Alice font test accepts MinGW's runtime reading `nan` as zero.
 
 ## [0.1.0] - 2026-10-11
 

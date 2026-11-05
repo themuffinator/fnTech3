@@ -89,7 +89,7 @@ static void AddEffectPolys(qhandle_t,int,const polyVert_t *,int){assert(false);}
 static void AddEffectLight(const vec3_t,float,float,float,float){assert(false);}
 // Decal fragments are cut by Fn's mark clipper; jka_decal_tests supplies one.
 static int MarkEffectFragments(int,const vec3_t *,const vec3_t,int,vec3_t,int,markFragment_t *){assert(false);return 0;}
-static struct {decltype(&RegisterShader) RegisterShader;decltype(&RegisterModel) RegisterModel;
+static struct {decltype(&::RegisterShader) RegisterShader;decltype(&::RegisterModel) RegisterModel;
  decltype(&AddEffectEntity) AddRefEntityToScene;decltype(&AddEffectPolys) AddPolyToScene;
  decltype(&AddEffectLight) AddLightToScene;decltype(&MarkEffectFragments) MarkFragments;}
  re{RegisterShader,RegisterModel,AddEffectEntity,AddEffectPolys,AddEffectLight,MarkEffectFragments};

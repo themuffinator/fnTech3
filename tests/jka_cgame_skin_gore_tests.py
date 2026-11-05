@@ -325,7 +325,7 @@ int main(){
  }
  // Growth: a duration sets the end and the rate from the start fraction.
  {Clear(body);Request grow=shot;grow.growDuration=100;grow.startFraction=0.5f;assert(Add(body,grow)==0);
-  const auto &m=SetOf(body,0)->marks.begin()->second;assert(m.growEnd==now+100&&m.growStart==now&&m.growOffset==0.5f&&m.growFactor==0.5f/100.0f);
+  const auto &m=SetOf(body,0)->marks.begin()->second;assert(m.growEnd==now+100&&m.growStart==now&&m.growOffset==0.5f&&m.growFactor==float(0.5f/100.0f));
   Clear(body);assert(Add(body,shot)==0&&Count(body,0)==2);set=SetOf(body,0);}
  // The tags of one call share their upper bits; the next call's do not.
  const int firstTag=set->marks.find(0)->second.tag;

@@ -406,7 +406,9 @@ class JediSurfaceSpriteTests(unittest.TestCase):
             if os.name == 'nt':
                 command += ['-fuse-ld=lld', '-Wl,/force:unresolved']
             else:
-                command += ['-lm', '-Wl,--unresolved-symbols=ignore-all']
+                # A position-independent executable keeps PLT slots for the
+                # ignored symbols, which the loader then refuses to bind.
+                command += ['-no-pie', '-lm', '-Wl,--unresolved-symbols=ignore-all']
             built = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, timeout=180)
             self.assertEqual(built.returncode, 0, built.stdout + built.stderr)
             options = {'creationflags': subprocess.CREATE_NO_WINDOW} if os.name == 'nt' else {}

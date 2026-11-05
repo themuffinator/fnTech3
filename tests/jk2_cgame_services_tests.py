@@ -129,6 +129,7 @@ FIXTURE = r'''
 #include <cassert>
 #include <climits>
 #include <cstddef>
+#include <cstdint>
 #include <cstring>
 #include <limits>
 struct Drop {};

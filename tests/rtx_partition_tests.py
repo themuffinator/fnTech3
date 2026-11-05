@@ -28,6 +28,7 @@ def section(text, start, end):
 
 HARNESS = r'''
 #include <cassert>
+#include <climits>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>

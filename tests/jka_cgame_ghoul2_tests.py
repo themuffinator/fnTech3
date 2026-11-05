@@ -27,6 +27,7 @@ def fixture():
 #include "code/compat/jka_module_abi.h"
 #include <array>
 #include <cassert>
+#include <cstring>
 #include <limits>
 #include <csetjmp>
 #include "code/compat/jka_skin.hpp"

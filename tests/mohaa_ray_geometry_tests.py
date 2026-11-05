@@ -67,7 +67,7 @@ static struct {
 } tess;
 static void Printf( int level, const char *fmt, ... ) { (void)level; (void)fmt; }
 static byte hunk[1 << 16]; static int hunkUsed;
-static void *Hunk_Alloc( int size, ha_pref preference ) {
+static void *FixtureHunkAlloc( int size, ha_pref preference ) {
     void *block = hunk + hunkUsed; (void)preference; hunkUsed += ( size + 15 ) & ~15; assert( hunkUsed <= (int)sizeof( hunk ) );
     memset( block, 0, size ); return block;
 }
@@ -337,7 +337,7 @@ int main( void ) {
     world_t world = { 0, NULL };
     int count, calls, poses, i, state, skinNum, custom;
 
-    ri.MOHAARender = &engine; ri.Printf = Printf; ri.Hunk_Alloc = Hunk_Alloc;
+    ri.MOHAARender = &engine; ri.Printf = Printf; ri.Hunk_Alloc = FixtureHunkAlloc;
     tr.defaultShader = &defaultShader; strcpy( defaultShader.name, "<default>" );
     tr.world = &world; tr.numModels = 1; tr.frameCount = 1;
     model = R_GetModelByHandle( RE_RegisterMOHAATiki( "models/test.tik", &fakeTiki ) );
@@ -540,7 +540,8 @@ class MOHAARayGeometryTests(unittest.TestCase):
             exe = folder / 'probe.exe'
             built = subprocess.run([compiler, *flags, '-std=gnu11', '-Wall', '-Wno-unused-function',
                                     '-I', str(folder), '-I', str(ROOT), '-I', str(ROOT / 'code' / 'rendererrtx'),
-                                    str(folder / 'probe.c'), '-o', str(exe)],
+                                    str(folder / 'probe.c'), '-o', str(exe),
+                                    *([] if os.name == 'nt' else ['-lm'])],
                                    cwd=ROOT, capture_output=True, text=True, timeout=120)
             self.assertEqual(built.returncode, 0, built.stdout + built.stderr)
             ran = subprocess.run([str(exe)], cwd=ROOT, capture_output=True, text=True, timeout=60)

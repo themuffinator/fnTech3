@@ -23,11 +23,11 @@ version.
  * every representation together. Published versions use MAJOR.MINOR.PATCH;
  * TWEAK stays zero and CI run/commit identity lives in the release manifest. */
 #define FNTECH3_VERSION_MAJOR 0
-#define FNTECH3_VERSION_MINOR 1
+#define FNTECH3_VERSION_MINOR 2
 #define FNTECH3_VERSION_PATCH 0
 #define FNTECH3_VERSION_TWEAK 0
 
-#define FNTECH3_VERSION_STRING "0.1.0"
+#define FNTECH3_VERSION_STRING "0.2.0"
 
 #define FNTECH3_TAG_PREFIX "v"
 
@@ -35,8 +35,8 @@ version.
 #define FNTECH3_ARTIFACT_PREFIX "fntech3"
 #define FNTECH3_EXECUTABLE_BASENAME "fntech3"
 
-#define FNTECH3_WINDOWS_FILE_VERSION 0,1,0,0
-#define FNTECH3_WINDOWS_PRODUCT_VERSION 0,1,0,0
+#define FNTECH3_WINDOWS_FILE_VERSION 0,2,0,0
+#define FNTECH3_WINDOWS_PRODUCT_VERSION 0,2,0,0
 
 /* Source compatibility for the initial profile scaffold. */
 #define FNTECH3_VERSION_BUILD FNTECH3_VERSION_TWEAK

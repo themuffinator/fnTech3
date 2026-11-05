@@ -17,6 +17,11 @@ from scripts import fntech3_meta
 from scripts import manual_release
 from scripts import version
 
+# The canonical header's version, so the tests outlive each release.
+_META = fntech3_meta.base_metadata()
+BASE = _META["base_version"]
+WINDOWS_BASE = f"{_META['version_major']},{_META['version_minor']},{_META['version_patch']}"
+
 
 class VersionMetadataTests(unittest.TestCase):
     def test_legacy_metadata_import_uses_the_canonical_fntech3_identity(self) -> None:
@@ -33,11 +38,11 @@ class VersionMetadataTests(unittest.TestCase):
             header.write_bytes(fntech3_meta.VERSION_HEADER.read_bytes())
             manual_release.stamp_version(header, 42)
             meta = fntech3_meta.base_metadata(header)
-            self.assertEqual(meta["version"], "0.1.0.42")
+            self.assertEqual(meta["version"], f"{BASE}.42")
             self.assertEqual(meta["version_tweak"], 42)
             defines = fntech3_meta.read_version_defines(header)
-            self.assertEqual(defines["FNTECH3_WINDOWS_FILE_VERSION"], "0,1,0,42")
-            self.assertEqual(defines["FNTECH3_WINDOWS_PRODUCT_VERSION"], "0,1,0,42")
+            self.assertEqual(defines["FNTECH3_WINDOWS_FILE_VERSION"], f"{WINDOWS_BASE},42")
+            self.assertEqual(defines["FNTECH3_WINDOWS_PRODUCT_VERSION"], f"{WINDOWS_BASE},42")
             self.assertNotIn("FNQL_VERSION_STRING", defines)
 
     def test_normalize_commit_accepts_hex_ids_and_local_fallback(self) -> None:
@@ -76,11 +81,11 @@ class VersionMetadataTests(unittest.TestCase):
         )
         self.assertEqual(
             fnql_meta.package_archive_name(meta, "windows-x86_64"),
-            "fntech3-0.1.0.1-20260620-abcdef12-windows-x86_64.zip",
+            f"fntech3-{BASE}.1-20260620-abcdef12-windows-x86_64.zip",
         )
         self.assertEqual(
             fnql_meta.package_archive_name(meta, "linux-x86"),
-            "fntech3-0.1.0.1-20260620-abcdef12-linux-x86.tar.gz",
+            f"fntech3-{BASE}.1-20260620-abcdef12-linux-x86.tar.gz",
         )
         for name in ("../windows", "linux/x64", "bad\nname"):
             with self.subTest(name=name):
@@ -162,8 +167,8 @@ class VersionMetadataTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             notes_dir = Path(tmp)
             target_commit = "a" * 40  # A deterministic fixture, not checkout metadata.
-            (notes_dir / f"0.1.0.1-20260621-{fnql_meta.normalize_commit(target_commit)}.md").write_text(
-                "# FnQL 0.1.0.1 Release Notes\n\n"
+            (notes_dir / f"{BASE}.1-20260621-{fnql_meta.normalize_commit(target_commit)}.md").write_text(
+                f"# FnQL {BASE}.1 Release Notes\n\n"
                 "## Highlights\n\n"
                 "- Curated retail compatibility coverage.\n\n"
                 "## Known limitations\n\n"
@@ -187,7 +192,7 @@ class VersionMetadataTests(unittest.TestCase):
 
         self.assertIn("## Highlights\n\n- Curated retail compatibility coverage.", rendered)
         self.assertIn("## Known limitations", rendered)
-        self.assertNotIn("# FnQL 0.1.0.1 Release Notes", rendered)
+        self.assertNotIn(f"# FnQL {BASE}.1 Release Notes", rendered)
         self.assertNotIn("## Changelog highlights", rendered)
 
     def test_tag_specific_curated_notes_win_over_version_notes(self) -> None:

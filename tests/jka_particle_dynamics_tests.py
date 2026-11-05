@@ -105,7 +105,7 @@ int main(){
  const float clamp=CurveParm(0xd,50,1000,1000);assert(clamp==1500);
  assert(Near(CurvePercent(0xd,clamp,1200,1000,1000),0.7f)&&Near(CurvePercent(0xd,clamp,1600,1000,1000),0.2f));
  assert(Near(CurvePercent(0xc,clamp,1200,1000,1000),0.6f)&&CurvePercent(0xc,clamp,1600,1000,1000)==0);
- const float wave=CurveParm(8,2,1000,1000);assert(wave==2*0.0031415901612490416f);
+ const float wave=CurveParm(8,2,1000,1000);assert(wave==float(2*0.0031415901612490416f));
  assert(Near(CurvePercent(8,wave,1250,1000,1000),0,0.001f)&&Near(CurvePercent(8,wave,1500,1000,1000),-1,0.001f));
  assert(Near(CurvePercent(9,wave,1500,1000,1000),-0.5f,0.001f));
  // One frame's look: nearest RGB bytes, truncated alpha, RGB scaled by

@@ -244,7 +244,8 @@ class RavenBspShaderFlagsTests(unittest.TestCase):
                     probe.write_text('\n'.join((*parts, CHECKS)), encoding='utf-8')
                     compiled = subprocess.run([compiler, *engine_fixture_args(compiler), *defines, '-std=c11',
                         '-Wall', '-Wextra', '-Werror', '-Wno-unused-function', '-I', str(ROOT), str(probe),
-                        '-o', str(executable)], cwd=ROOT, capture_output=True, text=True, timeout=60)
+                        '-o', str(executable), *([] if os.name == 'nt' else ['-lm'])],
+                        cwd=ROOT, capture_output=True, text=True, timeout=60)
                     self.assertEqual(compiled.returncode, 0, compiled.stdout + compiled.stderr)
                     options = {'creationflags': subprocess.CREATE_NO_WINDOW} if os.name == 'nt' else {}
                     executed = subprocess.run([str(executable)], cwd=ROOT, capture_output=True, text=True,

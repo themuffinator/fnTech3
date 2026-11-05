@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <map>
 
 /* Jedi Academy multiplayer's ambient-set playback, as retail jamp.exe 1.01's
@@ -186,7 +187,11 @@ inline int LocalVolume(float distance, int radius, int masterVolume) noexcept {
         if (fraction > 1.0f || fraction < 0.0f) return 0;
     }
     const double product = static_cast<double>(static_cast<float>(masterVolume)) * static_cast<double>(fraction);
-    if (std::isnan(product)) return 0;
+    // A NaN volume plays nothing. Test the bits: -ffast-math builds may
+    // assume std::isnan is never true.
+    std::uint64_t bits = 0;
+    std::memcpy(&bits, &product, sizeof bits);
+    if ((bits & 0x7ff0000000000000ull) == 0x7ff0000000000000ull && (bits & 0x000fffffffffffffull)) return 0;
     return static_cast<std::uint8_t>(static_cast<std::int64_t>(product));
 }
 

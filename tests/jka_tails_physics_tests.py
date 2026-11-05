@@ -47,12 +47,12 @@ int main(){
  assert(spec.deaths==(std::vector<int>{10,11}));
  assert(spec.flags==(0x8000000u|0x2000000u|0x800000u|0x80000000u|0x20000000u)&&spec.spawnFlags==(1u|2u|0x800u));
  assert(spec.curves==(3u|0x100u|0xd000u));
- assert(spec.elasticity.first==0.4f&&spec.elasticity.last==0.6f&&spec.radius.first==4&&spec.height.first==8);
+ assert(spec.elasticity.first==float(0.4f)&&spec.elasticity.last==float(0.6f)&&spec.radius.first==4&&spec.height.first==8);
  assert(spec.length.first==-6&&spec.lengthEnd.first==-18&&spec.lengthParm.first==40&&spec.size.first==1.5f&&spec.sizeEnd.first==0.5f);
  assert(spec.ignored==(std::vector<std::string>{"wake","wobble"}));
  // "bounce" and "intensity" share one parser: elasticity and usePhysics,
  // or an Electricity's intensity.
- assert(Compile("Particle\n{\nshader gfx/own/p\nintensity 0.3\n}\n",spec)&&spec.elasticity.first==0.3f&&spec.flags==0x2000000u);
+ assert(Compile("Particle\n{\nshader gfx/own/p\nintensity 0.3\n}\n",spec)&&spec.elasticity.first==float(0.3f)&&spec.flags==0x2000000u);
  assert(Compile("Electricity\n{\nshader gfx/own/b\nbounce 2.5\n}\n",spec)&&spec.chaos.first==2.5f&&spec.flags==0x2000000u);
  // Inert in retail multiplayer: wind, affectedByWind, an untraced
  // org2isOffset, and physics bits on a Line.
@@ -240,7 +240,7 @@ int main(){
  // The next frame it falls 40 units, traced (expensivePhysics), and draws
  // back to where it was by its linear length (10 to 20; 11 at 100 ms).
  Frame(1100);Draw();assert(traces==1&&polygons==1&&vertices.size()==4);
- const auto *tail=With("gfx/own/tail").at(0);assert(tail->spawn.origin[2]==10&&tail->spawn.previous[2]==50);
+ const auto *tail=With("gfx/own/tail").at(0);assert(Near(tail->spawn.origin[2],10)&&tail->spawn.previous[2]==50);
  for(int n=0;n<4;++n)assert(Near(vertices[n].xyz[2],n<2?10.0f:21.0f));
  // Then it hits the floor: the impact effect plays where it hit, and it
  // bounces with half its elasticity, one unit off the plane.

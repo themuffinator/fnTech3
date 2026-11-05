@@ -19,7 +19,7 @@
   <a href="AGENTS.md"><img alt="Proudly vibecoded" src="assets/docs/img/badge-proudly-vibecoded.svg"></a>
 </p>
 
-*Plays: Quake III Arena, Quake Live, Return to Castle Wolfenstein (SP/MP), Wolfenstein: Enemy Territory, Star Trek Voyager: Elite Force (SP/Holomatch), Star Wars Jedi Knight: Jedi Academy (SP/MP), Star Wars Jedi Knight II: Jedi Outcast (SP/MP), American McGee's Alice, Heavy Metal: F.A.K.K.2, and Medal of Honor: Allied Assault · Base version: `0.1.0` · Current build: `0.1.0`*
+*Plays: Quake III Arena, Quake Live, Return to Castle Wolfenstein (SP/MP), Wolfenstein: Enemy Territory, Star Trek Voyager: Elite Force (SP/Holomatch), Star Wars Jedi Knight: Jedi Academy (SP/MP), Star Wars Jedi Knight II: Jedi Outcast (SP/MP), American McGee's Alice, Heavy Metal: F.A.K.K.2, and Medal of Honor: Allied Assault · Base version: `0.2.0` · Current build: `0.2.0`*
 
 </div>
 
